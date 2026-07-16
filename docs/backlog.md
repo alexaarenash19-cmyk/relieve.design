@@ -3,6 +3,30 @@ doc: backlog.md
 proyecto: Relieve — sitio web
 uso: Epic → Issues → sub-issues, listo para crear en GitHub (o alimentar a Claude Code).
 fuente: architecture.md, database.md, api.md, ui-ux.md
+estado: SUPERADO — ver nota abajo
+---
+
+# ⚠️ Superado por GitHub Issues (2026-07-16)
+
+Este archivo fue el punto de partida propuesto. Claude Code ya lo reconcilió con
+`decisions.md` (autoritativo) y lo convirtió en el backlog real en GitHub:
+
+- **16 epics** (`#1`–`#16`, label `epic`) + **68 issues hijos**, 84 issues en total.
+- Reconciliado con `decisions.md`: Supabase (no Postgres genérico), Vercel serverless
+  (no Netlify), Facturama (no SW/Bind), precios en **centavos** en todos los campos.
+- 2 epics nuevos que no estaban aquí: **Legal & compliance pages** y
+  **Observability & alerting** (gaps que `decisions.md` señalaba sin resolver).
+- Sub-issues nativos de GitHub (parent–child), no checkboxes.
+- Cada issue tiene una sección `## Blocked-by` con las dependencias reales, y el
+  label `ready` marca lo que se puede empezar ya (por ahora: el schema de Supabase
+  y el scaffold del frontend).
+
+**La fuente de verdad ahora es GitHub Issues**, no este archivo. Este archivo se
+conserva como referencia histórica de la propuesta original — no lo uses para
+priorizar o secuenciar trabajo.
+
+👉 Ver: https://github.com/alexaarenash19-cmyk/relieve-web/issues
+
 ---
 
 # EPIC — Relieve — Sitio web v1

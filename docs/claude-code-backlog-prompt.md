@@ -1,6 +1,21 @@
 ---
 doc: claude-code-backlog-prompt.md
 uso: pegar en Claude Code desde la raíz del repo (con GH_TOKEN configurado). Se auto-organiza en fases y pausa para tu aprobación.
+estado: EJECUTADO — ver nota abajo
+---
+
+# ✅ Ya ejecutado (2026-07-16)
+
+Este prompt ya corrió de punta a punta (Fases 1–4) el 2026-07-16. Resultado:
+**16 epics + 68 issues hijos (84 total)** en GitHub Issues, con sub-issues nativos,
+`## Blocked-by` por issue, y label `ready` en lo que se puede empezar ya.
+
+👉 Ver: https://github.com/alexaarenash19-cmyk/relieve-web/issues
+
+Este archivo se conserva como referencia del proceso usado (por si se necesita
+re-correr para un proyecto nuevo o repetir el patrón). No hace falta volver a
+pegar este prompt en este repo — el backlog ya existe.
+
 ---
 
 # Prep para Claude Code
