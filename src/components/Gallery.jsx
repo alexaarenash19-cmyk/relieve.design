@@ -2,6 +2,7 @@
 // as a lightweight CSS 3D tilt (not a WebGL canvas per card — dozens of live R3F
 // scenes on one grid would tank perf); the hero's real R3F scene is issue #44.
 import { useEffect, useState } from 'react';
+import { placeAlt } from '../lib/altText.js';
 
 export function GalleryCard({ place }) {
   const [rotateY, setRotateY] = useState(0);
@@ -33,7 +34,7 @@ export function GalleryCard({ place }) {
         style={{ transform: `rotateY(${rotateY}deg)`, transition: dragStartX ? 'none' : 'transform 0.3s' }}
       >
         {place.thumb_url ? (
-          <img src={place.thumb_url} alt={place.name} className="w-full h-full object-cover" draggable={false} />
+          <img src={place.thumb_url} alt={placeAlt(place)} className="w-full h-full object-cover" draggable={false} />
         ) : (
           <span className="font-label uppercase tracking-wide text-xs text-text/60">{place.name}</span>
         )}

@@ -8,6 +8,18 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { createClient } from '@supabase/supabase-js';
 
+// Issue #64 — sitemap.xml covering all indexable routes.
+// /carrito and /pedido/:token are excluded: transactional/private, no
+// indexable content of their own.
+const STATIC_ROUTES = ['/', '/personaliza', '/buscar', '/sobre', '/envios', '/faq', '/aviso-privacidad', '/terminos'];
+
+export function buildSitemap(siteUrl, dynamicPaths = []) {
+  const urls = [...STATIC_ROUTES, ...dynamicPaths]
+    .map((p) => `  <url><loc>${siteUrl}${p}</loc></url>`)
+    .join('\n');
+  return `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls}\n</urlset>\n`;
+}
+
 export function buildPlaceHtml(template, place) {
   const title = `${place.name} — Relieve`;
   const description =
@@ -38,19 +50,23 @@ export function buildPlaceHtml(template, place) {
 
 async function main() {
   const DIST = path.resolve(import.meta.dirname, '..', 'dist');
+  const siteUrl = process.env.SITE_URL || 'http://localhost:5173';
 
   if (!process.env.SUPABASE_URL || !process.env.SUPABASE_SERVICE_KEY) {
-    console.log('[prerender] SUPABASE_URL/SUPABASE_SERVICE_KEY not set, skipping place prerender.');
+    await fs.writeFile(path.join(DIST, 'sitemap.xml'), buildSitemap(siteUrl));
+    console.log('[prerender] SUPABASE_URL/SUPABASE_SERVICE_KEY not set, wrote static-only sitemap, skipping place prerender.');
     return;
   }
 
   const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_KEY);
-  const { data: places, error } = await supabase
-    .from('places')
-    .select('slug, name, story, thumb_url, base_price_cents, type');
+  const [{ data: places, error: placesError }, { data: collections, error: collectionsError }] = await Promise.all([
+    supabase.from('places').select('slug, name, story, thumb_url, base_price_cents, type'),
+    supabase.from('collections').select('slug'),
+  ]);
 
-  if (error) {
-    console.error('[prerender] failed to fetch places, skipping:', error.message);
+  if (placesError || collectionsError) {
+    console.error('[prerender] failed to fetch catalog, skipping:', (placesError ?? collectionsError).message);
+    await fs.writeFile(path.join(DIST, 'sitemap.xml'), buildSitemap(siteUrl));
     return;
   }
 
@@ -63,7 +79,13 @@ async function main() {
     await fs.writeFile(path.join(outDir, 'index.html'), html);
   }
 
-  console.log(`[prerender] wrote ${places.length} place page(s).`);
+  const dynamicPaths = [
+    ...places.map((p) => `/pieza/${p.slug}`),
+    ...collections.map((c) => `/coleccion/${c.slug}`),
+  ];
+  await fs.writeFile(path.join(DIST, 'sitemap.xml'), buildSitemap(siteUrl, dynamicPaths));
+
+  console.log(`[prerender] wrote ${places.length} place page(s) and sitemap.xml.`);
 }
 
 await main();

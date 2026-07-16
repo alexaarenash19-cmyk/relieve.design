@@ -19,7 +19,7 @@ export default function CollectionsBlock() {
           {c.photo_url ? (
             <img
               src={c.photo_url}
-              alt={c.name}
+              alt={`Colección ${c.name} — piezas en relieve enmarcadas`}
               className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
             />
           ) : (
