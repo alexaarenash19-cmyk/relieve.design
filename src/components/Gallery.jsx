@@ -3,7 +3,7 @@
 // scenes on one grid would tank perf); the hero's real R3F scene is issue #44.
 import { useEffect, useState } from 'react';
 
-function GalleryCard({ place }) {
+export function GalleryCard({ place }) {
   const [rotateY, setRotateY] = useState(0);
   const [dragStartX, setDragStartX] = useState(null);
 
