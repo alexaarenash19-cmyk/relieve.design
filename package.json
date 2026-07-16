@@ -8,7 +8,11 @@
     "doc": "docs"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "lint": "eslint .",
+    "test": "node api/webhooks/stripe.test.mjs"
   },
   "repository": {
     "type": "git",
@@ -23,6 +27,23 @@
   },
   "homepage": "https://github.com/alexaarenash19-cmyk/relieve-web#readme",
   "dependencies": {
+    "@supabase/supabase-js": "^2.110.7",
+    "formidable": "^3.5.4",
+    "react": "^19.2.7",
+    "react-dom": "^19.2.7",
+    "react-router-dom": "^7.18.1",
     "stripe": "^22.3.2"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@tailwindcss/vite": "^4.3.3",
+    "@vitejs/plugin-react": "^6.0.3",
+    "eslint": "^10.7.0",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "eslint-plugin-react-refresh": "^0.5.3",
+    "globals": "^17.7.0",
+    "prettier": "^3.9.5",
+    "tailwindcss": "^4.3.3",
+    "vite": "^8.1.5"
   }
 }
