@@ -1,12 +1,104 @@
 // Issue #28: signature verification. Issue #30: payment_intent.payment_failed
-// and checkout.session.expired handling. Order creation from
-// checkout.session.completed is out of scope here — see #29.
+// and checkout.session.expired handling. Issue #29: order + order_items
+// creation on checkout.session.completed, idempotent by stripe_session_id.
 
+import crypto from 'node:crypto';
 import Stripe from 'stripe';
+import { supabase } from '../_lib/supabase.js';
+import { calcUnitPriceCents } from '../_lib/pricing.js';
 
 export const config = { api: { bodyParser: false } };
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+
+function generateOrderNumber() {
+  return `RLV-${new Date().getFullYear()}-${String(Date.now()).slice(-6)}`;
+}
+
+async function createOrderFromSession(session) {
+  const { data: existing } = await supabase
+    .from('orders')
+    .select('id')
+    .eq('stripe_session_id', session.id)
+    .maybeSingle();
+  if (existing) return; // already processed this session
+
+  const items = JSON.parse(session.metadata?.items ?? '[]');
+  const is_gift = session.metadata?.is_gift === 'true';
+  const gift_message = session.metadata?.gift_message || null;
+
+  const pricedItems = await Promise.all(
+    items.map(async (item) => {
+      const addons = [];
+      if (item.capelo) addons.push('capelo');
+      if (item.plate_text) addons.push('placa');
+      const unit_price_cents = await calcUnitPriceCents({
+        size_code: item.size_code,
+        frame_code: item.frame_code,
+        addons,
+      });
+
+      let place_id = null;
+      if (item.place_slug) {
+        const { data: place } = await supabase
+          .from('places')
+          .select('id')
+          .eq('slug', item.place_slug)
+          .maybeSingle();
+        place_id = place?.id ?? null;
+      }
+
+      return { ...item, place_id, unit_price_cents };
+    })
+  );
+
+  const subtotal_cents = pricedItems.reduce((sum, i) => sum + i.unit_price_cents * (i.qty || 1), 0);
+  const shipping_cents = session.shipping_cost?.amount_total ?? 0;
+
+  const { data: order, error } = await supabase
+    .from('orders')
+    .insert({
+      number: generateOrderNumber(),
+      email: session.customer_details?.email ?? session.customer_email,
+      status: 'paid',
+      subtotal_cents,
+      shipping_cents,
+      total_cents: subtotal_cents + shipping_cents,
+      is_gift,
+      gift_message,
+      shipping_address: session.shipping_details?.address ?? null,
+      stripe_session_id: session.id,
+      status_token: crypto.randomBytes(16).toString('hex'),
+    })
+    .select('id, number, status_token')
+    .single();
+
+  if (error) throw error;
+
+  await supabase.from('order_items').insert(
+    pricedItems.map((item) => ({
+      order_id: order.id,
+      place_id: item.place_id,
+      custom_place: item.custom_place ?? null,
+      size_code: item.size_code,
+      frame_code: item.frame_code,
+      color_code: item.color_code ?? null,
+      orientation: item.orientation ?? 'horizontal',
+      plate_text: item.plate_text ?? null,
+      capelo: !!item.capelo,
+      unit_price_cents: item.unit_price_cents,
+      qty: item.qty || 1,
+    }))
+  );
+
+  if (process.env.N8N_WEBHOOK_URL) {
+    await fetch(`${process.env.N8N_WEBHOOK_URL}/order-paid`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ order_id: order.id, number: order.number }),
+    }).catch((err) => console.error('[n8n] order-paid webhook failed', err));
+  }
+}
 
 async function readRawBody(req) {
   const chunks = [];
@@ -41,6 +133,15 @@ export default async function handler(req, res) {
   }
 
   switch (event.type) {
+    case 'checkout.session.completed': {
+      try {
+        await createOrderFromSession(event.data.object);
+      } catch (err) {
+        console.error('[stripe] checkout.session.completed order creation failed', err);
+        return res.status(500).json({ error: { code: 'order_creation_failed', message: err.message } });
+      }
+      break;
+    }
     case 'payment_intent.payment_failed': {
       const pi = event.data.object;
       console.error('[stripe] payment_intent.payment_failed', {

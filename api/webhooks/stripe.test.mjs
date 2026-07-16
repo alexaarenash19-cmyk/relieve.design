@@ -1,5 +1,6 @@
-// Minimal self-check for issue #28 (signature verification) and issue #30
-// (payment_intent.payment_failed / checkout.session.expired handling).
+// Minimal self-check for issue #28 (signature verification), issue #30
+// (payment_intent.payment_failed / checkout.session.expired handling), and
+// issue #29's error path (checkout.session.completed with no live Supabase).
 // Run: node api/webhooks/stripe.test.mjs
 
 import assert from 'node:assert';
@@ -8,6 +9,8 @@ import Stripe from 'stripe';
 
 process.env.STRIPE_SECRET_KEY = 'sk_test_dummy';
 process.env.STRIPE_WEBHOOK_SECRET = 'whsec_dummy';
+process.env.SUPABASE_URL = 'https://example.supabase.co';
+process.env.SUPABASE_SERVICE_KEY = 'dummy';
 
 const { default: handler } = await import('./stripe.js');
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
@@ -88,6 +91,20 @@ function mockReq(method, body, headers = {}) {
   await handler(mockReq('POST', payload, { 'stripe-signature': header }), res);
   assert.strictEqual(res.statusCode, 200);
   assert.strictEqual(res.body.type, 'checkout.session.expired');
+}
+
+// 5. checkout.session.completed without a reachable Supabase surfaces a 500
+// (so Stripe retries) instead of silently swallowing the failure.
+{
+  const { payload, header } = signedPayload('checkout.session.completed', {
+    id: 'cs_test_2',
+    customer_email: 'a@b.com',
+    metadata: { items: '[]', is_gift: 'false', gift_message: '' },
+  });
+  const res = mockRes();
+  await handler(mockReq('POST', payload, { 'stripe-signature': header }), res);
+  assert.strictEqual(res.statusCode, 500);
+  assert.strictEqual(res.body.error.code, 'order_creation_failed');
 }
 
 console.log('stripe webhook signature + event handling checks: OK');
