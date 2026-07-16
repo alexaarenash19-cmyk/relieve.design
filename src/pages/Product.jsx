@@ -64,11 +64,14 @@ export default function Product() {
 
   const selectedColor = COLORS.find((c) => c.code === colorCode);
   const selectedFrame = FRAMES.find((f) => f.code === frameCode);
+  const selectedSize = SIZES.find((s) => s.code === sizeCode);
 
   const specs = [
     ['Tipo', place.type === 'montana' ? 'Montaña' : 'Ciudad'],
+    ['Medidas', selectedSize.dims],
     place.elevation_m ? ['Altitud', `${place.elevation_m} msnm`] : null,
     place.lat && place.lng ? ['Coordenadas', `${place.lat}, ${place.lng}`] : null,
+    ['SKU', `RLV-${place.slug.toUpperCase()}-${sizeCode.slice(0, 3).toUpperCase()}`],
   ].filter(Boolean);
 
   function handleAddToCart() {
@@ -89,13 +92,14 @@ export default function Product() {
   return (
     <main className="grid md:grid-cols-2 gap-8 p-8 max-w-5xl mx-auto">
       <div
-        className="aspect-square rounded-[9px] flex items-center justify-center"
+        key={place.slug}
+        className="warp-reveal aspect-square rounded-[9px] flex items-center justify-center"
         style={{ backgroundColor: selectedColor?.hex ?? '#C8C3BC' }}
       >
         {place.thumb_url ? (
           <img
             src={place.thumb_url}
-            alt={place.name}
+            alt={`Mapa en relieve de ${place.name}, enmarcado en ${selectedFrame?.label.toLowerCase()}`}
             className="w-full h-full object-cover rounded-[9px]"
           />
         ) : (
