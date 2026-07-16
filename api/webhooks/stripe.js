@@ -1,4 +1,5 @@
-// Issue #28: signature verification only. Order creation from
+// Issue #28: signature verification. Issue #30: payment_intent.payment_failed
+// and checkout.session.expired handling. Order creation from
 // checkout.session.completed is out of scope here — see #29.
 
 import Stripe from 'stripe';
@@ -37,6 +38,24 @@ export default async function handler(req, res) {
     return res
       .status(400)
       .json({ error: { code: 'invalid_signature', message: err.message } });
+  }
+
+  switch (event.type) {
+    case 'payment_intent.payment_failed': {
+      const pi = event.data.object;
+      console.error('[stripe] payment_intent.payment_failed', {
+        id: pi.id,
+        last_payment_error: pi.last_payment_error?.message,
+      });
+      break;
+    }
+    case 'checkout.session.expired': {
+      const session = event.data.object;
+      console.warn('[stripe] checkout.session.expired', { id: session.id });
+      break;
+    }
+    default:
+      break;
   }
 
   return res.status(200).json({ received: true, type: event.type });
