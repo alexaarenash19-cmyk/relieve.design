@@ -1,4 +1,7 @@
 import { Routes, Route, Link } from 'react-router-dom';
+import Nav from './components/Nav.jsx';
+import CustomCursor from './components/CustomCursor.jsx';
+import PageStamp from './components/PageStamp.jsx';
 import Home from './pages/Home.jsx';
 import Collection from './pages/Collection.jsx';
 import Product from './pages/Product.jsx';
@@ -15,6 +18,9 @@ import Terms from './pages/Terms.jsx';
 export default function App() {
   return (
     <>
+      <PageStamp />
+      <CustomCursor />
+      <Nav />
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/coleccion/:slug" element={<Collection />} />
