@@ -25,6 +25,7 @@ export default async function handler(req, res) {
     .map(({ collections, base_price_cents, ...p }) => ({
       ...p,
       base_price: base_price_cents,
+      collection: collections?.slug ?? null,
     }));
 
   return res.status(200).json(places);
