@@ -1,6 +1,9 @@
 // Issue #55 — cart, styled as a boarding pass (Courier Prime, perforated edge).
 // Rendered as a full page for now; slides in from a nav trigger once #42 (nav) exists.
+// Issue #56 — checkout button posts to /api/checkout and redirects to Stripe.
+import { useState } from 'react';
 import { useCart } from '../context/CartContext.jsx';
+import Button from '../components/Button.jsx';
 
 const FREE_SHIPPING_THRESHOLD_CENTS = 250000; // $2,500 MXN — api.md checkout rule
 
@@ -22,6 +25,28 @@ export default function Cart() {
 
   const remaining = Math.max(0, FREE_SHIPPING_THRESHOLD_CENTS - subtotal_cents);
   const progress = Math.min(100, (subtotal_cents / FREE_SHIPPING_THRESHOLD_CENTS) * 100);
+
+  const [email, setEmail] = useState('');
+  const [checkoutError, setCheckoutError] = useState(null);
+  const [loading, setLoading] = useState(false);
+
+  async function onCheckout() {
+    setCheckoutError(null);
+    setLoading(true);
+    try {
+      const res = await fetch('/api/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ items, is_gift: isGift, gift_message: giftMessage || null, email }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error?.message ?? 'checkout_failed');
+      window.location.href = data.url;
+    } catch {
+      setCheckoutError('No pudimos iniciar el pago. Intenta de nuevo.');
+      setLoading(false);
+    }
+  }
 
   return (
     <main className="max-w-md mx-auto p-8">
@@ -95,6 +120,29 @@ export default function Cart() {
             value={giftMessage}
             onChange={(e) => setGiftMessage(e.target.value)}
           />
+        )}
+
+        {items.length > 0 && (
+          <>
+            <input
+              type="email"
+              required
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="tu@correo.com"
+              className="w-full mt-6 border border-line rounded p-2 normal-case font-body text-sm"
+            />
+            {checkoutError && (
+              <p className="normal-case font-body text-xs text-red-700 mt-2">{checkoutError}</p>
+            )}
+            <Button
+              onClick={onCheckout}
+              disabled={loading || !email}
+              className="w-full mt-3 normal-case font-label"
+            >
+              {loading ? 'Redirigiendo…' : 'Pagar'}
+            </Button>
+          </>
         )}
       </div>
     </main>
