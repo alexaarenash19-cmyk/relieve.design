@@ -5,14 +5,15 @@
 // PLACEHOLDER — Ale no ha vendido piezas todavía, no hay reseñas reales.
 // Reemplazar este arreglo con reseñas reales antes de lanzar.
 import { useFadeInView } from '../lib/useFadeInView.js';
+import { TESTIMONIAL_PHOTOS } from '../lib/photography.js';
 
 const TESTIMONIALS = [
   { name: 'Cliente piloto', place: 'Monterrey', text: 'La pieza llegó exacta a como se veía en la vista previa — la topografía se siente real.' },
   { name: 'Cliente piloto', place: 'CDMX', text: 'El marco de nogal es precioso en persona, mejor que en foto.' },
   { name: 'Cliente piloto', place: 'Oaxaca', text: 'Pedí mi ciudad natal y quedó como regalo perfecto para mis papás.' },
-];
+].map((t, i) => ({ ...t, photo: TESTIMONIAL_PHOTOS[i] ?? null }));
 
-function PlaneBanner({ text, index }) {
+function PlaneBanner({ text, photo, index }) {
   return (
     <div
       className="flap-banner absolute top-0 left-0 flex items-center gap-3 whitespace-nowrap"
@@ -28,7 +29,15 @@ function PlaneBanner({ text, index }) {
         />
       </svg>
       <div className="h-px w-8 bg-graphite/50 shrink-0" />
-      <div className="border border-graphite bg-gallery-white px-5 py-3">
+      <div className="flex items-center gap-3 border border-graphite bg-gallery-white px-5 py-3">
+        {photo && (
+          <img
+            src={photo}
+            alt=""
+            className="warm-photo w-8 h-8 rounded-full object-cover shrink-0"
+            aria-hidden="true"
+          />
+        )}
         <p className="font-label uppercase tracking-wide text-xs text-graphite">{text}</p>
       </div>
     </div>
@@ -51,16 +60,21 @@ export default function Testimonials() {
       {/* Flying version — hidden under prefers-reduced-motion. */}
       <div className="relative h-24 overflow-hidden motion-reduce:hidden" aria-hidden="true">
         {TESTIMONIALS.map((t, i) => (
-          <PlaneBanner key={t.name + i} text={t.text} index={i} />
+          <PlaneBanner key={t.name + i} text={t.text} photo={t.photo} index={i} />
         ))}
       </div>
 
       {/* Static fallback — shown only under prefers-reduced-motion. */}
       <ul className="hidden motion-reduce:flex mx-auto max-w-xl flex-col gap-4 px-8">
         {TESTIMONIALS.map((t, i) => (
-          <li key={t.name + i} className="border border-line rounded-[9px] p-4">
-            <p className="font-label uppercase tracking-wide text-xs mb-2">{t.text}</p>
-            <p className="text-graphite/50 text-sm">{t.name} · {t.place}</p>
+          <li key={t.name + i} className="flex items-center gap-4 border border-line rounded-[9px] p-4">
+            {t.photo && (
+              <img src={t.photo} alt="" className="warm-photo w-10 h-10 rounded-full object-cover shrink-0" aria-hidden="true" />
+            )}
+            <div>
+              <p className="font-label uppercase tracking-wide text-xs mb-2">{t.text}</p>
+              <p className="text-graphite/50 text-sm">{t.name} · {t.place}</p>
+            </div>
           </li>
         ))}
       </ul>
