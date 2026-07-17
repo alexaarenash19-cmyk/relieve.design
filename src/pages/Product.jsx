@@ -12,6 +12,7 @@ import Stamp from '../components/Stamp.jsx';
 import BaggageTag from '../components/BaggageTag.jsx';
 import TopoLines from '../components/TopoLines.jsx';
 import Reviews from '../components/Reviews.jsx';
+import { pieceMainPhoto, pieceDetailPhoto } from '../lib/photography.js';
 
 export default function Product() {
   const { slug } = useParams();
@@ -38,7 +39,10 @@ export default function Product() {
       .then((data) => {
         if (!cancelled) {
           setPlace(data);
-          setActivePhoto(data.thumb_url);
+          // Swappable local file (src/assets/photography/pieces/<slug>/main.jpg)
+          // wins over the catalog's thumb_url when present — same convention
+          // as the gallery, so dropping in a real photo needs no code change.
+          setActivePhoto(pieceMainPhoto(data.slug) ?? data.thumb_url);
         }
       })
       .catch(() => {
@@ -148,7 +152,10 @@ export default function Product() {
         </div>
         {(place.thumb_url || place.detail_url) && (
           <div className="flex gap-2 mt-3">
-            {[place.thumb_url, place.detail_url].filter(Boolean).map((url) => (
+            {[
+              pieceMainPhoto(place.slug) ?? place.thumb_url,
+              pieceDetailPhoto(place.slug) ?? place.detail_url,
+            ].filter(Boolean).map((url) => (
               <button
                 key={url}
                 onClick={() => setActivePhoto(url)}

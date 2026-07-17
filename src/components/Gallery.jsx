@@ -1,8 +1,7 @@
 // "Experience view" (Palmer-style) gallery, replacing the old rigid grid.
-// Two view modes: scattered curated canvas (default) and a plain grid
-// ("Card Surface"). Drag-to-rotate stays a CSS 3D tilt, not a WebGL canvas
-// per card (see prior note — dozens of live R3F scenes would tank perf).
-import { useEffect, useState } from 'react';
+// Two view modes: scattered infinite canvas (default) and a plain grid
+// ("Card Surface").
+import { useEffect, useRef, useState } from 'react';
 import { placeAlt } from '../lib/altText.js';
 import { pieceMainPhoto } from '../lib/photography.js';
 import { fetchJsonArray } from '../lib/fetchJsonArray.js';
@@ -14,92 +13,169 @@ import TopoLines from './TopoLines.jsx';
 // catalog data; delete this and switch the scattered view back to `filtered`
 // once those endpoints are trusted again.
 const SCATTER_DEMO_ITEMS = [
-  { slug: 'demo-1', name: 'Monterrey', thumb_url: 'https://images.unsplash.com/photo-1642321215251-bd9999b0b408?fm=jpg&q=70&w=800&auto=format&fit=crop' },
-  { slug: 'demo-2', name: 'Ciudad de México', thumb_url: 'https://images.unsplash.com/photo-1591049433264-618fa2f4558f?fm=jpg&q=70&w=800&auto=format&fit=crop' },
-  { slug: 'demo-3', name: 'Popocatépetl', thumb_url: 'https://images.unsplash.com/photo-1562196531-60920785b7ca?fm=jpg&q=70&w=800&auto=format&fit=crop' },
-  { slug: 'demo-4', name: 'Oaxaca', thumb_url: 'https://images.unsplash.com/photo-1641511256207-3e3ced99393e?fm=jpg&q=70&w=800&auto=format&fit=crop' },
-  { slug: 'demo-5', name: 'San Miguel de Allende', thumb_url: 'https://images.unsplash.com/photo-1598535989263-cb097f8ac3f0?fm=jpg&q=70&w=800&auto=format&fit=crop' },
-  { slug: 'demo-6', name: 'Manila', thumb_url: 'https://images.unsplash.com/photo-1526731955462-f6085f39e742?fm=jpg&q=70&w=800&auto=format&fit=crop' },
-  { slug: 'demo-7', name: 'Sala', thumb_url: 'https://images.unsplash.com/photo-1769117549887-d7ab37279060?fm=jpg&q=70&w=800&auto=format&fit=crop' },
-  { slug: 'demo-8', name: 'Muro', thumb_url: 'https://images.unsplash.com/photo-1738682767944-d3c255abac3c?fm=jpg&q=70&w=800&auto=format&fit=crop' },
-  { slug: 'demo-9', name: 'Retrato', thumb_url: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?fm=jpg&q=70&w=800&auto=format&fit=crop' },
+  { slug: 'demo-1', name: 'Monterrey', variant: 'Mediano', thumb_url: 'https://images.unsplash.com/photo-1642321215251-bd9999b0b408?fm=jpg&q=70&w=800&auto=format&fit=crop' },
+  { slug: 'demo-2', name: 'Ciudad de México', variant: 'Grande', thumb_url: 'https://images.unsplash.com/photo-1591049433264-618fa2f4558f?fm=jpg&q=70&w=800&auto=format&fit=crop' },
+  { slug: 'demo-3', name: 'Popocatépetl', variant: 'Especial', thumb_url: 'https://images.unsplash.com/photo-1562196531-60920785b7ca?fm=jpg&q=70&w=800&auto=format&fit=crop' },
+  { slug: 'demo-4', name: 'Oaxaca', variant: 'Mini', thumb_url: 'https://images.unsplash.com/photo-1641511256207-3e3ced99393e?fm=jpg&q=70&w=800&auto=format&fit=crop' },
+  { slug: 'demo-5', name: 'San Miguel de Allende', variant: 'Mediano', thumb_url: 'https://images.unsplash.com/photo-1598535989263-cb097f8ac3f0?fm=jpg&q=70&w=800&auto=format&fit=crop' },
+  { slug: 'demo-6', name: 'Manila', variant: 'Mini', thumb_url: 'https://images.unsplash.com/photo-1526731955462-f6085f39e742?fm=jpg&q=70&w=800&auto=format&fit=crop' },
+  { slug: 'demo-7', name: 'Sala', variant: 'Mediano', thumb_url: 'https://images.unsplash.com/photo-1769117549887-d7ab37279060?fm=jpg&q=70&w=800&auto=format&fit=crop' },
+  { slug: 'demo-8', name: 'Muro', variant: 'Mini', thumb_url: 'https://images.unsplash.com/photo-1738682767944-d3c255abac3c?fm=jpg&q=70&w=800&auto=format&fit=crop' },
+  { slug: 'demo-9', name: 'Retrato', variant: 'Grande', thumb_url: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?fm=jpg&q=70&w=800&auto=format&fit=crop' },
 ];
 
-// Curated, hand-placed offsets — "layout curado, no grid rígido" — cycled
-// and scaled if there are more pieces than positions.
-const SCATTER_SLOTS = [
-  { top: '2%', left: '6%', w: 26, rotate: -3 },
-  { top: '14%', left: '38%', w: 22, rotate: 2 },
-  { top: '4%', left: '68%', w: 24, rotate: -2 },
-  { top: '38%', left: '16%', w: 20, rotate: 3 },
-  { top: '46%', left: '52%', w: 26, rotate: -4 },
-  { top: '34%', left: '78%', w: 18, rotate: 2 },
-  { top: '68%', left: '4%', w: 22, rotate: -2 },
-  { top: '72%', left: '40%', w: 24, rotate: 3 },
-  { top: '64%', left: '70%', w: 20, rotate: -3 },
+// Grid-aligned, hand-placed cells — straight, never overlapping, varied
+// sizes (1x1 / 2x2) but locked to a 4-col grid, not free/random positions.
+const CELL = 170;
+const GAP = 24;
+const GRID_COLS = 4;
+const GRID_ROWS = 4;
+const BLOCK_W = GRID_COLS * CELL + (GRID_COLS - 1) * GAP;
+const BLOCK_H = GRID_ROWS * CELL + (GRID_ROWS - 1) * GAP;
+
+const TILE_PATTERN = [
+  { col: 0, row: 0, span: 2 },
+  { col: 2, row: 0, span: 1 },
+  { col: 3, row: 0, span: 1 },
+  { col: 2, row: 1, span: 1 },
+  { col: 3, row: 1, span: 1 },
+  { col: 0, row: 2, span: 1 },
+  { col: 1, row: 2, span: 2 },
+  { col: 3, row: 2, span: 1 },
+  { col: 0, row: 3, span: 1 },
 ];
+
+function tilePx({ col, row, span }) {
+  return {
+    left: col * (CELL + GAP),
+    top: row * (CELL + GAP),
+    size: span * CELL + (span - 1) * GAP,
+  };
+}
 
 export function GalleryCard({ place, variant = 'grid', slot }) {
-  const [rotateY, setRotateY] = useState(0);
-  const [dragStartX, setDragStartX] = useState(null);
   const photo = pieceMainPhoto(place.slug) ?? place.thumb_url;
-
-  function onPointerDown(e) {
-    setDragStartX(e.clientX);
-  }
-  function onPointerMove(e) {
-    if (dragStartX === null) return;
-    setRotateY((e.clientX - dragStartX) * 0.4);
-  }
-  function onPointerUp() {
-    setDragStartX(null);
-  }
+  const cursorLabel =
+    variant === 'scattered' ? `+ ${place.name}${place.variant ? ` — ${place.variant}` : ''}` : undefined;
 
   const tileStyle =
     variant === 'scattered'
-      ? {
-          position: 'absolute',
-          top: slot.top,
-          left: slot.left,
-          width: `${slot.w}%`,
-          transform: `rotate(${slot.rotate}deg)`,
-        }
+      ? { position: 'absolute', top: slot.top, left: slot.left, width: slot.size, height: slot.size }
       : undefined;
 
   return (
     <a
       href={`/pieza/${place.slug}`}
+      data-cursor-label={cursorLabel}
       className={
         variant === 'scattered'
           ? 'group block select-none'
           : 'group block border border-line rounded-[9px] bg-gallery-white overflow-hidden select-none'
       }
-      style={{ ...tileStyle, perspective: '800px' }}
+      style={tileStyle}
     >
       <div
-        onPointerDown={onPointerDown}
-        onPointerMove={onPointerMove}
-        onPointerUp={onPointerUp}
-        onPointerLeave={onPointerUp}
-        className={`warm-photo relative aspect-square bg-stone flex items-center justify-center cursor-grab active:cursor-grabbing ${
-          variant === 'scattered' ? 'shadow-[0_20px_40px_-14px_rgba(35,35,35,0.45)]' : ''
+        className={`warm-photo relative w-full h-full aspect-square bg-stone overflow-hidden flex items-center justify-center ${
+          variant === 'scattered' ? 'shadow-[0_16px_32px_-16px_rgba(35,35,35,0.35)]' : ''
         }`}
-        style={{ transform: `rotateY(${rotateY}deg)`, transition: dragStartX ? 'none' : 'transform 0.3s' }}
       >
         {photo ? (
-          <img src={photo} alt={placeAlt(place)} className="w-full h-full object-cover" draggable={false} />
+          <img
+            src={photo}
+            alt={placeAlt(place)}
+            className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+            draggable={false}
+            loading={variant === 'scattered' ? 'lazy' : undefined}
+          />
         ) : (
           <span className="font-label uppercase tracking-wide text-xs text-graphite/60">{place.name}</span>
         )}
         {/* Route/contour overlay drawn ON the photo, not floating alone. */}
         <TopoLines className="absolute inset-0 w-full h-full text-dark-fg mix-blend-screen opacity-70 pointer-events-none" />
-        <Stamp
-          label="Ver pieza"
-          className="absolute inset-0 m-auto w-fit h-fit opacity-0 scale-90 group-hover:opacity-100 group-hover:scale-100 transition-all duration-200 bg-gallery-white/90"
-        />
+        {variant !== 'scattered' && (
+          <Stamp
+            label="Ver pieza"
+            className="absolute inset-0 m-auto w-fit h-fit opacity-0 scale-90 group-hover:opacity-100 group-hover:scale-100 transition-all duration-200 bg-gallery-white/90"
+          />
+        )}
       </div>
       {variant !== 'scattered' && <p className="font-display text-sm px-3 py-2">{place.name}</p>}
     </a>
+  );
+}
+
+// Infinite pannable canvas: drag translates an offset; the tile pattern
+// wraps (modulo BLOCK_W/H) and repeats in a 3x3 grid of copies around the
+// wrapped origin, so panning in any direction never runs out of tiles.
+function ScatteredCanvas({ items, zoom }) {
+  const [offset, setOffset] = useState({ x: 0, y: 0 });
+  const draggingRef = useRef(false);
+  const startRef = useRef({ x: 0, y: 0 });
+  const movedRef = useRef(false);
+
+  function onPointerDown(e) {
+    draggingRef.current = true;
+    movedRef.current = false;
+    startRef.current = { x: e.clientX - offset.x, y: e.clientY - offset.y };
+  }
+  function onPointerMove(e) {
+    if (!draggingRef.current) return;
+    const next = { x: e.clientX - startRef.current.x, y: e.clientY - startRef.current.y };
+    if (Math.abs(next.x - offset.x) > 4 || Math.abs(next.y - offset.y) > 4) movedRef.current = true;
+    setOffset(next);
+  }
+  function onPointerUp() {
+    draggingRef.current = false;
+  }
+  // Cancel the tile's own link navigation if that pointerup ended a pan,
+  // not a click.
+  function onClickCapture(e) {
+    if (movedRef.current) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+  }
+
+  const wrappedX = ((offset.x % BLOCK_W) + BLOCK_W) % BLOCK_W;
+  const wrappedY = ((offset.y % BLOCK_H) + BLOCK_H) % BLOCK_H;
+  const REPEAT = [-1, 0, 1];
+
+  return (
+    <div
+      className="relative mx-auto overflow-hidden select-none cursor-grab active:cursor-grabbing"
+      style={{ height: '78vh', maxWidth: 1400 }}
+      onPointerDown={onPointerDown}
+      onPointerMove={onPointerMove}
+      onPointerUp={onPointerUp}
+      onPointerLeave={onPointerUp}
+      onClickCapture={onClickCapture}
+    >
+      <div className="absolute inset-0" style={{ transform: `scale(${zoom})`, transformOrigin: 'center center' }}>
+        {REPEAT.flatMap((j) =>
+          REPEAT.map((i) => (
+            <div
+              key={`${i}-${j}`}
+              className="absolute"
+              style={{
+                left: `calc(50% + ${wrappedX + i * BLOCK_W - BLOCK_W / 2}px)`,
+                top: `calc(50% + ${wrappedY + j * BLOCK_H - BLOCK_H / 2}px)`,
+                width: BLOCK_W,
+                height: BLOCK_H,
+              }}
+            >
+              {items.map((place, idx) => (
+                <GalleryCard
+                  key={place.slug}
+                  place={place}
+                  variant="scattered"
+                  slot={tilePx(TILE_PATTERN[idx % TILE_PATTERN.length])}
+                />
+              ))}
+            </div>
+          ))
+        )}
+      </div>
+    </div>
   );
 }
 
@@ -179,7 +255,7 @@ function BottomControlBar({ type, setType, collection, setCollection, collection
 
       {showHint && (
         <span className="hidden sm:inline font-label uppercase tracking-wide text-[10px] text-graphite/50 ml-2">
-          drag to rotate
+          drag to explore
         </span>
       )}
 
@@ -225,14 +301,7 @@ export default function Gallery() {
       <ExperienceToggle view={view} onChange={setView} />
 
       {view === 'scattered' ? (
-        <div
-          className="relative mx-auto"
-          style={{ minHeight: '110vh', maxWidth: 1100, transform: `scale(${zoom})`, transformOrigin: 'top center' }}
-        >
-          {SCATTER_DEMO_ITEMS.map((place, i) => (
-            <GalleryCard key={place.slug} place={place} variant="scattered" slot={SCATTER_SLOTS[i % SCATTER_SLOTS.length]} />
-          ))}
-        </div>
+        <ScatteredCanvas items={SCATTER_DEMO_ITEMS} zoom={zoom} />
       ) : (
         <div
           className="grid gap-px bg-line p-px"
