@@ -3,7 +3,7 @@
 // this just wires the scroll plumbing and publishes progress via context.
 // Respects prefers-reduced-motion: no Lenis, no pin, hero renders statically
 // (full stepped fallback is #47).
-import { useEffect, useRef } from 'react';
+import { useLayoutEffect, useRef } from 'react';
 import Lenis from 'lenis';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
@@ -15,7 +15,7 @@ export default function HeroScrollSection({ children }) {
   const containerRef = useRef(null);
   const { setProgress } = useHeroScroll();
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     if (reduceMotion) return;
 
@@ -34,15 +34,27 @@ export default function HeroScrollSection({ children }) {
     gsap.ticker.lagSmoothing(0);
     lenis.on('scroll', ScrollTrigger.update);
 
-    const trigger = ScrollTrigger.create({
-      trigger: containerRef.current,
-      start: 'top top',
-      end: () => `+=${window.innerHeight * 3}`,
-      pin: true,
-      scrub: true,
-      invalidateOnRefresh: true,
-      onUpdate: (self) => setProgress(self.progress),
-    });
+    // pin:true makes ScrollTrigger insert a "pin-spacer" wrapper around
+    // containerRef in the real DOM, outside React's tracking. On route
+    // change (Home -> any other route) this crashed the app with
+    // "removeChild: not a child of this node" — two things had to be true
+    // at once to fix it: gsap.context().revert() to undo the pin-spacer
+    // DOM mutation (not a plain trigger.kill()), AND useLayoutEffect
+    // instead of useEffect so that revert happens synchronously *before*
+    // React's own commit removes this subtree — a plain useEffect cleanup
+    // fires after paint, by which point React had already torn out nodes
+    // GSAP had restructured, crashing before our cleanup even ran.
+    const ctx = gsap.context(() => {
+      ScrollTrigger.create({
+        trigger: containerRef.current,
+        start: 'top top',
+        end: () => `+=${window.innerHeight * 3}`,
+        pin: true,
+        scrub: true,
+        invalidateOnRefresh: true,
+        onUpdate: (self) => setProgress(self.progress),
+      });
+    }, containerRef);
 
     // Google Fonts load async and can shift layout after ScrollTrigger's
     // initial measurement (more noticeable on a slow first-visit network
@@ -50,7 +62,7 @@ export default function HeroScrollSection({ children }) {
     document.fonts?.ready?.then(() => ScrollTrigger.refresh());
 
     return () => {
-      trigger.kill();
+      ctx.revert();
       gsap.ticker.remove(raf);
       lenis.destroy();
     };
