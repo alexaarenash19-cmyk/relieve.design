@@ -24,31 +24,38 @@ const TESTIMONIALS = [
 ].map((t) => ({ ...t, photo: pieceMainPhoto(t.slug) ?? PRODUCT_PHOTO_FALLBACK[t.slug] ?? null }));
 
 function PlaneBanner({ text, photo, index }) {
+  // The outer .flap-banner element owns the translateX flight animation
+  // (transform, in index.css's @keyframes) — scaling it directly here would
+  // fight that animation for the same CSS property every frame. Scaling an
+  // inner wrapper instead shrinks everything (plane, line, avatar, text,
+  // padding) together by exactly 1/4, proportionally, with no conflict.
   return (
     <div
-      className="flap-banner absolute top-0 left-0 flex items-center gap-3 whitespace-nowrap"
+      className="flap-banner absolute top-0 left-0"
       style={{ animationDelay: `${index * 9}s` }}
     >
-      <svg viewBox="0 0 40 24" width="40" height="24" className="text-graphite shrink-0" aria-hidden="true">
-        <path
-          d="M2 14 L26 10 L36 4 L34 10 L26 14 L36 18 L20 16 L14 20 L16 15 L2 14 Z"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="1.2"
-          strokeLinejoin="round"
-        />
-      </svg>
-      <div className="h-px w-8 bg-graphite/50 shrink-0" />
-      <div className="flex items-center gap-3 border border-graphite bg-gallery-white px-5 py-3">
-        {photo && (
-          <img
-            src={photo}
-            alt=""
-            className="warm-photo w-8 h-8 rounded-full object-cover shrink-0"
-            aria-hidden="true"
+      <div className="flex items-center gap-3 whitespace-nowrap origin-left scale-[.25]">
+        <svg viewBox="0 0 40 24" width="40" height="24" className="text-graphite shrink-0" aria-hidden="true">
+          <path
+            d="M2 14 L26 10 L36 4 L34 10 L26 14 L36 18 L20 16 L14 20 L16 15 L2 14 Z"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.2"
+            strokeLinejoin="round"
           />
-        )}
-        <p className="font-label uppercase tracking-wide text-xs text-graphite">{text}</p>
+        </svg>
+        <div className="h-px w-8 bg-graphite/50 shrink-0" />
+        <div className="flex items-center gap-3 border border-graphite bg-gallery-white px-5 py-3">
+          {photo && (
+            <img
+              src={photo}
+              alt=""
+              className="warm-photo w-8 h-8 rounded-full object-cover shrink-0"
+              aria-hidden="true"
+            />
+          )}
+          <p className="font-label uppercase tracking-wide text-xs text-graphite">{text}</p>
+        </div>
       </div>
     </div>
   );
@@ -67,22 +74,28 @@ export default function Testimonials() {
         Lo que dicen
       </h2>
 
-      {/* Flying version — hidden under prefers-reduced-motion. */}
-      <div className="relative h-24 overflow-hidden motion-reduce:hidden" aria-hidden="true">
+      {/* Flying version — hidden under prefers-reduced-motion. Track height
+          shrunk to match the now-1/4-scale banner (was h-24). */}
+      <div className="relative h-6 overflow-hidden motion-reduce:hidden" aria-hidden="true">
         {TESTIMONIALS.map((t, i) => (
           <PlaneBanner key={t.name + i} text={t.text} photo={t.photo} index={i} />
         ))}
       </div>
 
-      {/* Static fallback — shown only under prefers-reduced-motion. */}
-      <ul className="hidden motion-reduce:flex mx-auto max-w-xl flex-col gap-4 px-8">
+      {/* Static fallback — shown only under prefers-reduced-motion. Avatar/
+          padding/gap shrunk to the same 1/4 as the flying version; text
+          size left alone on purpose — for prefers-reduced-motion users this
+          list is the only view of testimonials they get (no flying banner
+          to fall back on), so shrinking it to ~3px would trade a size
+          complaint for an accessibility regression. */}
+      <ul className="hidden motion-reduce:flex mx-auto max-w-xl flex-col gap-1 px-8">
         {TESTIMONIALS.map((t, i) => (
-          <li key={t.name + i} className="flex items-center gap-4 border border-line rounded-[9px] p-4">
+          <li key={t.name + i} className="flex items-center gap-1 border border-line rounded-[9px] p-1">
             {t.photo && (
-              <img src={t.photo} alt="" className="warm-photo w-10 h-10 rounded-full object-cover shrink-0" aria-hidden="true" />
+              <img src={t.photo} alt="" className="warm-photo w-2.5 h-2.5 rounded-full object-cover shrink-0" aria-hidden="true" />
             )}
             <div>
-              <p className="font-label uppercase tracking-wide text-xs mb-2">{t.text}</p>
+              <p className="font-label uppercase tracking-wide text-xs mb-0.5">{t.text}</p>
               <p className="text-graphite/50 text-sm">{t.name} · {t.place}</p>
             </div>
           </li>
