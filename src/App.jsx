@@ -3,6 +3,8 @@ import Nav from './components/Nav.jsx';
 import CustomCursor from './components/CustomCursor.jsx';
 import PageStamp from './components/PageStamp.jsx';
 import CartDrawer from './components/CartDrawer.jsx';
+import SvgFilters from './components/SvgFilters.jsx';
+import SocialLinks from './components/SocialLinks.jsx';
 import Home from './pages/Home.jsx';
 import Collection from './pages/Collection.jsx';
 import Product from './pages/Product.jsx';
@@ -14,10 +16,12 @@ import Faq from './pages/Faq.jsx';
 import OrderStatus from './pages/OrderStatus.jsx';
 import PrivacyNotice from './pages/PrivacyNotice.jsx';
 import Terms from './pages/Terms.jsx';
+import NotFound from './pages/NotFound.jsx';
 
 export default function App() {
   return (
     <>
+      <SvgFilters />
       <PageStamp />
       <CustomCursor />
       <Nav />
@@ -34,14 +38,16 @@ export default function App() {
         <Route path="/pedido/:token" element={<OrderStatus />} />
         <Route path="/aviso-privacidad" element={<PrivacyNotice />} />
         <Route path="/terminos" element={<Terms />} />
+        <Route path="*" element={<NotFound />} />
       </Routes>
-      <footer className="font-label uppercase tracking-wide text-xs text-graphite/70 flex gap-6 justify-center p-8">
+      <footer className="font-label uppercase tracking-wide text-xs text-graphite/70 flex items-center justify-center gap-6 p-8">
         <Link to="/aviso-privacidad" className="hover:text-passport-ink hover:underline">
           Aviso de privacidad
         </Link>
         <Link to="/terminos" className="hover:text-passport-ink hover:underline">
           Términos
         </Link>
+        <SocialLinks />
       </footer>
     </>
   );
