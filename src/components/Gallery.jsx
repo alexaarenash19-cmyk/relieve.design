@@ -203,60 +203,130 @@ function ExperienceToggle({ view, onChange }) {
   );
 }
 
-function BottomControlBar({ type, setType, collection, setCollection, collections, setZoom, showHint }) {
+// Ghost pill (closed/inactive) vs. dark pill (active/expanded or a child
+// chip) — same flat, borderless, no-shadow dark fill used everywhere else
+// (cursor hover pill, etc), not a bordered dropdown box.
+const GHOST_PILL =
+  'rounded-full border border-graphite bg-gallery-white text-graphite px-3 py-2 font-label uppercase tracking-wide text-xs flex items-center gap-1.5';
+const DARK_PILL =
+  'rounded-full bg-graphite text-gallery-white px-3 py-2 font-label uppercase tracking-wide text-xs flex items-center gap-1.5';
+
+// PLACEHOLDER — no hay página ni correo de contacto real todavía.
+const CONTACT_MAILTO = 'mailto:hola@relieve.mx';
+
+const TYPE_OPTIONS = [
+  { value: '', label: 'Todos' },
+  { value: 'ciudad', label: 'Ciudad' },
+  { value: 'montana', label: 'Montaña' },
+];
+
+function MenuIcon() {
+  return (
+    <svg viewBox="0 0 14 10" width="12" height="9" aria-hidden="true">
+      <line x1="0" y1="1" x2="14" y2="1" stroke="currentColor" />
+      <line x1="0" y1="5" x2="14" y2="5" stroke="currentColor" />
+      <line x1="0" y1="9" x2="14" y2="9" stroke="currentColor" />
+    </svg>
+  );
+}
+
+function FilterIcon() {
+  return (
+    <svg viewBox="0 0 14 10" width="12" height="9" aria-hidden="true">
+      <circle cx="1.5" cy="1.5" r="1.5" fill="currentColor" />
+      <line x1="5" y1="1.5" x2="14" y2="1.5" stroke="currentColor" />
+      <circle cx="1.5" cy="8.5" r="1.5" fill="currentColor" />
+      <line x1="5" y1="8.5" x2="14" y2="8.5" stroke="currentColor" />
+    </svg>
+  );
+}
+
+function CloseIcon() {
+  return (
+    <svg viewBox="0 0 10 10" width="10" height="10" aria-hidden="true">
+      <line x1="0" y1="0" x2="10" y2="10" stroke="currentColor" />
+      <line x1="10" y1="0" x2="0" y2="10" stroke="currentColor" />
+    </svg>
+  );
+}
+
+function FilterChip({ label, active, onClick }) {
+  return (
+    <button onClick={onClick} className={DARK_PILL} aria-expanded={active}>
+      {label} <span className="text-[10px]">+</span>
+    </button>
+  );
+}
+
+function BottomControlBar({ type, setType, setZoom, showHint }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [filterOpen, setFilterOpen] = useState(false);
+  const [activeChip, setActiveChip] = useState(null); // 'color' | 'tipo' | 'tamano' | null
+
+  function toggleMenu() {
+    setMenuOpen((o) => !o);
+    setFilterOpen(false);
+    setActiveChip(null);
+  }
+  function toggleFilter() {
+    setFilterOpen((o) => !o);
+    setMenuOpen(false);
+    setActiveChip(null);
+  }
+  function toggleChip(chip) {
+    setActiveChip((c) => (c === chip ? null : chip));
+  }
 
   // sticky (not fixed) — same reason as ExperienceToggle above: a
   // viewport-fixed bar would float over Testimonials/footer once you
   // scroll past the gallery.
   return (
     <div className="sticky bottom-6 z-30 flex justify-center">
-    <div className="relative flex items-center gap-2">
+    <div className="relative flex flex-wrap items-center justify-center gap-2 px-4">
+      <button onClick={toggleMenu} className={menuOpen ? DARK_PILL : GHOST_PILL}>
+        {menuOpen ? <CloseIcon /> : <MenuIcon />}
+        {menuOpen ? 'cerrar' : 'menu'}
+      </button>
       {menuOpen && (
-        <div className="absolute bottom-12 left-0 bg-gallery-white border border-line rounded-[3px] p-3 flex flex-col gap-2 font-label uppercase tracking-wide text-xs whitespace-nowrap">
-          <a href="/buscar" className="hover:text-passport-ink">Buscar</a>
-          <a href="/sobre" className="hover:text-passport-ink">Sobre</a>
-          <a href="/coleccion/ciudades-mexico" className="hover:text-passport-ink">Colecciones</a>
-        </div>
+        <>
+          <a href="/coleccion/ciudades-mexico" className={DARK_PILL}>colección</a>
+          <a href="/sobre" className={DARK_PILL}>sobre</a>
+          <a href={CONTACT_MAILTO} className={DARK_PILL}>contacto</a>
+        </>
       )}
-      <button
-        onClick={() => { setMenuOpen((o) => !o); setFilterOpen(false); }}
-        className="rounded-[3px] border border-graphite bg-gallery-white px-3 py-2 font-label uppercase tracking-wide text-xs flex items-center gap-1.5"
-      >
-        <svg viewBox="0 0 14 10" width="12" height="9" aria-hidden="true">
-          <line x1="0" y1="1" x2="14" y2="1" stroke="currentColor" />
-          <line x1="0" y1="5" x2="14" y2="5" stroke="currentColor" />
-          <line x1="0" y1="9" x2="14" y2="9" stroke="currentColor" />
-        </svg>
-        menu
-      </button>
 
+      <button onClick={toggleFilter} className={filterOpen ? DARK_PILL : GHOST_PILL}>
+        {filterOpen ? <CloseIcon /> : <FilterIcon />}
+        {filterOpen ? 'cerrar' : 'filter'}
+      </button>
       {filterOpen && (
-        <div className="absolute bottom-12 left-1/2 -translate-x-1/2 bg-gallery-white border border-line rounded-[3px] p-3 flex flex-col gap-2 font-label uppercase tracking-wide text-xs">
-          <select value={collection} onChange={(e) => setCollection(e.target.value)} className="border border-line rounded px-2 py-1 bg-transparent">
-            <option value="">Toda colección</option>
-            {collections.map((c) => <option key={c.slug} value={c.slug}>{c.name}</option>)}
-          </select>
-          <select value={type} onChange={(e) => setType(e.target.value)} className="border border-line rounded px-2 py-1 bg-transparent">
-            <option value="">Todos</option>
-            <option value="ciudad">Ciudades</option>
-            <option value="montana">Montañas</option>
-          </select>
+        <>
+          <FilterChip label="color" active={activeChip === 'color'} onClick={() => toggleChip('color')} />
+          <FilterChip label="tipo" active={activeChip === 'tipo'} onClick={() => toggleChip('tipo')} />
+          <FilterChip label="⌀ tamaño" active={activeChip === 'tamano'} onClick={() => toggleChip('tamano')} />
+        </>
+      )}
+
+      {activeChip === 'tipo' && (
+        <div className="absolute bottom-12 left-1/2 -translate-x-1/2 bg-gallery-white border border-line rounded-[9px] p-2 flex gap-1.5">
+          {TYPE_OPTIONS.map((opt) => (
+            <button
+              key={opt.value}
+              onClick={() => setType(opt.value)}
+              className={`rounded-full px-3 py-1.5 font-label uppercase tracking-wide text-[10px] ${
+                type === opt.value ? 'bg-graphite text-gallery-white' : 'border border-line text-graphite'
+              }`}
+            >
+              {opt.label}
+            </button>
+          ))}
         </div>
       )}
-      <button
-        onClick={() => { setFilterOpen((o) => !o); setMenuOpen(false); }}
-        className="rounded-[3px] border border-graphite bg-gallery-white px-3 py-2 font-label uppercase tracking-wide text-xs flex items-center gap-1.5"
-      >
-        <svg viewBox="0 0 14 10" width="12" height="9" aria-hidden="true">
-          <circle cx="1.5" cy="1.5" r="1.5" fill="currentColor" />
-          <line x1="5" y1="1.5" x2="14" y2="1.5" stroke="currentColor" />
-          <circle cx="1.5" cy="8.5" r="1.5" fill="currentColor" />
-          <line x1="5" y1="8.5" x2="14" y2="8.5" stroke="currentColor" />
-        </svg>
-        filter
-      </button>
+      {(activeChip === 'color' || activeChip === 'tamano') && (
+        <div className="absolute bottom-12 left-1/2 -translate-x-1/2 bg-gallery-white border border-line rounded-[9px] px-3 py-2 whitespace-nowrap">
+          <span className="font-label uppercase tracking-wide text-[10px] text-graphite/50">Próximamente</span>
+        </div>
+      )}
 
       {showHint && (
         <span className="hidden sm:inline font-label uppercase tracking-wide text-[10px] text-graphite/50 ml-2">
@@ -287,19 +357,14 @@ function BottomControlBar({ type, setType, collection, setCollection, collection
 
 export default function Gallery() {
   const [places, setPlaces] = useState([]);
-  const [collections, setCollections] = useState([]);
   const [type, setType] = useState('');
-  const [collection, setCollection] = useState('');
   const [view, setView] = useState('scattered');
   const [zoom, setZoom] = useState(1);
 
   useEffect(() => {
     const query = type ? `?type=${type}` : '';
     fetchJsonArray(`/api/places${query}`).then(setPlaces);
-    fetchJsonArray('/api/collections').then(setCollections);
   }, [type]);
-
-  const filtered = collection ? places.filter((p) => p.collection === collection) : places;
 
   return (
     <section className="relative pb-28">
@@ -312,7 +377,7 @@ export default function Gallery() {
           className="grid gap-px bg-line p-px"
           style={{ gridTemplateColumns: `repeat(${Math.round(3 * zoom)}, minmax(0, 1fr))` }}
         >
-          {filtered.map((place) => (
+          {places.map((place) => (
             <GalleryCard key={place.slug} place={place} variant="grid" />
           ))}
         </div>
@@ -320,8 +385,6 @@ export default function Gallery() {
 
       <BottomControlBar
         type={type} setType={setType}
-        collection={collection} setCollection={setCollection}
-        collections={collections}
         setZoom={setZoom}
         showHint={view === 'scattered'}
       />
