@@ -11,7 +11,6 @@ import Button from '../components/Button.jsx';
 import Stamp from '../components/Stamp.jsx';
 import BaggageTag from '../components/BaggageTag.jsx';
 import TopoLines from '../components/TopoLines.jsx';
-import { dummyProduct } from '../lib/dummyProducts.js';
 
 export default function Product() {
   const { slug } = useParams();
@@ -42,16 +41,7 @@ export default function Product() {
         }
       })
       .catch(() => {
-        // PLACEHOLDER — dummy fixture so /pieza/:slug is fully previewable
-        // before Supabase has real catalog data. See lib/dummyProducts.js.
-        const dummy = dummyProduct(slug);
-        if (cancelled) return;
-        if (dummy) {
-          setPlace(dummy);
-          setActivePhoto(dummy.thumb_url);
-        } else {
-          setError('No pudimos cargar esta pieza.');
-        }
+        if (!cancelled) setError('No pudimos cargar esta pieza.');
       });
     return () => {
       cancelled = true;
