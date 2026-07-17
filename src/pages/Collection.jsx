@@ -35,7 +35,7 @@ export default function Collection() {
       </div>
 
       {reviews.length > 0 && (
-        <section className="mt-12 max-w-2xl">
+        <section id="resenas" className="mt-12 max-w-2xl">
           <h2 className="font-label uppercase tracking-wide text-sm mb-4">Reseñas</h2>
           <ul className="space-y-2">
             {reviews.map((r, i) => (

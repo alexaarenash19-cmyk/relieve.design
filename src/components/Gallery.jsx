@@ -291,6 +291,9 @@ function BottomControlBar({ type, setType, setZoom, showHint }) {
         <>
           <a href="/coleccion/ciudades-mexico" className={DARK_PILL}>colección</a>
           <a href="/sobre" className={DARK_PILL}>sobre</a>
+          {/* Points at the real reviews section on the collection page —
+              no dedicated reviews-index page exists yet. */}
+          <a href="/coleccion/ciudades-mexico#resenas" className={DARK_PILL}>reviews</a>
           <a href={CONTACT_MAILTO} className={DARK_PILL}>contacto</a>
         </>
       )}
