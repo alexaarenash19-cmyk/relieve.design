@@ -5,8 +5,25 @@
 import { useEffect, useState } from 'react';
 import { placeAlt } from '../lib/altText.js';
 import { pieceMainPhoto } from '../lib/photography.js';
+import { fetchJsonArray } from '../lib/fetchJsonArray.js';
 import Stamp from './Stamp.jsx';
 import TopoLines from './TopoLines.jsx';
+
+// TEMPORARY — hardcoded so the scatter/drag/zoom interaction is checkable
+// today without depending on /api/places or /api/collections. Not real
+// catalog data; delete this and switch the scattered view back to `filtered`
+// once those endpoints are trusted again.
+const SCATTER_DEMO_ITEMS = [
+  { slug: 'demo-1', name: 'Monterrey', thumb_url: 'https://images.unsplash.com/photo-1642321215251-bd9999b0b408?fm=jpg&q=70&w=800&auto=format&fit=crop' },
+  { slug: 'demo-2', name: 'Ciudad de México', thumb_url: 'https://images.unsplash.com/photo-1591049433264-618fa2f4558f?fm=jpg&q=70&w=800&auto=format&fit=crop' },
+  { slug: 'demo-3', name: 'Popocatépetl', thumb_url: 'https://images.unsplash.com/photo-1562196531-60920785b7ca?fm=jpg&q=70&w=800&auto=format&fit=crop' },
+  { slug: 'demo-4', name: 'Oaxaca', thumb_url: 'https://images.unsplash.com/photo-1641511256207-3e3ced99393e?fm=jpg&q=70&w=800&auto=format&fit=crop' },
+  { slug: 'demo-5', name: 'San Miguel de Allende', thumb_url: 'https://images.unsplash.com/photo-1598535989263-cb097f8ac3f0?fm=jpg&q=70&w=800&auto=format&fit=crop' },
+  { slug: 'demo-6', name: 'Manila', thumb_url: 'https://images.unsplash.com/photo-1526731955462-f6085f39e742?fm=jpg&q=70&w=800&auto=format&fit=crop' },
+  { slug: 'demo-7', name: 'Sala', thumb_url: 'https://images.unsplash.com/photo-1769117549887-d7ab37279060?fm=jpg&q=70&w=800&auto=format&fit=crop' },
+  { slug: 'demo-8', name: 'Muro', thumb_url: 'https://images.unsplash.com/photo-1738682767944-d3c255abac3c?fm=jpg&q=70&w=800&auto=format&fit=crop' },
+  { slug: 'demo-9', name: 'Retrato', thumb_url: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?fm=jpg&q=70&w=800&auto=format&fit=crop' },
+];
 
 // Curated, hand-placed offsets — "layout curado, no grid rígido" — cycled
 // and scaled if there are more pieces than positions.
@@ -197,8 +214,8 @@ export default function Gallery() {
 
   useEffect(() => {
     const query = type ? `?type=${type}` : '';
-    fetch(`/api/places${query}`).then((res) => res.json()).then(setPlaces).catch(() => setPlaces([]));
-    fetch('/api/collections').then((res) => res.json()).then(setCollections).catch(() => setCollections([]));
+    fetchJsonArray(`/api/places${query}`).then(setPlaces);
+    fetchJsonArray('/api/collections').then(setCollections);
   }, [type]);
 
   const filtered = collection ? places.filter((p) => p.collection === collection) : places;
@@ -212,7 +229,7 @@ export default function Gallery() {
           className="relative mx-auto"
           style={{ minHeight: '110vh', maxWidth: 1100, transform: `scale(${zoom})`, transformOrigin: 'top center' }}
         >
-          {filtered.map((place, i) => (
+          {SCATTER_DEMO_ITEMS.map((place, i) => (
             <GalleryCard key={place.slug} place={place} variant="scattered" slot={SCATTER_SLOTS[i % SCATTER_SLOTS.length]} />
           ))}
         </div>

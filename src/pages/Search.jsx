@@ -8,6 +8,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import TopoLines from '../components/TopoLines.jsx';
 import DeparturesBoard from '../components/DeparturesBoard.jsx';
+import { fetchJsonArray } from '../lib/fetchJsonArray.js';
 
 const ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
 
@@ -21,8 +22,8 @@ export default function Search() {
   const inputRef = useRef(null);
 
   useEffect(() => {
-    fetch('/api/places').then((res) => res.json()).then(setPlaces).catch(() => setPlaces([]));
-    fetch('/api/collections').then((res) => res.json()).then(setCollections).catch(() => setCollections([]));
+    fetchJsonArray('/api/places').then(setPlaces);
+    fetchJsonArray('/api/collections').then(setCollections);
   }, []);
 
   useEffect(() => {

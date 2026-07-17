@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { GalleryCard } from '../components/Gallery.jsx';
+import { fetchJsonArray } from '../lib/fetchJsonArray.js';
 
 export default function Collection() {
   const { slug } = useParams();
@@ -11,18 +12,13 @@ export default function Collection() {
 
   useEffect(() => {
     let cancelled = false;
-    fetch(`/api/places?collection=${slug}`)
-      .then((res) => res.json())
-      .then((data) => {
-        if (cancelled) return;
-        setPlaces(data);
-        Promise.all(
-          data.map((p) => fetch(`/api/reviews?place=${p.slug}`).then((r) => r.json()).catch(() => []))
-        ).then((lists) => {
-          if (!cancelled) setReviews(lists.flat());
-        });
-      })
-      .catch(() => setPlaces([]));
+    fetchJsonArray(`/api/places?collection=${slug}`).then((data) => {
+      if (cancelled) return;
+      setPlaces(data);
+      Promise.all(data.map((p) => fetchJsonArray(`/api/reviews?place=${p.slug}`))).then((lists) => {
+        if (!cancelled) setReviews(lists.flat());
+      });
+    });
     return () => {
       cancelled = true;
     };

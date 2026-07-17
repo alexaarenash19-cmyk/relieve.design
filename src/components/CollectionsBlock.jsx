@@ -2,12 +2,13 @@
 // Shared-element transition into /coleccion/:slug is motion polish saved for
 // after M1/M2 land (ui-ux.md — "listo para construir, no para documentar más").
 import { useEffect, useState } from 'react';
+import { fetchJsonArray } from '../lib/fetchJsonArray.js';
 
 export default function CollectionsBlock() {
   const [collections, setCollections] = useState([]);
 
   useEffect(() => {
-    fetch('/api/collections').then((res) => res.json()).then(setCollections).catch(() => setCollections([]));
+    fetchJsonArray('/api/collections').then(setCollections);
   }, []);
 
   if (collections.length === 0) return null;
