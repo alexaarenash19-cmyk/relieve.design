@@ -111,7 +111,6 @@ export default function HeroScene({ modelUrl = null, className = '', progress = 
 
   return (
     <div className={`absolute inset-0 ${className}`} style={{ opacity }}>
-      <CropBoxOverlay stageT={stages[1]} />
       <Canvas camera={{ position: camera.position, fov: 35 }}>
         <Suspense fallback={null}>
           {/* "studio" per ui-ux.md fotografía: acabado mate, fondo neutro, una
@@ -123,33 +122,5 @@ export default function HeroScene({ modelUrl = null, className = '', progress = 
         </Suspense>
       </Canvas>
     </div>
-  );
-}
-
-// Stage 2 — a line draws the crop box around the section to be printed.
-function CropBoxOverlay({ stageT }) {
-  if (stageT <= 0) return null;
-  const w = 300;
-  const h = 200;
-  const perimeter = 2 * (w + h);
-
-  return (
-    <svg
-      className="absolute inset-0 w-full h-full pointer-events-none"
-      viewBox={`0 0 ${w + 40} ${h + 40}`}
-      aria-hidden="true"
-    >
-      <rect
-        x="20"
-        y="20"
-        width={w}
-        height={h}
-        fill="none"
-        stroke="#232323" /* --graphite — reads on the photo now, not a dark bg */
-        strokeWidth="2"
-        strokeDasharray={perimeter}
-        strokeDashoffset={perimeter * (1 - stageT)}
-      />
-    </svg>
   );
 }
