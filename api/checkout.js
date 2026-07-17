@@ -3,9 +3,9 @@
 // Payment methods/MSI/shipping zones are configured in #27; this issue only
 // needs a real Session with the recalculated total.
 import Stripe from 'stripe';
-import { supabase } from './_lib/supabase.js';
-import { sendError } from './_lib/errors.js';
-import { calcUnitPriceCents, PricingError } from './_lib/pricing.js';
+import { supabase } from '../lib/supabase.js';
+import { sendError } from '../lib/errors.js';
+import { calcUnitPriceCents, PricingError } from '../lib/pricing.js';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 const SITE_URL = process.env.SITE_URL || 'http://localhost:5173';

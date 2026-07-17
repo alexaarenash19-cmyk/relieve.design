@@ -2,8 +2,8 @@
 // POST /api/reviews (multipart: foto + campos) -> 201, approved=false until moderated.
 import fs from 'node:fs/promises';
 import { IncomingForm } from 'formidable';
-import { supabase } from './_lib/supabase.js';
-import { sendError } from './_lib/errors.js';
+import { supabase } from '../lib/supabase.js';
+import { sendError } from '../lib/errors.js';
 
 export const config = { api: { bodyParser: false } };
 

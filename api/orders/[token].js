@@ -1,6 +1,6 @@
 // Issue #36: GET /api/orders/:token — magic-link order status, no login.
-import { supabase } from '../_lib/supabase.js';
-import { sendError } from '../_lib/errors.js';
+import { supabase } from '../../lib/supabase.js';
+import { sendError } from '../../lib/errors.js';
 
 export default async function handler(req, res) {
   if (req.method !== 'GET') {

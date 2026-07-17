@@ -1,6 +1,6 @@
 // Issue #24: GET /api/places/:slug
-import { supabase } from '../_lib/supabase.js';
-import { sendError } from '../_lib/errors.js';
+import { supabase } from '../../lib/supabase.js';
+import { sendError } from '../../lib/errors.js';
 
 export default async function handler(req, res) {
   if (req.method !== 'GET') {

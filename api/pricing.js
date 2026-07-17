@@ -1,6 +1,6 @@
 // Issue #25: POST /api/pricing
-import { sendError } from './_lib/errors.js';
-import { calcUnitPriceCents, PricingError } from './_lib/pricing.js';
+import { sendError } from '../lib/errors.js';
+import { calcUnitPriceCents, PricingError } from '../lib/pricing.js';
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {

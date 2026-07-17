@@ -4,8 +4,8 @@
 
 import crypto from 'node:crypto';
 import Stripe from 'stripe';
-import { supabase } from '../_lib/supabase.js';
-import { calcUnitPriceCents } from '../_lib/pricing.js';
+import { supabase } from '../../lib/supabase.js';
+import { calcUnitPriceCents } from '../../lib/pricing.js';
 
 export const config = { api: { bodyParser: false } };
 

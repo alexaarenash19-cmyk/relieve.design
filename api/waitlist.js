@@ -1,6 +1,6 @@
 // Issue #37: POST /api/waitlist { place_slug, size_code, email } -> 201
-import { supabase } from './_lib/supabase.js';
-import { sendError } from './_lib/errors.js';
+import { supabase } from '../lib/supabase.js';
+import { sendError } from '../lib/errors.js';
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
