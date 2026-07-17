@@ -13,6 +13,7 @@ import BaggageTag from '../components/BaggageTag.jsx';
 import TopoLines from '../components/TopoLines.jsx';
 import Reviews from '../components/Reviews.jsx';
 import { pieceMainPhoto, pieceDetailPhoto } from '../lib/photography.js';
+import { fetchJson } from '../lib/fetchJsonArray.js';
 
 export default function Product() {
   const { slug } = useParams();
@@ -31,11 +32,7 @@ export default function Product() {
 
   useEffect(() => {
     let cancelled = false;
-    fetch(`/api/places/${slug}`)
-      .then((res) => {
-        if (!res.ok) throw new Error('not_found');
-        return res.json();
-      })
+    fetchJson(`/api/places/${slug}`)
       .then((data) => {
         if (!cancelled) {
           setPlace(data);
@@ -45,6 +42,9 @@ export default function Product() {
           setActivePhoto(pieceMainPhoto(data.slug) ?? data.thumb_url);
         }
       })
+      // fetchJson throws on a non-ok response AND on timeout (10s, see
+      // lib/fetchJsonArray.js) — either way this is a visible error state,
+      // never an indefinite "Cargando…".
       .catch(() => {
         if (!cancelled) setError('No pudimos cargar esta pieza.');
       });
@@ -56,15 +56,16 @@ export default function Product() {
   useEffect(() => {
     let cancelled = false;
     const addons = [capelo && 'capelo', plateText && 'placa'].filter(Boolean);
-    fetch('/api/pricing', {
+    fetchJson('/api/pricing', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ size_code: sizeCode, frame_code: frameCode, addons }),
     })
-      .then((res) => res.json())
       .then((data) => {
         if (!cancelled && data.unit_price != null) setUnitPriceCents(data.unit_price);
       })
+      // Non-blocking: falls back to place.base_price (RollingPrice below),
+      // so a timeout/error here just skips the live-priced update.
       .catch(() => {});
     return () => {
       cancelled = true;

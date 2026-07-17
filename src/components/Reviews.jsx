@@ -1,6 +1,7 @@
 // Reseñas del producto — colapsado por default (solo texto); click revela la
 // foto que el cliente subió (pieza instalada en su casa), si tiene una.
 import { useEffect, useState } from 'react';
+import { fetchJsonArray } from '../lib/fetchJsonArray.js';
 
 function Stars({ rating }) {
   return (
@@ -52,12 +53,9 @@ export default function Reviews({ slug }) {
 
   useEffect(() => {
     let cancelled = false;
-    fetch(`/api/reviews?place=${slug}`)
-      .then((res) => res.json())
-      .then((data) => {
-        if (!cancelled && Array.isArray(data)) setReviews(data);
-      })
-      .catch(() => {});
+    fetchJsonArray(`/api/reviews?place=${slug}`).then((data) => {
+      if (!cancelled) setReviews(data);
+    });
     return () => {
       cancelled = true;
     };
