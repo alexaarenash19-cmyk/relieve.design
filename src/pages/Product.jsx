@@ -65,7 +65,7 @@ export default function Product() {
       <main className="max-w-md mx-auto p-8 text-center">
         <Stamp label="Sin ruta" className="mb-6" />
         <h1 className="font-display font-light text-2xl mb-2">{error}</h1>
-        <p className="text-text/60 mb-6">
+        <p className="text-graphite/60 mb-6">
           Puede que esta pieza no exista o que el catálogo aún no esté conectado.
         </p>
         <Button as="a" href="/buscar">
@@ -76,7 +76,7 @@ export default function Product() {
   }
   if (!place) {
     return (
-      <p className="p-8 text-center font-label uppercase tracking-wide text-xs text-text/60">
+      <p className="p-8 text-center font-label uppercase tracking-wide text-xs text-graphite/60">
         Cargando…
       </p>
     );
@@ -90,7 +90,7 @@ export default function Product() {
     [
       'Tipo',
       place.type === 'montana' ? 'Montaña' : 'Ciudad',
-      place.type === 'montana' ? 'text-walnut' : 'text-blue',
+      place.type === 'montana' ? 'text-walnut' : 'text-explorer-blue',
     ],
     ['Medidas', selectedSize.dims],
     place.elevation_m ? ['Altitud', `${place.elevation_m} msnm`] : null,
@@ -144,7 +144,7 @@ export default function Product() {
               key={label}
               className="grid grid-cols-2 border-b border-line py-2 font-label uppercase tracking-wide text-xs"
             >
-              <dt className="text-text/60">{label}</dt>
+              <dt className="text-graphite/60">{label}</dt>
               <dd className={valueClassName}>{value}</dd>
             </div>
           ))}
@@ -152,7 +152,7 @@ export default function Product() {
         {place.story && <p className="mb-6 leading-relaxed">{place.story}</p>}
 
         {place.status === 'preorder' && (
-          <span className="inline-block mb-4 px-4 py-1 rounded-full border border-navy text-navy font-label uppercase tracking-wide text-xs animate-pulse">
+          <span className="inline-block mb-4 px-4 py-1 rounded-full border border-sello-navy text-sello-navy font-label uppercase tracking-wide text-xs animate-pulse">
             Pre-order
           </span>
         )}
@@ -165,7 +165,7 @@ export default function Product() {
                 key={s.code}
                 onClick={() => setSizeCode(s.code)}
                 className={`px-3 py-1 rounded-full border text-sm ${
-                  sizeCode === s.code ? 'bg-navy text-bg-dark border-navy' : 'border-line'
+                  sizeCode === s.code ? 'bg-sello-navy text-dark-bg border-sello-navy' : 'border-line'
                 }`}
               >
                 {s.label}
@@ -183,7 +183,7 @@ export default function Product() {
                 key={f.code}
                 onClick={() => setFrameCode(f.code)}
                 className={`flex items-center gap-2 px-3 py-1 rounded-full border text-sm ${
-                  frameCode === f.code ? 'bg-navy text-bg-dark border-navy' : 'border-line'
+                  frameCode === f.code ? 'bg-sello-navy text-dark-bg border-sello-navy' : 'border-line'
                 }`}
               >
                 <span
@@ -205,7 +205,7 @@ export default function Product() {
                 onClick={() => setColorCode(c.code)}
                 aria-label={c.label}
                 className={`w-7 h-7 rounded-full border-2 ${
-                  colorCode === c.code ? 'border-navy' : 'border-line'
+                  colorCode === c.code ? 'border-sello-navy' : 'border-line'
                 }`}
                 style={{ backgroundColor: c.hex }}
               />
@@ -221,7 +221,7 @@ export default function Product() {
                 key={o}
                 onClick={() => setOrientation(o)}
                 className={`px-3 py-1 rounded-full border text-sm capitalize ${
-                  orientation === o ? 'bg-navy text-bg-dark border-navy' : 'border-line'
+                  orientation === o ? 'bg-sello-navy text-dark-bg border-sello-navy' : 'border-line'
                 }`}
               >
                 {o}

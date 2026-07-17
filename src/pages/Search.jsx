@@ -50,10 +50,10 @@ export default function Search() {
 
   return (
     <main className="max-w-3xl mx-auto p-8">
-      <div className="relative mb-6 rounded-[9px] bg-bg-dark text-text-dark px-6 py-8 overflow-hidden">
-        <TopoLines className="absolute inset-0 w-full h-full text-text-dark/30" />
+      <div className="relative mb-6 rounded-[9px] bg-dark-bg text-dark-fg px-6 py-8 overflow-hidden">
+        <TopoLines className="absolute inset-0 w-full h-full text-dark-fg/30" />
         <h1 className="relative font-display font-light text-3xl">Encuentra tu lugar</h1>
-        <p className="relative font-label uppercase tracking-wide text-xs text-text-dark/60 mt-2">
+        <p className="relative font-label uppercase tracking-wide text-xs text-dark-fg/60 mt-2">
           {places.length} destinos en catálogo
         </p>
       </div>
@@ -73,7 +73,7 @@ export default function Search() {
             disabled={!available.has(l)}
             onClick={() => setLetter(letter === l ? null : l)}
             className={`w-7 h-7 text-xs font-label rounded ${
-              letter === l ? 'bg-navy text-bg-dark' : 'text-text/70'
+              letter === l ? 'bg-sello-navy text-dark-bg' : 'text-graphite/70'
             } ${available.has(l) ? 'hover:bg-line' : 'opacity-20 cursor-default'}`}
           >
             {l}
@@ -106,7 +106,7 @@ export default function Search() {
       </div>
 
       {filtered.length === 0 ? (
-        <p className="text-text/60">Sin resultados.</p>
+        <p className="text-graphite/60">Sin resultados.</p>
       ) : (
         <ul className="border-t border-line font-label">
           {filtered.map((p) => (
@@ -118,7 +118,7 @@ export default function Search() {
                 <span className="font-display font-light text-lg normal-case">{p.name}</span>
                 <span
                   className={`uppercase tracking-wide text-xs ${
-                    p.type === 'montana' ? 'text-walnut' : 'text-blue'
+                    p.type === 'montana' ? 'text-walnut' : 'text-explorer-blue'
                   }`}
                 >
                   {p.type === 'montana' ? 'Montaña' : 'Ciudad'}

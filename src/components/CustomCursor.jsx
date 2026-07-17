@@ -30,11 +30,11 @@ export default function CustomCursor() {
       style={{ left: pos.x, top: pos.y }}
     >
       {label ? (
-        <span className="flex items-center justify-center h-9 px-4 rounded-full bg-navy text-bg-dark font-label uppercase tracking-wide text-xs whitespace-nowrap">
+        <span className="flex items-center justify-center h-9 px-4 rounded-full bg-sello-navy text-dark-bg font-label uppercase tracking-wide text-xs whitespace-nowrap">
           {label}
         </span>
       ) : (
-        <span className="block w-2 h-2 rounded-full bg-navy" />
+        <span className="block w-2 h-2 rounded-full bg-sello-navy" />
       )}
     </div>
   );

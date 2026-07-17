@@ -63,7 +63,7 @@ export default function CartDrawer() {
       <div
         onClick={closeCart}
         aria-hidden="true"
-        className={`fixed inset-0 bg-black/40 z-40 transition-opacity duration-300 ${
+        className={`fixed inset-0 bg-graphite/40 z-40 transition-opacity duration-300 ${
           isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
         }`}
       />
@@ -71,7 +71,7 @@ export default function CartDrawer() {
         role="dialog"
         aria-label="Carrito"
         aria-hidden={!isOpen}
-        className={`fixed inset-y-0 right-0 z-50 w-full max-w-sm bg-bg overflow-y-auto transition-transform duration-300 ${
+        className={`fixed inset-y-0 right-0 z-50 w-full max-w-sm bg-gallery-white overflow-y-auto transition-transform duration-300 ${
           isOpen ? 'translate-x-0' : 'translate-x-full'
         }`}
       >
@@ -113,7 +113,7 @@ export default function CartDrawer() {
                     <p>{money(item.unit_price_cents * item.qty)}</p>
                     <button
                       onClick={() => removeItem(item.key)}
-                      className="normal-case font-body text-xs underline text-text/60"
+                      className="normal-case font-body text-xs underline text-graphite/60"
                     >
                       Quitar
                     </button>
@@ -129,14 +129,14 @@ export default function CartDrawer() {
           </div>
 
           {remaining > 0 ? (
-            <p className="normal-case font-body text-xs mt-2 text-text/70">
+            <p className="normal-case font-body text-xs mt-2 text-graphite/70">
               Te faltan {money(remaining)} para envío gratis.
             </p>
           ) : (
             <p className="normal-case font-body text-xs mt-2 text-sage">Envío gratis desbloqueado.</p>
           )}
           <div className="h-1 bg-line rounded-full mt-2 overflow-hidden">
-            <div className="h-full bg-navy" style={{ width: `${progress}%` }} />
+            <div className="h-full bg-sello-navy" style={{ width: `${progress}%` }} />
           </div>
 
           <label className="flex items-center gap-2 mt-6 normal-case font-body text-sm">

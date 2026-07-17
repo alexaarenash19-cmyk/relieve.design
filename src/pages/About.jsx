@@ -6,10 +6,10 @@ import Stamp from '../components/Stamp.jsx';
 export default function About() {
   return (
     <main className="grid md:grid-cols-2 gap-12 max-w-5xl mx-auto p-8">
-      <div className="relative aspect-square bg-bg-dark text-text-dark rounded-[9px] flex items-center justify-center overflow-hidden">
-        <TopoLines className="absolute inset-0 w-full h-full text-text-dark/40" />
-        <Stamp className="relative border-text-dark text-text-dark" />
-        <p className="absolute bottom-4 left-4 font-label uppercase tracking-wide text-[10px] text-text-dark/60">
+      <div className="relative aspect-square bg-dark-bg text-dark-fg rounded-[9px] flex items-center justify-center overflow-hidden">
+        <TopoLines className="absolute inset-0 w-full h-full text-dark-fg/40" />
+        <Stamp className="relative border-dark-fg text-dark-fg" />
+        <p className="absolute bottom-4 left-4 font-label uppercase tracking-wide text-[10px] text-dark-fg/60">
           25.6866° N, 100.3161° W · 540 msnm
         </p>
       </div>
@@ -30,7 +30,7 @@ export default function About() {
           para no fabricar de más.
         </p>
 
-        <h2 className="font-label uppercase tracking-wide text-xs text-text/60 mt-8 mb-3 border-t border-line pt-4">
+        <h2 className="font-label uppercase tracking-wide text-xs text-graphite/60 mt-8 mb-3 border-t border-line pt-4">
           Proceso
         </h2>
         <p className="mb-4">

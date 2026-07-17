@@ -22,8 +22,8 @@ function CityModel({ modelUrl }) {
   return <primitive object={scene} />;
 }
 
-const AERIAL_COLOR = '#b9ccd8'; // brand "blue" — reads as an aerial photo tint
-const PRINTED_COLOR = '#f2f0ec'; // matte white — the 3D-printed relief
+const AERIAL_COLOR = '#b9ccd8'; // --explorer-blue — reads as an aerial photo tint
+const PRINTED_COLOR = '#f6f3ed'; // --gallery-white — the 3D-printed relief (no dedicated "printed white" token exists)
 
 // Stage 5: frame bars slide in from outside to the four edges of the block.
 const FRAME_BARS = [
@@ -58,7 +58,7 @@ function PlaceholderBlock({ stages }) {
           ]}
         >
           <boxGeometry args={bar.size} />
-          <meshStandardMaterial color="#7a5a43" roughness={0.6} metalness={0.05} />
+          <meshStandardMaterial color="#7a5a43" roughness={0.6} metalness={0.05} /> {/* --walnut */}
         </mesh>
       ))}
     </group>
@@ -94,7 +94,7 @@ export default function HeroScene({ modelUrl = null, className = '', progress = 
   if (!webglOk) {
     return (
       <div
-        className={`aspect-video bg-bg-dark text-text-dark flex items-center justify-center font-label uppercase tracking-wide text-xs ${className}`}
+        className={`aspect-video bg-dark-bg text-dark-fg flex items-center justify-center font-label uppercase tracking-wide text-xs ${className}`}
       >
         Vista previa 3D no disponible en este navegador
       </div>
@@ -107,7 +107,7 @@ export default function HeroScene({ modelUrl = null, className = '', progress = 
   const opacity = 1 - stages[7];
 
   return (
-    <div className={`aspect-video bg-bg-dark relative overflow-hidden ${className}`} style={{ opacity }}>
+    <div className={`aspect-video bg-dark-bg relative overflow-hidden ${className}`} style={{ opacity }}>
       <CropBoxOverlay stageT={stages[1]} />
       <Canvas camera={{ position: camera.position, fov: 35 }}>
         <Suspense fallback={null}>
@@ -142,7 +142,7 @@ function CropBoxOverlay({ stageT }) {
         width={w}
         height={h}
         fill="none"
-        stroke="#ece7dd"
+        stroke="#ece7dd" /* --dark-fg */
         strokeWidth="2"
         strokeDasharray={perimeter}
         strokeDashoffset={perimeter * (1 - stageT)}

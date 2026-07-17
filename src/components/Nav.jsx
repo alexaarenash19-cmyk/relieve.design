@@ -19,20 +19,20 @@ export default function Nav() {
   return (
     <nav
       className={`sticky top-0 z-40 flex items-center justify-between px-6 py-4 transition-colors duration-200 ${
-        solid ? 'bg-bg/95 backdrop-blur border-b border-line' : 'bg-transparent'
+        solid ? 'bg-gallery-white/95 backdrop-blur border-b border-line' : 'bg-transparent'
       }`}
     >
       <Link to="/" className="font-display font-light text-lg">
         relieve
       </Link>
       <div className="flex items-center gap-6 font-label uppercase tracking-wide text-xs">
-        <Link to="/buscar" data-cursor-label="Ver destino" className="hover:text-ink transition-colors">
+        <Link to="/buscar" data-cursor-label="Ver destino" className="hover:text-passport-ink transition-colors">
           Buscar
         </Link>
-        <Link to="/sobre" data-cursor-label="Ver destino" className="hover:text-ink transition-colors">
+        <Link to="/sobre" data-cursor-label="Ver destino" className="hover:text-passport-ink transition-colors">
           Sobre
         </Link>
-        <button onClick={toggleCart} className="font-label uppercase tracking-wide hover:text-ink transition-colors">
+        <button onClick={toggleCart} className="font-label uppercase tracking-wide hover:text-passport-ink transition-colors">
           Carrito{count > 0 ? ` (${count})` : ''}
         </button>
       </div>

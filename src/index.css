@@ -1,20 +1,22 @@
 @import "tailwindcss";
 
-/* Issue #41 — brand tokens from ui-ux.md "Colores de la Marca".
+/* Brand tokens — exact 10 from the brand audit, plus --color-line (a
+   structural hairline for borders/dividers, not a brand "color"; #E4DED3
+   confirmed separately since it isn't one of the 10).
    Fraunces never bold (300/400 only, italic for emphasis).
    Courier Prime for labels/specs/prices, always uppercase + tracking. */
 @theme {
-  --color-bg: #f6f3ed;
-  --color-text: #232323;
-  --color-blue: #b9ccd8;
+  --color-gallery-white: #f6f3ed;
+  --color-graphite: #232323;
+  --color-explorer-blue: #b9ccd8;
   --color-sage: #aeb99e;
   --color-walnut: #7a5a43;
   --color-stone: #c8c3bc;
-  --color-ink: #355a75;
-  --color-navy: #22405c;
+  --color-passport-ink: #355a75;
+  --color-sello-navy: #22405c;
+  --color-dark-bg: #1a1b19;
+  --color-dark-fg: #ece7dd;
   --color-line: #e4ded3;
-  --color-bg-dark: #14110e;
-  --color-text-dark: #ece7dd;
 
   --font-display: "Fraunces", serif;
   --font-label: "Courier Prime", monospace;
@@ -22,8 +24,8 @@
 }
 
 body {
-  background-color: var(--color-bg);
-  color: var(--color-text);
+  background-color: var(--color-gallery-white);
+  color: var(--color-graphite);
   font-family: var(--font-body);
 }
 

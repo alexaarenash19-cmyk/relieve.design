@@ -48,7 +48,7 @@ export default function Collection() {
                   <summary className="cursor-pointer font-body">
                     {r.customer ?? 'Cliente'} · {r.city ?? ''} · {'★'.repeat(r.rating)}
                   </summary>
-                  <p className="mt-2 text-text/80">{r.comment}</p>
+                  <p className="mt-2 text-graphite/80">{r.comment}</p>
                 </details>
               </li>
             ))}

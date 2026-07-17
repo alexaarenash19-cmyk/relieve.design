@@ -29,7 +29,7 @@ export default function Personalize() {
   return (
     <main className="max-w-md mx-auto p-8">
       <h1 className="font-display font-light text-3xl mb-2">Personaliza tu ubicación</h1>
-      <p className="text-text/70 mb-6">
+      <p className="text-graphite/70 mb-6">
         ¿No encontraste tu lugar en el catálogo? Cuéntanos cuál quieres y te avisamos si es posible fabricarlo.
       </p>
 

@@ -22,7 +22,7 @@ export function GalleryCard({ place }) {
   return (
     <a
       href={`/pieza/${place.slug}`}
-      className="block border border-line rounded-[9px] bg-bg overflow-hidden select-none"
+      className="block border border-line rounded-[9px] bg-gallery-white overflow-hidden select-none"
       style={{ perspective: '800px' }}
     >
       <div
@@ -36,7 +36,7 @@ export function GalleryCard({ place }) {
         {place.thumb_url ? (
           <img src={place.thumb_url} alt={placeAlt(place)} className="w-full h-full object-cover" draggable={false} />
         ) : (
-          <span className="font-label uppercase tracking-wide text-xs text-text/60">{place.name}</span>
+          <span className="font-label uppercase tracking-wide text-xs text-graphite/60">{place.name}</span>
         )}
       </div>
       <p className="font-display text-sm px-3 py-2">{place.name}</p>
@@ -72,7 +72,7 @@ export default function Gallery() {
         <select
           value={type}
           onChange={(e) => setType(e.target.value)}
-          className="font-label uppercase tracking-wide text-xs border border-line rounded-full px-4 py-2 bg-bg"
+          className="font-label uppercase tracking-wide text-xs border border-line rounded-full px-4 py-2 bg-gallery-white"
         >
           <option value="">Todos</option>
           <option value="ciudad">Ciudades</option>
@@ -87,7 +87,7 @@ export default function Gallery() {
             onClick={() => setCols(n)}
             aria-label={`${n} columnas`}
             className={`w-8 h-8 rounded-full border border-line text-xs font-label ${
-              cols === n ? 'bg-navy text-bg-dark' : 'bg-bg'
+              cols === n ? 'bg-sello-navy text-dark-bg' : 'bg-gallery-white'
             }`}
           >
             {n}

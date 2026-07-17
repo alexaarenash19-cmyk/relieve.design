@@ -22,12 +22,12 @@ export default function WaitlistDialog({ placeSlug }) {
     <>
       <button
         onClick={() => dialogRef.current?.showModal()}
-        className="mt-6 border border-navy text-navy px-6 py-3 rounded-[9px] font-body font-medium hover:bg-navy hover:text-bg-dark transition-colors"
+        className="mt-6 border border-sello-navy text-sello-navy px-6 py-3 rounded-[9px] font-body font-medium hover:bg-sello-navy hover:text-dark-bg transition-colors"
       >
         Avisarme cuando vuelva
       </button>
 
-      <dialog ref={dialogRef} className="rounded-[9px] border border-line p-6 backdrop:bg-black/40">
+      <dialog ref={dialogRef} className="rounded-[9px] border border-line p-6 backdrop:bg-graphite/40">
         {sent ? (
           <p>Listo, te avisamos por correo en cuanto vuelva.</p>
         ) : (
@@ -53,10 +53,10 @@ export default function WaitlistDialog({ placeSlug }) {
               className="border border-line rounded px-3 py-2"
             />
             <div className="flex justify-end gap-2 mt-2">
-              <button type="button" onClick={() => dialogRef.current?.close()} className="text-sm text-text/60">
+              <button type="button" onClick={() => dialogRef.current?.close()} className="text-sm text-graphite/60">
                 Cancelar
               </button>
-              <button type="submit" className="bg-navy text-bg-dark px-4 py-2 rounded-[9px] text-sm">
+              <button type="submit" className="bg-sello-navy text-dark-bg px-4 py-2 rounded-[9px] text-sm">
                 Avisarme
               </button>
             </div>

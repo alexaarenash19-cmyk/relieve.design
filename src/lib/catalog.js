@@ -10,14 +10,14 @@ export const SIZES = [
 ];
 
 export const FRAMES = [
-  { code: 'nogal', label: 'Nogal', hex: '#7A5A43' }, // brand Walnut — ui-ux.md "marco de nogal"
-  { code: 'roble', label: 'Roble', hex: '#B08D57' },
-  { code: 'negro', label: 'Negro', hex: '#2B2B2B' },
+  { code: 'nogal', label: 'Nogal', hex: '#7A5A43' }, // --walnut — ui-ux.md "marco de nogal"
+  { code: 'roble', label: 'Roble', hex: '#B08D57' }, // real oak swatch, no brand token for it
+  { code: 'negro', label: 'Negro', hex: '#232323' }, // --graphite (no pure black — ui-ux.md)
 ];
 
 export const COLORS = [
-  { code: 'blanco', label: 'Blanco', hex: '#FFFFFF' },
-  { code: 'arena', label: 'Arena', hex: '#C2B280' },
-  { code: 'grafito', label: 'Grafito', hex: '#4A4A4A' },
-  { code: 'terracota', label: 'Terracota', hex: '#C1440E' },
+  { code: 'blanco', label: 'Blanco', hex: '#F6F3ED' }, // --gallery-white (no pure white — ui-ux.md)
+  { code: 'arena', label: 'Arena', hex: '#C2B280' }, // real sand-paint swatch, no brand token for it
+  { code: 'grafito', label: 'Grafito', hex: '#232323' }, // --graphite
+  { code: 'terracota', label: 'Terracota', hex: '#C1440E' }, // real terracotta-paint swatch, no brand token for it
 ];

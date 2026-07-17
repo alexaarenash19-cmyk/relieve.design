@@ -34,7 +34,7 @@ export default function Terms() {
         Por ser piezas personalizadas de fabricación bajo pedido, no
         aplican cambios ni devoluciones salvo defecto de fabricación.
         Escríbenos a{' '}
-        <a className="text-ink underline" href="mailto:hola@relieve.mx">
+        <a className="text-passport-ink underline" href="mailto:hola@relieve.mx">
           hola@relieve.mx
         </a>{' '}
         dentro de los 7 días posteriores a la entrega.
@@ -46,7 +46,7 @@ export default function Terms() {
         compra proporcionando tus datos fiscales.
       </p>
 
-      <p className="text-sm text-text/70 mt-10">
+      <p className="text-sm text-graphite/70 mt-10">
         Última actualización: 16 de julio de 2026.
       </p>
     </main>

@@ -19,7 +19,7 @@ function Step({ progress, caption, showHeading }) {
         </h1>
       )}
       <HeroScene progress={progress} />
-      {caption && <p className="text-center py-4 text-text/70">{caption}</p>}
+      {caption && <p className="text-center py-4 text-graphite/70">{caption}</p>}
     </div>
   );
 }

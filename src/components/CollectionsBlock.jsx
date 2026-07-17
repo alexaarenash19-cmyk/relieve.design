@@ -25,7 +25,7 @@ export default function CollectionsBlock() {
           ) : (
             <div className="w-full h-full min-h-[240px]" />
           )}
-          <p className="absolute bottom-4 left-4 font-display text-xl text-bg bg-navy/80 px-3 py-1 rounded">
+          <p className="absolute bottom-4 left-4 font-display text-xl text-gallery-white bg-sello-navy/80 px-3 py-1 rounded">
             {c.name}
           </p>
         </a>
