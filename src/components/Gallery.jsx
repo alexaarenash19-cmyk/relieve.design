@@ -281,7 +281,7 @@ function BottomControlBar({ type, setType, setZoom, showHint }) {
   // viewport-fixed bar would float over Testimonials/footer once you
   // scroll past the gallery.
   return (
-    <div className="sticky bottom-6 z-30 flex justify-center">
+    <div className="sticky bottom-66 mt-96 z-30 flex justify-center">
     <div className="relative flex flex-wrap items-center justify-center gap-2 px-4">
       <button onClick={toggleMenu} className={menuOpen ? DARK_PILL : GHOST_PILL}>
         {menuOpen ? <CloseIcon /> : <MenuIcon />}
