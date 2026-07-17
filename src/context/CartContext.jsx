@@ -1,4 +1,4 @@
-// Issue #55 — cart state shared by the drawer/page and (later) checkout.
+// Issue #55 — cart state shared by the drawer and checkout.
 import { createContext, useContext, useEffect, useState } from 'react';
 
 const CartContext = createContext(null);
@@ -15,6 +15,7 @@ function loadInitial() {
 
 export function CartProvider({ children }) {
   const [state, setState] = useState(loadInitial);
+  const [isOpen, setIsOpen] = useState(false);
 
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
@@ -22,6 +23,7 @@ export function CartProvider({ children }) {
 
   function addItem(item) {
     setState((s) => ({ ...s, items: [...s.items, { ...item, key: crypto.randomUUID() }] }));
+    setIsOpen(true); // adding a piece opens the drawer so you see it landed
   }
 
   function removeItem(key) {
@@ -47,7 +49,19 @@ export function CartProvider({ children }) {
 
   return (
     <CartContext.Provider
-      value={{ ...state, subtotal_cents, addItem, removeItem, updateQty, setIsGift, setGiftMessage }}
+      value={{
+        ...state,
+        subtotal_cents,
+        addItem,
+        removeItem,
+        updateQty,
+        setIsGift,
+        setGiftMessage,
+        isOpen,
+        openCart: () => setIsOpen(true),
+        closeCart: () => setIsOpen(false),
+        toggleCart: () => setIsOpen((o) => !o),
+      }}
     >
       {children}
     </CartContext.Provider>

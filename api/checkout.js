@@ -93,7 +93,7 @@ export default async function handler(req, res) {
       gift_message: gift_message ?? '',
     },
     success_url: `${SITE_URL}/pedido/success?session_id={CHECKOUT_SESSION_ID}`,
-    cancel_url: `${SITE_URL}/carrito`,
+    cancel_url: SITE_URL, // /carrito was a page, now the cart is a drawer (P2) — cart state persists in localStorage regardless
   });
 
   return res.status(200).json({ url: session.url });

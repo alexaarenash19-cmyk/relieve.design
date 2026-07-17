@@ -5,7 +5,7 @@ import { useCart } from '../context/CartContext.jsx';
 
 export default function Nav() {
   const [solid, setSolid] = useState(false);
-  const { items } = useCart();
+  const { items, toggleCart } = useCart();
   const count = items.reduce((sum, i) => sum + i.qty, 0);
 
   useEffect(() => {
@@ -32,9 +32,9 @@ export default function Nav() {
         <Link to="/sobre" data-cursor-label="Ver destino" className="hover:text-ink transition-colors">
           Sobre
         </Link>
-        <Link to="/carrito" className="hover:text-ink transition-colors">
+        <button onClick={toggleCart} className="font-label uppercase tracking-wide hover:text-ink transition-colors">
           Carrito{count > 0 ? ` (${count})` : ''}
-        </Link>
+        </button>
       </div>
     </nav>
   );

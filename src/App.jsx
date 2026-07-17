@@ -2,6 +2,7 @@ import { Routes, Route, Link } from 'react-router-dom';
 import Nav from './components/Nav.jsx';
 import CustomCursor from './components/CustomCursor.jsx';
 import PageStamp from './components/PageStamp.jsx';
+import CartDrawer from './components/CartDrawer.jsx';
 import Home from './pages/Home.jsx';
 import Collection from './pages/Collection.jsx';
 import Product from './pages/Product.jsx';
@@ -10,7 +11,6 @@ import Search from './pages/Search.jsx';
 import About from './pages/About.jsx';
 import Shipping from './pages/Shipping.jsx';
 import Faq from './pages/Faq.jsx';
-import Cart from './pages/Cart.jsx';
 import OrderStatus from './pages/OrderStatus.jsx';
 import PrivacyNotice from './pages/PrivacyNotice.jsx';
 import Terms from './pages/Terms.jsx';
@@ -21,6 +21,7 @@ export default function App() {
       <PageStamp />
       <CustomCursor />
       <Nav />
+      <CartDrawer />
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/coleccion/:slug" element={<Collection />} />
@@ -30,7 +31,6 @@ export default function App() {
         <Route path="/sobre" element={<About />} />
         <Route path="/envios" element={<Shipping />} />
         <Route path="/faq" element={<Faq />} />
-        <Route path="/carrito" element={<Cart />} />
         <Route path="/pedido/:token" element={<OrderStatus />} />
         <Route path="/aviso-privacidad" element={<PrivacyNotice />} />
         <Route path="/terminos" element={<Terms />} />

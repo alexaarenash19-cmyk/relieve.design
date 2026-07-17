@@ -99,3 +99,20 @@ body {
     animation: none;
   }
 }
+
+/* Issue #55 (P2) — boarding-pass perforated edge on the cart drawer: a
+   scalloped strip of "punched" circles down the drawer's left edge. */
+.boarding-pass-edge {
+  position: relative;
+}
+.boarding-pass-edge::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: -1px;
+  width: 16px;
+  background-image: radial-gradient(circle at 0 8px, transparent 7px, var(--color-bg) 7px);
+  background-size: 16px 16px;
+  background-repeat: repeat-y;
+}
