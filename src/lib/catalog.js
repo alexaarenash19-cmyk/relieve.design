@@ -10,9 +10,9 @@ export const SIZES = [
 ];
 
 export const FRAMES = [
-  { code: 'nogal', label: 'Nogal' },
-  { code: 'roble', label: 'Roble' },
-  { code: 'negro', label: 'Negro' },
+  { code: 'nogal', label: 'Nogal', hex: '#7A5A43' }, // brand Walnut — ui-ux.md "marco de nogal"
+  { code: 'roble', label: 'Roble', hex: '#B08D57' },
+  { code: 'negro', label: 'Negro', hex: '#2B2B2B' },
 ];
 
 export const COLORS = [

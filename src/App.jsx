@@ -36,10 +36,10 @@ export default function App() {
         <Route path="/terminos" element={<Terms />} />
       </Routes>
       <footer className="font-label uppercase tracking-wide text-xs text-text/70 flex gap-6 justify-center p-8">
-        <Link to="/aviso-privacidad" className="hover:underline">
+        <Link to="/aviso-privacidad" className="hover:text-ink hover:underline">
           Aviso de privacidad
         </Link>
-        <Link to="/terminos" className="hover:underline">
+        <Link to="/terminos" className="hover:text-ink hover:underline">
           Términos
         </Link>
       </footer>

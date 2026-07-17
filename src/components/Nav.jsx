@@ -26,13 +26,13 @@ export default function Nav() {
         relieve
       </Link>
       <div className="flex items-center gap-6 font-label uppercase tracking-wide text-xs">
-        <Link to="/buscar" data-cursor-label="Ver destino" className="hover:opacity-60">
+        <Link to="/buscar" data-cursor-label="Ver destino" className="hover:text-ink transition-colors">
           Buscar
         </Link>
-        <Link to="/sobre" data-cursor-label="Ver destino" className="hover:opacity-60">
+        <Link to="/sobre" data-cursor-label="Ver destino" className="hover:text-ink transition-colors">
           Sobre
         </Link>
-        <Link to="/carrito" className="hover:opacity-60">
+        <Link to="/carrito" className="hover:text-ink transition-colors">
           Carrito{count > 0 ? ` (${count})` : ''}
         </Link>
       </div>

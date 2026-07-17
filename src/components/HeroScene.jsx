@@ -111,7 +111,10 @@ export default function HeroScene({ modelUrl = null, className = '', progress = 
       <CropBoxOverlay stageT={stages[1]} />
       <Canvas camera={{ position: camera.position, fov: 35 }}>
         <Suspense fallback={null}>
-          <Stage environment="city" intensity={lightIntensity} shadows="contact">
+          {/* "studio" per ui-ux.md fotografía: acabado mate, fondo neutro, una
+              sola fuente de luz. "city" was casting a warm/orange tint that
+              shifted the walnut frame toward pink/terracotta. */}
+          <Stage environment="studio" intensity={lightIntensity} shadows="contact">
             {modelUrl ? <CityModel modelUrl={modelUrl} /> : <PlaceholderBlock stages={stages} />}
           </Stage>
         </Suspense>

@@ -67,7 +67,11 @@ export default function Product() {
   const selectedSize = SIZES.find((s) => s.code === sizeCode);
 
   const specs = [
-    ['Tipo', place.type === 'montana' ? 'Montaña' : 'Ciudad'],
+    [
+      'Tipo',
+      place.type === 'montana' ? 'Montaña' : 'Ciudad',
+      place.type === 'montana' ? 'text-walnut' : 'text-blue',
+    ],
     ['Medidas', selectedSize.dims],
     place.elevation_m ? ['Altitud', `${place.elevation_m} msnm`] : null,
     place.lat && place.lng ? ['Coordenadas', `${place.lat}, ${place.lng}`] : null,
@@ -105,7 +109,7 @@ export default function Product() {
         ) : (
           <span
             className="font-label uppercase tracking-wide text-xs px-3 py-1 rounded"
-            style={{ border: `4px solid ${selectedFrame ? '#7A5A43' : 'transparent'}` }}
+            style={{ border: `4px solid ${selectedFrame?.hex ?? 'transparent'}` }}
           >
             {place.name}
           </span>
@@ -115,13 +119,13 @@ export default function Product() {
       <div>
         <h1 className="font-display font-light text-3xl mb-6">{place.name}</h1>
         <dl className="border-t border-line mb-6">
-          {specs.map(([label, value]) => (
+          {specs.map(([label, value, valueClassName]) => (
             <div
               key={label}
               className="grid grid-cols-2 border-b border-line py-2 font-label uppercase tracking-wide text-xs"
             >
               <dt className="text-text/60">{label}</dt>
-              <dd>{value}</dd>
+              <dd className={valueClassName}>{value}</dd>
             </div>
           ))}
         </dl>
@@ -158,10 +162,14 @@ export default function Product() {
               <button
                 key={f.code}
                 onClick={() => setFrameCode(f.code)}
-                className={`px-3 py-1 rounded-full border text-sm ${
+                className={`flex items-center gap-2 px-3 py-1 rounded-full border text-sm ${
                   frameCode === f.code ? 'bg-navy text-bg-dark border-navy' : 'border-line'
                 }`}
               >
+                <span
+                  className={`w-3 h-3 rounded-full ${f.code === 'nogal' ? 'bg-walnut' : ''}`}
+                  style={f.code === 'nogal' ? undefined : { backgroundColor: f.hex }}
+                />
                 {f.label}
               </button>
             ))}

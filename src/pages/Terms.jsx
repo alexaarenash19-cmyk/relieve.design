@@ -34,7 +34,7 @@ export default function Terms() {
         Por ser piezas personalizadas de fabricación bajo pedido, no
         aplican cambios ni devoluciones salvo defecto de fabricación.
         Escríbenos a{' '}
-        <a className="underline" href="mailto:hola@relieve.mx">
+        <a className="text-ink underline" href="mailto:hola@relieve.mx">
           hola@relieve.mx
         </a>{' '}
         dentro de los 7 días posteriores a la entrega.
