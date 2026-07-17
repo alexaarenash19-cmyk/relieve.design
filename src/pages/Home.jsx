@@ -5,6 +5,7 @@ import HeroReducedMotion from '../components/HeroReducedMotion.jsx';
 import { HeroScrollProvider } from '../context/HeroScrollContext.jsx';
 import Gallery from '../components/Gallery.jsx';
 import CollectionsBlock from '../components/CollectionsBlock.jsx';
+import Testimonials from '../components/Testimonials.jsx';
 
 function prefersReducedMotion() {
   return typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -26,6 +27,7 @@ export default function Home() {
       )}
       <Gallery />
       <CollectionsBlock />
+      <Testimonials />
     </>
   );
 }
