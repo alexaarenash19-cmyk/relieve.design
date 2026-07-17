@@ -1,0 +1,180 @@
+// Consolidated storefront-read/write endpoints — collections, places,
+// pricing, waitlist, order status — merged into one function so the Vercel
+// Hobby plan's 12-function cap has real margin. Same URLs, same behavior:
+// vercel.json rewrites each original path here with a `resource` query param.
+// Kept separate from checkout/reviews/webhooks/admin because those need
+// either bodyParser:false (multipart, raw signature bytes) or extra
+// auth/critical-path isolation — merging those in would change behavior,
+// not just organization.
+import { supabase } from '../lib/supabase.js';
+import { sendError } from '../lib/errors.js';
+import { calcUnitPriceCents, PricingError } from '../lib/pricing.js';
+
+// Issue #22: GET /api/collections
+async function getCollections(req, res) {
+  if (req.method !== 'GET') {
+    res.setHeader('Allow', 'GET');
+    return sendError(res, 405, 'method_not_allowed', 'Use GET');
+  }
+
+  const { data, error } = await supabase
+    .from('collections')
+    .select('id, slug, name, photo_url')
+    .eq('active', true)
+    .order('sort');
+
+  if (error) return sendError(res, 500, 'db_error', error.message);
+  return res.status(200).json(data);
+}
+
+// Issue #23/#24: GET /api/places?q=&collection=&type= and GET /api/places/:slug
+async function getPlaces(req, res) {
+  if (req.method !== 'GET') {
+    res.setHeader('Allow', 'GET');
+    return sendError(res, 405, 'method_not_allowed', 'Use GET');
+  }
+
+  const { slug } = req.query;
+  if (slug) return getPlaceDetail(req, res, slug);
+
+  const { q, collection, type } = req.query;
+
+  let query = supabase
+    .from('places')
+    .select('slug, name, type, thumb_url, base_price_cents, status, collections(slug)');
+
+  if (q) query = query.ilike('name', `%${q}%`);
+  if (type) query = query.eq('type', type);
+
+  const { data, error } = await query.order('name');
+  if (error) return sendError(res, 500, 'db_error', error.message);
+
+  const places = data
+    .filter((p) => !collection || p.collections?.slug === collection)
+    .map(({ collections, base_price_cents, ...p }) => ({
+      ...p,
+      base_price: base_price_cents,
+      collection: collections?.slug ?? null,
+    }));
+
+  return res.status(200).json(places);
+}
+
+async function getPlaceDetail(req, res, slug) {
+  const { data: place, error } = await supabase
+    .from('places')
+    .select(
+      'id, slug, name, type, lat, lng, elevation_m, story, aerial_url, model_url, thumb_url, base_price_cents, status'
+    )
+    .eq('slug', slug)
+    .maybeSingle();
+
+  if (error) return sendError(res, 500, 'db_error', error.message);
+  if (!place) return sendError(res, 404, 'not_found', 'Place not found');
+
+  const { count } = await supabase
+    .from('reviews')
+    .select('id', { count: 'exact', head: true })
+    .eq('approved', true)
+    .eq('place_id', place.id);
+
+  const { id, base_price_cents, ...rest } = place;
+  return res.status(200).json({
+    ...rest,
+    base_price: base_price_cents,
+    reviews_count: count ?? 0,
+  });
+}
+
+// Issue #25: POST /api/pricing
+async function postPricing(req, res) {
+  if (req.method !== 'POST') {
+    res.setHeader('Allow', 'POST');
+    return sendError(res, 405, 'method_not_allowed', 'Use POST');
+  }
+
+  const { size_code, frame_code, addons = [] } = req.body ?? {};
+  if (!size_code || !frame_code) {
+    return sendError(res, 400, 'invalid_request', 'size_code and frame_code are required');
+  }
+
+  try {
+    const unit_price = await calcUnitPriceCents({ size_code, frame_code, addons });
+    return res.status(200).json({ unit_price });
+  } catch (err) {
+    if (err instanceof PricingError) return sendError(res, 400, err.code, err.message);
+    return sendError(res, 500, 'db_error', err.message);
+  }
+}
+
+// Issue #37: POST /api/waitlist { place_slug, size_code, email } -> 201
+async function postWaitlist(req, res) {
+  if (req.method !== 'POST') {
+    res.setHeader('Allow', 'POST');
+    return sendError(res, 405, 'method_not_allowed', 'Use POST');
+  }
+
+  const { place_slug, size_code, email } = req.body ?? {};
+  if (!place_slug || !email) {
+    return sendError(res, 400, 'invalid_request', 'place_slug and email are required');
+  }
+
+  const { data: place, error: placeError } = await supabase
+    .from('places')
+    .select('id')
+    .eq('slug', place_slug)
+    .maybeSingle();
+
+  if (placeError) return sendError(res, 500, 'db_error', placeError.message);
+  if (!place) return sendError(res, 400, 'invalid_place', `Unknown place_slug: ${place_slug}`);
+
+  const { error } = await supabase
+    .from('waitlist')
+    .insert({ place_id: place.id, size_code, email });
+
+  if (error) return sendError(res, 500, 'db_error', error.message);
+  return res.status(201).json({ ok: true });
+}
+
+// Issue #36: GET /api/orders/:token — magic-link order status, no login.
+async function getOrder(req, res) {
+  if (req.method !== 'GET') {
+    res.setHeader('Allow', 'GET');
+    return sendError(res, 405, 'method_not_allowed', 'Use GET');
+  }
+
+  const { token } = req.query;
+
+  const { data: order, error } = await supabase
+    .from('orders')
+    .select('id, number, status, tracking_number, created_at')
+    .eq('status_token', token)
+    .maybeSingle();
+
+  if (error) return sendError(res, 500, 'db_error', error.message);
+  if (!order) return sendError(res, 404, 'not_found', 'Order not found');
+
+  const { data: items, error: itemsError } = await supabase
+    .from('order_items')
+    .select('place_id, custom_place, size_code, frame_code, color_code, qty, unit_price_cents')
+    .eq('order_id', order.id);
+
+  if (itemsError) return sendError(res, 500, 'db_error', itemsError.message);
+
+  const { id, ...rest } = order;
+  return res.status(200).json({ ...rest, items });
+}
+
+const RESOURCES = {
+  collections: getCollections,
+  places: getPlaces,
+  pricing: postPricing,
+  waitlist: postWaitlist,
+  orders: getOrder,
+};
+
+export default async function handler(req, res) {
+  const fn = RESOURCES[req.query.resource];
+  if (!fn) return sendError(res, 404, 'not_found', 'Unknown resource');
+  return fn(req, res);
+}

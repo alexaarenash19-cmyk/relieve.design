@@ -1,13 +1,13 @@
 // Minimal self-check for the consolidated admin catch-all's routing dispatch
 // (issue #39, merged into one function so the Vercel function-count cap fits).
-// Run: node "api/admin/[...path].test.mjs"
+// Run: node tests/admin.test.mjs
 import assert from 'node:assert';
 
 process.env.ADMIN_TOKEN = 'test-token';
 process.env.SUPABASE_URL = 'https://example.supabase.co';
 process.env.SUPABASE_SERVICE_KEY = 'dummy';
 
-const { default: handler } = await import('./[...path].js');
+const { default: handler } = await import('../api/admin/[...path].js');
 
 function mockRes() {
   return {

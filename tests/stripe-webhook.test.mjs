@@ -1,7 +1,7 @@
 // Minimal self-check for issue #28 (signature verification), issue #30
 // (payment_intent.payment_failed / checkout.session.expired handling), and
 // issue #29's error path (checkout.session.completed with no live Supabase).
-// Run: node api/webhooks/stripe.test.mjs
+// Run: node tests/stripe-webhook.test.mjs
 
 import assert from 'node:assert';
 import { Readable } from 'node:stream';
@@ -12,7 +12,7 @@ process.env.STRIPE_WEBHOOK_SECRET = 'whsec_dummy';
 process.env.SUPABASE_URL = 'https://example.supabase.co';
 process.env.SUPABASE_SERVICE_KEY = 'dummy';
 
-const { default: handler } = await import('./stripe.js');
+const { default: handler } = await import('../api/webhooks/stripe.js');
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
 function signedPayload(type, object) {

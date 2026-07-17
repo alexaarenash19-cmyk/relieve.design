@@ -1,13 +1,13 @@
 // Minimal self-check for issue #26 request-validation guard clauses
 // (full pricing/Stripe session creation needs a live Supabase + Stripe test env).
-// Run: node api/checkout.test.mjs
+// Run: node tests/checkout.test.mjs
 import assert from 'node:assert';
 
 process.env.STRIPE_SECRET_KEY = 'sk_test_dummy';
 process.env.SUPABASE_URL = 'https://example.supabase.co';
 process.env.SUPABASE_SERVICE_KEY = 'dummy';
 
-const { default: handler } = await import('./checkout.js');
+const { default: handler } = await import('../api/checkout.js');
 
 function mockRes() {
   return {
