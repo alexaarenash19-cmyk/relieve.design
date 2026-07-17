@@ -8,6 +8,7 @@ import { SIZES, FRAMES, COLORS } from '../lib/catalog.js';
 import RollingPrice from '../components/RollingPrice.jsx';
 import WaitlistDialog from '../components/WaitlistDialog.jsx';
 import Button from '../components/Button.jsx';
+import Stamp from '../components/Stamp.jsx';
 
 export default function Product() {
   const { slug } = useParams();
@@ -59,8 +60,27 @@ export default function Product() {
     };
   }, [sizeCode, frameCode, capelo, plateText]);
 
-  if (error) return <p className="p-8">{error}</p>;
-  if (!place) return <p className="p-8">Cargando…</p>;
+  if (error) {
+    return (
+      <main className="max-w-md mx-auto p-8 text-center">
+        <Stamp label="Sin ruta" className="mb-6" />
+        <h1 className="font-display font-light text-2xl mb-2">{error}</h1>
+        <p className="text-text/60 mb-6">
+          Puede que esta pieza no exista o que el catálogo aún no esté conectado.
+        </p>
+        <Button as="a" href="/buscar">
+          Buscar otro lugar
+        </Button>
+      </main>
+    );
+  }
+  if (!place) {
+    return (
+      <p className="p-8 text-center font-label uppercase tracking-wide text-xs text-text/60">
+        Cargando…
+      </p>
+    );
+  }
 
   const selectedColor = COLORS.find((c) => c.code === colorCode);
   const selectedFrame = FRAMES.find((f) => f.code === frameCode);

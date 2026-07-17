@@ -1,9 +1,12 @@
 // Issue #49 — "Encuentra tu lugar": live search, A-Z index, filters.
+// P3 — "pasaporte de los lugares" graphic system: baggage-tag filter chips,
+// results styled as a departures-board manifest.
 // Fetches the (small, pilot-sized) catalog once and filters client-side —
 // no network round-trip per keystroke. size/frame/orientation aren't place
 // attributes in the schema (they're per-order personalization), so the only
 // real place filters are collection and type; those are what's wired here.
 import { useEffect, useMemo, useRef, useState } from 'react';
+import TopoLines from '../components/TopoLines.jsx';
 
 const ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
 
@@ -47,7 +50,13 @@ export default function Search() {
 
   return (
     <main className="max-w-3xl mx-auto p-8">
-      <h1 className="font-display font-light text-3xl mb-6">Encuentra tu lugar</h1>
+      <div className="relative mb-6 rounded-[9px] bg-bg-dark text-text-dark px-6 py-8 overflow-hidden">
+        <TopoLines className="absolute inset-0 w-full h-full text-text-dark/30" />
+        <h1 className="relative font-display font-light text-3xl">Encuentra tu lugar</h1>
+        <p className="relative font-label uppercase tracking-wide text-xs text-text-dark/60 mt-2">
+          {places.length} destinos en catálogo
+        </p>
+      </div>
 
       <input
         ref={inputRef}
@@ -73,37 +82,47 @@ export default function Search() {
       </div>
 
       <div className="flex gap-3 mb-6 font-label uppercase tracking-wide text-xs">
-        <select
-          value={collection}
-          onChange={(e) => setCollection(e.target.value)}
-          className="border border-line rounded-full px-3 py-1"
-        >
-          <option value="">Toda colección</option>
-          {collections.map((c) => (
-            <option key={c.slug} value={c.slug}>
-              {c.name}
-            </option>
-          ))}
-        </select>
-        <select
-          value={type}
-          onChange={(e) => setType(e.target.value)}
-          className="border border-line rounded-full px-3 py-1"
-        >
-          <option value="">Todos</option>
-          <option value="ciudad">Ciudades</option>
-          <option value="montana">Montañas</option>
-        </select>
+        <div className="baggage-tag border border-dashed border-line rounded pr-3 py-1">
+          <select
+            value={collection}
+            onChange={(e) => setCollection(e.target.value)}
+            className="bg-transparent"
+          >
+            <option value="">Toda colección</option>
+            {collections.map((c) => (
+              <option key={c.slug} value={c.slug}>
+                {c.name}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div className="baggage-tag border border-dashed border-line rounded pr-3 py-1">
+          <select value={type} onChange={(e) => setType(e.target.value)} className="bg-transparent">
+            <option value="">Todos</option>
+            <option value="ciudad">Ciudades</option>
+            <option value="montana">Montañas</option>
+          </select>
+        </div>
       </div>
 
       {filtered.length === 0 ? (
         <p className="text-text/60">Sin resultados.</p>
       ) : (
-        <ul className="divide-y divide-line">
+        <ul className="border-t border-line font-label">
           {filtered.map((p) => (
-            <li key={p.slug} className="py-3">
-              <a href={`/pieza/${p.slug}`} className="hover:underline">
-                {p.name}
+            <li key={p.slug} className="border-b border-line">
+              <a
+                href={`/pieza/${p.slug}`}
+                className="flex items-center justify-between py-3 hover:bg-line/40 px-1"
+              >
+                <span className="font-display font-light text-lg normal-case">{p.name}</span>
+                <span
+                  className={`uppercase tracking-wide text-xs ${
+                    p.type === 'montana' ? 'text-walnut' : 'text-blue'
+                  }`}
+                >
+                  {p.type === 'montana' ? 'Montaña' : 'Ciudad'}
+                </span>
               </a>
             </li>
           ))}
