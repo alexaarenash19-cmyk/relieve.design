@@ -52,9 +52,17 @@ body::before {
   filter: sepia(0.18) saturate(1.05) brightness(0.97);
 }
 
-/* Issue #42 — custom cursor replaces the native one on fine-pointer devices. */
+/* Issue #42 — custom cursor pill replaces the native one only while
+   hovering a labeled target (Nav links, gallery tiles, etc), never
+   globally. A blanket `body { cursor: none }` previously hid the system
+   cursor everywhere, including zones the JS pill doesn't track correctly
+   (inside the R3F canvas, fixed overlays like the cart, other stacking
+   contexts) — leaving no cursor visible at all there. Scoping the rule to
+   the exact hovered element via :hover means the native cursor is always
+   visible by default and only disappears where the pill is actually,
+   provably showing. */
 @media (pointer: fine) {
-  body {
+  [data-cursor-label]:hover {
     cursor: none;
   }
 }
