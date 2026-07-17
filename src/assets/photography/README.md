@@ -17,8 +17,11 @@ photography/
   pieces/<slug>/main.jpg     ← foto principal de la pieza (una carpeta por slug)
   pieces/<slug>/detail-1.jpg ← foto de detalle (textura/marco/acabado)
   about/proceso.jpg          ← foto de proceso para /sobre
-  testimonials/*.jpg         ← foto pequeña de cliente por testimonio (orden alfabético del archivo = orden del testimonio en Testimonials.jsx)
 ```
+
+Los testimonios (Testimonials.jsx) muestran una foto pequeña de la pieza
+comprada, no del cliente — reusan `pieces/<slug>/main.jpg` por el mismo
+mecanismo de arriba (`slug` en cada entrada del arreglo `TESTIMONIALS`).
 
 `<slug>` = el mismo slug de la tabla `places`. Al agregar una pieza real a
 Supabase, crea su carpeta con el mismo slug y `src/lib/photography.js` la
@@ -36,6 +39,3 @@ bundler de Vite, así que no pueden importar de `src/assets/`.
 - `pieces/popocatepetl/main.jpg` — Popocatépetl, Unsplash (Hanson Lu)
 - `pieces/*/detail-1.jpg` — textura de madera, Unsplash
 - `about/proceso.jpg` — taller de carpintería, Unsplash
-- `testimonials/1.jpg` — retrato, Unsplash (Michael Dam)
-- `testimonials/2.jpg` — retrato, Unsplash (The Connected Narrative)
-- `testimonials/3.jpg` — retrato, Unsplash (Baylee Gramling)

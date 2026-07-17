@@ -4,7 +4,6 @@ import HeroScrollSection from '../components/HeroScrollSection.jsx';
 import HeroReducedMotion from '../components/HeroReducedMotion.jsx';
 import { HeroScrollProvider } from '../context/HeroScrollContext.jsx';
 import Gallery from '../components/Gallery.jsx';
-import CollectionsBlock from '../components/CollectionsBlock.jsx';
 import Testimonials from '../components/Testimonials.jsx';
 
 function prefersReducedMotion() {
@@ -26,7 +25,6 @@ export default function Home() {
         </HeroScrollProvider>
       )}
       <Gallery />
-      <CollectionsBlock />
       <Testimonials />
     </>
   );

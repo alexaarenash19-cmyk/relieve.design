@@ -5,13 +5,23 @@
 // PLACEHOLDER — Ale no ha vendido piezas todavía, no hay reseñas reales.
 // Reemplazar este arreglo con reseñas reales antes de lanzar.
 import { useFadeInView } from '../lib/useFadeInView.js';
-import { TESTIMONIAL_PHOTOS } from '../lib/photography.js';
+import { pieceMainPhoto } from '../lib/photography.js';
+
+// Photo next to each testimonial is the piece that customer bought, not a
+// face — pieceMainPhoto() picks up a real src/assets/photography/pieces/
+// <slug>/main.jpg the moment one exists, same swappable convention as the
+// rest of the site. Falls back to the same dummy catalog thumb (lib/
+// dummyCatalog.js) for places that don't have a bundled photo yet.
+const PRODUCT_PHOTO_FALLBACK = {
+  'ciudad-de-mexico': 'https://images.unsplash.com/photo-1591049433264-618fa2f4558f?fm=jpg&q=70&w=400&auto=format&fit=crop',
+  oaxaca: 'https://images.unsplash.com/photo-1641511256207-3e3ced99393e?fm=jpg&q=70&w=400&auto=format&fit=crop',
+};
 
 const TESTIMONIALS = [
-  { name: 'Cliente piloto', place: 'Monterrey', text: 'La pieza llegó exacta a como se veía en la vista previa — la topografía se siente real.' },
-  { name: 'Cliente piloto', place: 'CDMX', text: 'El marco de nogal es precioso en persona, mejor que en foto.' },
-  { name: 'Cliente piloto', place: 'Oaxaca', text: 'Pedí mi ciudad natal y quedó como regalo perfecto para mis papás.' },
-].map((t, i) => ({ ...t, photo: TESTIMONIAL_PHOTOS[i] ?? null }));
+  { name: 'Cliente piloto', place: 'Monterrey', slug: 'monterrey', text: 'La pieza llegó exacta a como se veía en la vista previa — la topografía se siente real.' },
+  { name: 'Cliente piloto', place: 'CDMX', slug: 'ciudad-de-mexico', text: 'El marco de nogal es precioso en persona, mejor que en foto.' },
+  { name: 'Cliente piloto', place: 'Oaxaca', slug: 'oaxaca', text: 'Pedí mi ciudad natal y quedó como regalo perfecto para mis papás.' },
+].map((t) => ({ ...t, photo: pieceMainPhoto(t.slug) ?? PRODUCT_PHOTO_FALLBACK[t.slug] ?? null }));
 
 function PlaneBanner({ text, photo, index }) {
   return (

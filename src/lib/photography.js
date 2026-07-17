@@ -5,14 +5,6 @@
 import heroAerialCity from '../assets/photography/hero/aerial-city.jpg';
 import aboutProceso from '../assets/photography/about/proceso.jpg';
 
-const testimonialPhotos = import.meta.glob('../assets/photography/testimonials/*.jpg', {
-  eager: true,
-  import: 'default',
-});
-export const TESTIMONIAL_PHOTOS = Object.keys(testimonialPhotos)
-  .sort()
-  .map((path) => testimonialPhotos[path]);
-
 const pieceMains = import.meta.glob('../assets/photography/pieces/*/main.jpg', {
   eager: true,
   import: 'default',
