@@ -30,8 +30,11 @@ const CELL = 170;
 const GAP = 24;
 const GRID_COLS = 4;
 const GRID_ROWS = 4;
-const BLOCK_W = GRID_COLS * CELL + (GRID_COLS - 1) * GAP;
-const BLOCK_H = GRID_ROWS * CELL + (GRID_ROWS - 1) * GAP;
+// One GAP per column/row, including a trailing one after the last — not
+// (COLS - 1) gaps — so the repeat period leaves a real gutter at the seam
+// between tiled blocks too, not just between cells inside one block.
+const BLOCK_W = GRID_COLS * (CELL + GAP);
+const BLOCK_H = GRID_ROWS * (CELL + GAP);
 
 const TILE_PATTERN = [
   { col: 0, row: 0, span: 2 },
