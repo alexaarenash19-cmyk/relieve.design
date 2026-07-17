@@ -3,6 +3,9 @@
 // transform/opacity + a few material props only, per #46's perf requirement.
 // Real GLB (Draco) is pending; useGLTF below already loads+decodes Draco GLBs
 // the moment a place has model_url — placeholder primitives stand in until then.
+// Checkpoint 4 — dropped its own wrapping container/background: the parent
+// (HeroSection) now owns the aspect-video box and layers the aerial photo
+// behind this, so no more solid dark-bg rectangle in the hero.
 import { Suspense, useState } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { Stage, useGLTF } from '@react-three/drei';
@@ -94,7 +97,7 @@ export default function HeroScene({ modelUrl = null, className = '', progress = 
   if (!webglOk) {
     return (
       <div
-        className={`aspect-video bg-dark-bg text-dark-fg flex items-center justify-center font-label uppercase tracking-wide text-xs ${className}`}
+        className={`absolute inset-0 flex items-center justify-center font-label uppercase tracking-wide text-xs text-graphite bg-gallery-white/70 ${className}`}
       >
         Vista previa 3D no disponible en este navegador
       </div>
@@ -107,7 +110,7 @@ export default function HeroScene({ modelUrl = null, className = '', progress = 
   const opacity = 1 - stages[7];
 
   return (
-    <div className={`aspect-video bg-dark-bg relative overflow-hidden ${className}`} style={{ opacity }}>
+    <div className={`absolute inset-0 ${className}`} style={{ opacity }}>
       <CropBoxOverlay stageT={stages[1]} />
       <Canvas camera={{ position: camera.position, fov: 35 }}>
         <Suspense fallback={null}>
@@ -142,7 +145,7 @@ function CropBoxOverlay({ stageT }) {
         width={w}
         height={h}
         fill="none"
-        stroke="#ece7dd" /* --dark-fg */
+        stroke="#232323" /* --graphite — reads on the photo now, not a dark bg */
         strokeWidth="2"
         strokeDasharray={perimeter}
         strokeDashoffset={perimeter * (1 - stageT)}
