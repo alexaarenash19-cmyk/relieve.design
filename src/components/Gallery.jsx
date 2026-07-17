@@ -26,8 +26,10 @@ const SCATTER_DEMO_ITEMS = [
 
 // Grid-aligned, hand-placed cells — straight, never overlapping, varied
 // sizes (1x1 / 2x2) but locked to a 4-col grid, not free/random positions.
-const CELL = 170;
-const GAP = 24;
+// CELL/GAP sized so one repeat block roughly fills a viewport — curated,
+// breathing room (Palmer reference), not a dense repeated mosaic.
+const CELL = 300;
+const GAP = 110;
 const GRID_COLS = 4;
 const GRID_ROWS = 4;
 // One GAP per column/row, including a trailing one after the last — not
@@ -145,8 +147,8 @@ function ScatteredCanvas({ items, zoom }) {
 
   return (
     <div
-      className="relative mx-auto overflow-hidden select-none cursor-grab active:cursor-grabbing"
-      style={{ height: '78vh', maxWidth: 1400 }}
+      className="relative w-full overflow-hidden select-none cursor-grab active:cursor-grabbing"
+      style={{ height: '100vh' }}
       onPointerDown={onPointerDown}
       onPointerMove={onPointerMove}
       onPointerUp={onPointerUp}
