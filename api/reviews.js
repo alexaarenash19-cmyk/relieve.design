@@ -4,6 +4,7 @@ import fs from 'node:fs/promises';
 import { IncomingForm } from 'formidable';
 import { supabase } from '../lib/supabase.js';
 import { sendError } from '../lib/errors.js';
+import { dummyReviewsFor } from '../lib/dummyCatalog.js';
 
 export const config = { api: { bodyParser: false } };
 
@@ -23,12 +24,14 @@ async function handleGet(req, res) {
     return sendError(res, 400, 'invalid_request', 'place query param is required');
   }
 
-  const { data: placeRow } = await supabase
+  const { data: placeRow, error: placeError } = await supabase
     .from('places')
     .select('id')
     .eq('slug', place)
     .maybeSingle();
-  if (!placeRow) return res.status(200).json([]);
+  // Unreachable, or a dummy-catalog slug with no real DB row — fall back to
+  // placeholder reviews (empty for a genuinely unknown/real slug).
+  if (placeError || !placeRow) return res.status(200).json(dummyReviewsFor(place));
 
   const { data, error } = await supabase
     .from('reviews')
@@ -37,7 +40,7 @@ async function handleGet(req, res) {
     .eq('approved', true)
     .order('created_at', { ascending: false });
 
-  if (error) return sendError(res, 500, 'db_error', error.message);
+  if (error) return res.status(200).json(dummyReviewsFor(place));
   return res.status(200).json(data);
 }
 

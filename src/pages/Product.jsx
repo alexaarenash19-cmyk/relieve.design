@@ -11,6 +11,7 @@ import Button from '../components/Button.jsx';
 import Stamp from '../components/Stamp.jsx';
 import BaggageTag from '../components/BaggageTag.jsx';
 import TopoLines from '../components/TopoLines.jsx';
+import Reviews from '../components/Reviews.jsx';
 
 export default function Product() {
   const { slug } = useParams();
@@ -291,6 +292,8 @@ export default function Product() {
         ) : (
           <Button onClick={handleAddToCart}>Agregar al carrito</Button>
         )}
+
+        <Reviews slug={place.slug} />
       </div>
     </main>
   );
