@@ -1,6 +1,7 @@
 // Issue #53 — soldout state: native <dialog> (no library needed) -> POST /api/waitlist.
 import { useRef, useState } from 'react';
 import { SIZES } from '../lib/catalog.js';
+import Stamp from './Stamp.jsx';
 
 export default function WaitlistDialog({ placeSlug }) {
   const dialogRef = useRef(null);
@@ -27,9 +28,15 @@ export default function WaitlistDialog({ placeSlug }) {
         Avisarme cuando vuelva
       </button>
 
-      <dialog ref={dialogRef} className="rounded-[9px] border border-line p-6 backdrop:bg-graphite/40">
+      <dialog
+        ref={dialogRef}
+        className="boarding-pass-edge rounded-[9px] border border-line p-6 pl-8 ml-4 backdrop:bg-graphite/40"
+      >
         {sent ? (
-          <p>Listo, te avisamos por correo en cuanto vuelva.</p>
+          <div className="text-center min-w-[280px] py-4">
+            <Stamp label="Confirmado" className="mb-4" />
+            <p>Listo, te avisamos por correo en cuanto vuelva.</p>
+          </div>
         ) : (
           <form onSubmit={onSubmit} className="flex flex-col gap-3 min-w-[280px]">
             <h2 className="font-label uppercase tracking-wide text-sm">Lista de espera</h2>

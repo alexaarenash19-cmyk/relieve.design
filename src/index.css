@@ -53,8 +53,8 @@ body {
   text-transform: uppercase;
   letter-spacing: 0.06em;
   font-size: 1.5rem;
-  color: var(--color-navy);
-  border: 3px solid var(--color-navy);
+  color: var(--color-sello-navy);
+  border: 3px solid var(--color-sello-navy);
   border-radius: 9999px;
   padding: 0.75rem 1.5rem;
   transform: rotate(-8deg);
@@ -132,7 +132,29 @@ body {
   bottom: 0;
   left: -1px;
   width: 16px;
-  background-image: radial-gradient(circle at 0 8px, transparent 7px, var(--color-bg) 7px);
+  background-image: radial-gradient(circle at 0 8px, transparent 7px, var(--color-gallery-white) 7px);
   background-size: 16px 16px;
   background-repeat: repeat-y;
+}
+
+/* Checkpoint 2 — DeparturesBoard rows "flap" in on mount like a split-flap
+   sign, staggered per-row via inline animation-delay. */
+.flap-row {
+  animation: flap-row-anim 350ms cubic-bezier(0.2, 0.6, 0.2, 1) both;
+  transform-origin: top;
+}
+@keyframes flap-row-anim {
+  0% {
+    opacity: 0;
+    transform: rotateX(-90deg);
+  }
+  100% {
+    opacity: 1;
+    transform: rotateX(0deg);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .flap-row {
+    animation: none;
+  }
 }

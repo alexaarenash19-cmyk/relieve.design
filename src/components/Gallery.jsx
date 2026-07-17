@@ -3,6 +3,7 @@
 // scenes on one grid would tank perf); the hero's real R3F scene is issue #44.
 import { useEffect, useState } from 'react';
 import { placeAlt } from '../lib/altText.js';
+import Stamp from './Stamp.jsx';
 
 export function GalleryCard({ place }) {
   const [rotateY, setRotateY] = useState(0);
@@ -22,7 +23,7 @@ export function GalleryCard({ place }) {
   return (
     <a
       href={`/pieza/${place.slug}`}
-      className="block border border-line rounded-[9px] bg-gallery-white overflow-hidden select-none"
+      className="group block border border-line rounded-[9px] bg-gallery-white overflow-hidden select-none"
       style={{ perspective: '800px' }}
     >
       <div
@@ -30,7 +31,7 @@ export function GalleryCard({ place }) {
         onPointerMove={onPointerMove}
         onPointerUp={onPointerUp}
         onPointerLeave={onPointerUp}
-        className="aspect-square bg-stone flex items-center justify-center cursor-grab active:cursor-grabbing"
+        className="relative aspect-square bg-stone flex items-center justify-center cursor-grab active:cursor-grabbing"
         style={{ transform: `rotateY(${rotateY}deg)`, transition: dragStartX ? 'none' : 'transform 0.3s' }}
       >
         {place.thumb_url ? (
@@ -38,6 +39,10 @@ export function GalleryCard({ place }) {
         ) : (
           <span className="font-label uppercase tracking-wide text-xs text-graphite/60">{place.name}</span>
         )}
+        <Stamp
+          label="Ver pieza"
+          className="absolute inset-0 m-auto w-fit h-fit opacity-0 scale-90 group-hover:opacity-100 group-hover:scale-100 transition-all duration-200 bg-gallery-white/90"
+        />
       </div>
       <p className="font-display text-sm px-3 py-2">{place.name}</p>
     </a>

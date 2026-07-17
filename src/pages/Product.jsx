@@ -9,6 +9,7 @@ import RollingPrice from '../components/RollingPrice.jsx';
 import WaitlistDialog from '../components/WaitlistDialog.jsx';
 import Button from '../components/Button.jsx';
 import Stamp from '../components/Stamp.jsx';
+import BaggageTag from '../components/BaggageTag.jsx';
 
 export default function Product() {
   const { slug } = useParams();
@@ -137,7 +138,14 @@ export default function Product() {
       </div>
 
       <div>
-        <h1 className="font-display font-light text-3xl mb-6">{place.name}</h1>
+        <h1 className="font-display font-light text-3xl mb-4">{place.name}</h1>
+
+        <div className="flex flex-wrap gap-3 mb-6">
+          <BaggageTag label="Ubicación" value={place.name} />
+          <BaggageTag label="Tamaño" value={selectedSize.label} />
+          <BaggageTag label="Marco" value={selectedFrame.label} />
+        </div>
+
         <dl className="border-t border-line mb-6">
           {specs.map(([label, value, valueClassName]) => (
             <div

@@ -7,6 +7,7 @@
 // real place filters are collection and type; those are what's wired here.
 import { useEffect, useMemo, useRef, useState } from 'react';
 import TopoLines from '../components/TopoLines.jsx';
+import DeparturesBoard from '../components/DeparturesBoard.jsx';
 
 const ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
 
@@ -105,29 +106,26 @@ export default function Search() {
         </div>
       </div>
 
-      {filtered.length === 0 ? (
-        <p className="text-graphite/60">Sin resultados.</p>
-      ) : (
-        <ul className="border-t border-line font-label">
-          {filtered.map((p) => (
-            <li key={p.slug} className="border-b border-line">
-              <a
-                href={`/pieza/${p.slug}`}
-                className="flex items-center justify-between py-3 hover:bg-line/40 px-1"
+      <DeparturesBoard
+        rows={filtered.map((p) => ({
+          key: p.slug,
+          node: (
+            <a
+              href={`/pieza/${p.slug}`}
+              className="flex items-center justify-between py-3 hover:bg-line/40 px-1"
+            >
+              <span className="font-display font-light text-lg normal-case">{p.name}</span>
+              <span
+                className={`uppercase tracking-wide text-xs ${
+                  p.type === 'montana' ? 'text-walnut' : 'text-explorer-blue'
+                }`}
               >
-                <span className="font-display font-light text-lg normal-case">{p.name}</span>
-                <span
-                  className={`uppercase tracking-wide text-xs ${
-                    p.type === 'montana' ? 'text-walnut' : 'text-explorer-blue'
-                  }`}
-                >
-                  {p.type === 'montana' ? 'Montaña' : 'Ciudad'}
-                </span>
-              </a>
-            </li>
-          ))}
-        </ul>
-      )}
+                {p.type === 'montana' ? 'Montaña' : 'Ciudad'}
+              </span>
+            </a>
+          ),
+        }))}
+      />
     </main>
   );
 }
