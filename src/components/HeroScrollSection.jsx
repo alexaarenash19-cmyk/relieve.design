@@ -37,11 +37,17 @@ export default function HeroScrollSection({ children }) {
     const trigger = ScrollTrigger.create({
       trigger: containerRef.current,
       start: 'top top',
-      end: '+=300%',
+      end: () => `+=${window.innerHeight * 3}`,
       pin: true,
       scrub: true,
+      invalidateOnRefresh: true,
       onUpdate: (self) => setProgress(self.progress),
     });
+
+    // Google Fonts load async and can shift layout after ScrollTrigger's
+    // initial measurement (more noticeable on a slow first-visit network
+    // than on localhost) — refresh once they're actually in.
+    document.fonts?.ready?.then(() => ScrollTrigger.refresh());
 
     return () => {
       trigger.kill();
