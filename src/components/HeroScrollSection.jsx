@@ -20,10 +20,18 @@ export default function HeroScrollSection({ children }) {
     if (reduceMotion) return;
 
     const lenis = new Lenis();
+    // gsap.ticker's `time` is in SECONDS; Lenis.raf expects MILLISECONDS
+    // (same scale as performance.now()/native rAF). Without *1000, Lenis's
+    // internal delta-time easing thinks ~1000x less time has passed per
+    // frame than actually has, so the virtual scroll position crawls toward
+    // its target at ~1/1000th speed — indistinguishable from "scroll is
+    // frozen" during normal interaction. This is Lenis's documented GSAP
+    // integration recipe, not an optional detail.
     function raf(time) {
-      lenis.raf(time);
+      lenis.raf(time * 1000);
     }
     gsap.ticker.add(raf);
+    gsap.ticker.lagSmoothing(0);
     lenis.on('scroll', ScrollTrigger.update);
 
     const trigger = ScrollTrigger.create({
