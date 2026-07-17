@@ -1,15 +1,21 @@
 // P3 — editorial grid + "pasaporte de los lugares" graphic system
 // (sellos, curvas de nivel) per ui-ux.md Sistema gráfico.
+// Checkpoint 4 — real photo behind the motifs instead of a flat dark panel.
 import TopoLines from '../components/TopoLines.jsx';
 import Stamp from '../components/Stamp.jsx';
+import { ABOUT_PROCESO } from '../lib/photography.js';
 
 export default function About() {
   return (
     <main className="grid md:grid-cols-2 gap-12 max-w-5xl mx-auto p-8">
-      <div className="relative aspect-square bg-dark-bg text-dark-fg rounded-[9px] flex items-center justify-center overflow-hidden">
-        <TopoLines className="absolute inset-0 w-full h-full text-dark-fg/40" />
+      <div className="relative aspect-square rounded-[9px] flex items-center justify-center overflow-hidden">
+        <img src={ABOUT_PROCESO} alt="" className="warm-photo absolute inset-0 w-full h-full object-cover" />
+        <TopoLines className="absolute inset-0 w-full h-full text-dark-fg mix-blend-screen opacity-70" />
         <Stamp className="relative border-dark-fg text-dark-fg" />
-        <p className="absolute bottom-4 left-4 font-label uppercase tracking-wide text-[10px] text-dark-fg/60">
+        <p
+          className="absolute bottom-4 left-4 font-label uppercase tracking-wide text-[10px] text-dark-fg"
+          style={{ textShadow: '0 1px 12px rgba(26,27,25,0.7)' }}
+        >
           25.6866° N, 100.3161° W · 540 msnm
         </p>
       </div>

@@ -10,6 +10,8 @@ import WaitlistDialog from '../components/WaitlistDialog.jsx';
 import Button from '../components/Button.jsx';
 import Stamp from '../components/Stamp.jsx';
 import BaggageTag from '../components/BaggageTag.jsx';
+import TopoLines from '../components/TopoLines.jsx';
+import { dummyProduct } from '../lib/dummyProducts.js';
 
 export default function Product() {
   const { slug } = useParams();
@@ -24,6 +26,7 @@ export default function Product() {
   const [plateText, setPlateText] = useState('');
   const [capelo, setCapelo] = useState(false);
   const [unitPriceCents, setUnitPriceCents] = useState(null);
+  const [activePhoto, setActivePhoto] = useState(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -33,10 +36,22 @@ export default function Product() {
         return res.json();
       })
       .then((data) => {
-        if (!cancelled) setPlace(data);
+        if (!cancelled) {
+          setPlace(data);
+          setActivePhoto(data.thumb_url);
+        }
       })
       .catch(() => {
-        if (!cancelled) setError('No pudimos cargar esta pieza.');
+        // PLACEHOLDER — dummy fixture so /pieza/:slug is fully previewable
+        // before Supabase has real catalog data. See lib/dummyProducts.js.
+        const dummy = dummyProduct(slug);
+        if (cancelled) return;
+        if (dummy) {
+          setPlace(dummy);
+          setActivePhoto(dummy.thumb_url);
+        } else {
+          setError('No pudimos cargar esta pieza.');
+        }
       });
     return () => {
       cancelled = true;
@@ -116,24 +131,44 @@ export default function Product() {
 
   return (
     <main className="grid md:grid-cols-2 gap-8 p-8 max-w-5xl mx-auto">
-      <div
-        key={place.slug}
-        className="warp-reveal aspect-square rounded-[9px] flex items-center justify-center"
-        style={{ backgroundColor: selectedColor?.hex ?? '#C8C3BC' }}
-      >
-        {place.thumb_url ? (
-          <img
-            src={place.thumb_url}
-            alt={`Mapa en relieve de ${place.name}, enmarcado en ${selectedFrame?.label.toLowerCase()}`}
-            className="w-full h-full object-cover rounded-[9px]"
-          />
-        ) : (
-          <span
-            className="font-label uppercase tracking-wide text-xs px-3 py-1 rounded"
-            style={{ border: `4px solid ${selectedFrame?.hex ?? 'transparent'}` }}
-          >
-            {place.name}
-          </span>
+      <div>
+        <div
+          key={place.slug + activePhoto}
+          className="warp-reveal warm-photo relative aspect-square rounded-[9px] overflow-hidden flex items-center justify-center"
+          style={{ backgroundColor: selectedColor?.hex ?? '#C8C3BC' }}
+        >
+          {activePhoto ? (
+            <img
+              src={activePhoto}
+              alt={`Mapa en relieve de ${place.name}, enmarcado en ${selectedFrame?.label.toLowerCase()}`}
+              className="w-full h-full object-cover"
+            />
+          ) : (
+            <span
+              className="font-label uppercase tracking-wide text-xs px-3 py-1 rounded"
+              style={{ border: `4px solid ${selectedFrame?.hex ?? 'transparent'}` }}
+            >
+              {place.name}
+            </span>
+          )}
+          {activePhoto && (
+            <TopoLines className="absolute inset-0 w-full h-full text-dark-fg mix-blend-screen opacity-70 pointer-events-none" />
+          )}
+        </div>
+        {(place.thumb_url || place.detail_url) && (
+          <div className="flex gap-2 mt-3">
+            {[place.thumb_url, place.detail_url].filter(Boolean).map((url) => (
+              <button
+                key={url}
+                onClick={() => setActivePhoto(url)}
+                className={`w-16 h-16 rounded-[6px] overflow-hidden border-2 ${
+                  activePhoto === url ? 'border-sello-navy' : 'border-line'
+                }`}
+              >
+                <img src={url} alt="" className="warm-photo w-full h-full object-cover" />
+              </button>
+            ))}
+          </div>
         )}
       </div>
 
