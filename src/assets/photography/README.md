@@ -17,12 +17,17 @@ photography/
   pieces/<slug>/main.jpg     ← foto principal de la pieza (una carpeta por slug)
   pieces/<slug>/detail-1.jpg ← foto de detalle (textura/marco/acabado)
   about/proceso.jpg          ← foto de proceso para /sobre
+  testimonials/*.jpg         ← foto pequeña de cliente por testimonio (orden alfabético del archivo = orden del testimonio en Testimonials.jsx)
 ```
 
-`<slug>` = el mismo slug de la tabla `places` (ej. `monterrey`, `popocatepetl`).
-Hoy solo existen `monterrey` y `popocatepetl` (piezas dummy de preview, ver
-`src/lib/dummyProducts.js`) — al agregar una pieza real a Supabase, crea su
-carpeta con el mismo slug y `src/lib/photography.js` la recoge sola.
+`<slug>` = el mismo slug de la tabla `places`. Al agregar una pieza real a
+Supabase, crea su carpeta con el mismo slug y `src/lib/photography.js` la
+recoge sola.
+
+Las 5 piezas dummy de preview (`lib/dummyCatalog.js`, servidas por
+`api/catalog.js` cuando Supabase no responde) usan URLs de Unsplash
+directas en vez de estos archivos — son código de backend, no pasan por el
+bundler de Vite, así que no pueden importar de `src/assets/`.
 
 ## Créditos de los placeholders actuales
 
@@ -31,3 +36,6 @@ carpeta con el mismo slug y `src/lib/photography.js` la recoge sola.
 - `pieces/popocatepetl/main.jpg` — Popocatépetl, Unsplash (Hanson Lu)
 - `pieces/*/detail-1.jpg` — textura de madera, Unsplash
 - `about/proceso.jpg` — taller de carpintería, Unsplash
+- `testimonials/1.jpg` — retrato, Unsplash (Michael Dam)
+- `testimonials/2.jpg` — retrato, Unsplash (The Connected Narrative)
+- `testimonials/3.jpg` — retrato, Unsplash (Baylee Gramling)
