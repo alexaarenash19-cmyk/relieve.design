@@ -1,7 +1,9 @@
 // Issue #42 — minimal translucent nav, solidifies on scroll, wordmark + cart.
+// Checkpoint 5 — real logo file (was plain "relieve" text).
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useCart } from '../context/CartContext.jsx';
+import logoHorizontal from '../assets/brand/logo-horizontal.png';
 
 export default function Nav() {
   const [solid, setSolid] = useState(false);
@@ -22,8 +24,8 @@ export default function Nav() {
         solid ? 'bg-gallery-white/95 backdrop-blur border-b border-line' : 'bg-transparent'
       }`}
     >
-      <Link to="/" className="font-display font-light text-lg">
-        relieve
+      <Link to="/" className="flex items-center">
+        <img src={logoHorizontal} alt="Relieve México" className="h-8 w-auto" />
       </Link>
       <div className="flex items-center gap-6 font-label uppercase tracking-wide text-xs">
         <Link to="/buscar" data-cursor-label="Ver destino" className="hover:text-passport-ink transition-colors">
