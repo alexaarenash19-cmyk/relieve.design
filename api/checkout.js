@@ -7,7 +7,14 @@ import { supabase } from '../lib/supabase.js';
 import { sendError } from '../lib/errors.js';
 import { calcUnitPriceCents, PricingError } from '../lib/pricing.js';
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+// new Stripe(undefined) throws synchronously at import time — same class
+// of bug as the earlier lib/supabase.js one, and confirmed live: checkout
+// was crashing with a raw Vercel FUNCTION_INVOCATION_FAILED (no error
+// body at all) on every attempt, because STRIPE_SECRET_KEY isn't set yet.
+// Guard construction so the module always loads, and reject with a clear,
+// specific error instead — "checkout en configuración", not a button that
+// silently does nothing.
+const stripe = process.env.STRIPE_SECRET_KEY ? new Stripe(process.env.STRIPE_SECRET_KEY) : null;
 const SITE_URL = process.env.SITE_URL || 'http://localhost:5173';
 
 async function priceItem(item) {
@@ -56,6 +63,10 @@ export default async function handler(req, res) {
   if (req.method !== 'POST') {
     res.setHeader('Allow', 'POST');
     return sendError(res, 405, 'method_not_allowed', 'Use POST');
+  }
+
+  if (!stripe) {
+    return sendError(res, 503, 'checkout_not_configured', 'El checkout todavía no está configurado.');
   }
 
   const { items, is_gift = false, gift_message = null, email } = req.body ?? {};

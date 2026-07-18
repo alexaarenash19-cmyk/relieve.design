@@ -12,7 +12,7 @@
     "build": "vite build && node scripts/prerender.mjs",
     "preview": "vite preview",
     "lint": "eslint .",
-    "test": "node tests/supabase-env.test.mjs && node tests/stripe-webhook.test.mjs && node tests/checkout.test.mjs && node tests/admin.test.mjs && node tests/catalog.test.mjs && node tests/reviews.test.mjs && node scripts/prerender.test.mjs && node src/lib/heroStages.test.mjs"
+    "test": "node tests/supabase-env.test.mjs && node tests/checkout-unconfigured.test.mjs && node tests/stripe-webhook.test.mjs && node tests/checkout.test.mjs && node tests/admin.test.mjs && node tests/catalog.test.mjs && node tests/reviews.test.mjs && node scripts/prerender.test.mjs && node src/lib/heroStages.test.mjs"
   },
   "repository": {
     "type": "git",

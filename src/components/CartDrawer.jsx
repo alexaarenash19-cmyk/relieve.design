@@ -30,6 +30,11 @@ export default function CartDrawer() {
 
   const [email, setEmail] = useState('');
   const [checkoutError, setCheckoutError] = useState(null);
+  // Distinct from checkoutError: "not configured" isn't a transient
+  // failure worth retrying, so it gets its own calm, permanent message
+  // instead of "algo salió mal, intenta de nuevo" — which would just send
+  // people into a loop clicking a button that will never work yet.
+  const [checkoutUnavailable, setCheckoutUnavailable] = useState(false);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -49,7 +54,12 @@ export default function CartDrawer() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ items, is_gift: isGift, gift_message: giftMessage || null, email }),
       });
-      const data = await res.json();
+      const data = await res.json().catch(() => ({}));
+      if (res.status === 503 && data.error?.code === 'checkout_not_configured') {
+        setCheckoutUnavailable(true);
+        setLoading(false);
+        return;
+      }
       if (!res.ok) throw new Error(data.error?.message ?? 'checkout_failed');
       window.location.href = data.url;
     } catch {
@@ -165,13 +175,19 @@ export default function CartDrawer() {
               {checkoutError && (
                 <p className="normal-case font-body text-xs text-red-700 mt-2">{checkoutError}</p>
               )}
-              <Button
-                onClick={onCheckout}
-                disabled={loading || !email}
-                className="w-full mt-3 normal-case font-label"
-              >
-                {loading ? 'Redirigiendo…' : 'Pagar'}
-              </Button>
+              {checkoutUnavailable ? (
+                <p className="normal-case font-body text-xs text-graphite/60 mt-3 border border-line rounded p-2 text-center">
+                  Checkout en configuración — vuelve pronto.
+                </p>
+              ) : (
+                <Button
+                  onClick={onCheckout}
+                  disabled={loading || !email}
+                  className="w-full mt-3 normal-case font-label"
+                >
+                  {loading ? 'Redirigiendo…' : 'Pagar'}
+                </Button>
+              )}
             </>
           )}
         </div>
