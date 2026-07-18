@@ -8,6 +8,12 @@
 // Prime, the 8-color palette) — this is that system's fullest application,
 // not a new one. No literal gold/black per docs/ui-ux.md; navy/cream/
 // walnut stand in for the references' black-leather-and-gold-foil look.
+//
+// Second pass — Ale wanted this paged like a real passport / digital
+// magazine (one spread at a time, swipe/arrow to turn) instead of one
+// long scroll, and everything in Spanish (her brief's English field
+// labels were literal spec, not a language choice).
+import { useEffect, useRef, useState } from 'react';
 import TopoLines from '../components/TopoLines.jsx';
 import Stamp from '../components/Stamp.jsx';
 import { ABOUT_PROCESO, ABOUT_IMPRESION } from '../lib/photography.js';
@@ -23,6 +29,7 @@ import {
 } from '../lib/passportContent.js';
 
 const TAG_TONES = ['border-sello-navy', 'border-walnut', 'border-sage', 'border-passport-ink', 'border-stone'];
+const SWIPE_THRESHOLD_PX = 50;
 
 function PageKicker({ n, title }) {
   return (
@@ -77,6 +84,162 @@ function LuggageTag({ title, body, tone, rotate }) {
   );
 }
 
+function CoverPage() {
+  return (
+    <section className="relative bg-sello-navy text-dark-fg rounded-[9px] aspect-[3/4] sm:aspect-[16/9] flex flex-col items-center justify-center gap-6 overflow-hidden">
+      <TopoLines className="absolute inset-0 w-full h-full opacity-10" />
+      <Crest />
+      <div className="text-center">
+        <h1 className="font-display font-light text-4xl sm:text-5xl tracking-wide">RELIEVE</h1>
+        <p className="font-label uppercase tracking-wide text-xs opacity-70 mt-3">
+          Viaja a través de lugares que importan.
+        </p>
+      </div>
+    </section>
+  );
+}
+
+function PassengerInfoPage() {
+  return (
+    <section className="relative security-pattern rounded-[9px] p-6 sm:p-8 overflow-hidden">
+      <TopoLines className="absolute inset-0 w-full h-full text-stone opacity-25 pointer-events-none" />
+      <div className="relative flex items-start justify-between mb-6">
+        <PageKicker n="01" title="Información del Pasajero" />
+        <Barcode />
+      </div>
+      <dl className="relative grid sm:grid-cols-2 gap-x-10 gap-y-4">
+        {PASSENGER_INFO.map(([label, value]) => (
+          <div key={label} className="border-b border-line pb-2 flex justify-between gap-4">
+            <dt className="font-label uppercase tracking-wide text-[10px] text-graphite/50">{label}</dt>
+            <dd className="font-label text-xs text-right">{value}</dd>
+          </div>
+        ))}
+      </dl>
+    </section>
+  );
+}
+
+function AboutRelievePage() {
+  return (
+    <section>
+      <PageKicker n="02" title="Sobre Relieve" />
+      <div className="max-w-[65ch] space-y-4 leading-relaxed">
+        {ABOUT_COPY.split('\n\n').map((para, i) => (
+          <p key={i} className={i === 0 ? 'font-display text-xl font-light' : ''}>
+            {para}
+          </p>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function JourneyPage() {
+  return (
+    <section>
+      <PageKicker n="03" title="Itinerario" />
+      <div className="grid sm:grid-cols-2 gap-12 items-start">
+        <ol className="space-y-0">
+          {JOURNEY_STEPS.map((step) => (
+            <li key={step.label} className="relative pl-8 pb-8 last:pb-0 border-l border-line ml-1 last:border-transparent">
+              <span className="absolute -left-[5px] top-1 w-[9px] h-[9px] rounded-full bg-passport-ink" />
+              <p className="font-label uppercase tracking-wide text-[10px] text-graphite/50">{step.label}</p>
+              <p className="font-display text-lg">{step.detail}</p>
+            </li>
+          ))}
+        </ol>
+        <div className="space-y-4">
+          <div className="relative aspect-video rounded-[9px] overflow-hidden">
+            <img src={ABOUT_IMPRESION} alt="Impresión 3D del relieve en proceso" className="warm-photo absolute inset-0 w-full h-full object-cover" />
+          </div>
+          <div className="relative aspect-video rounded-[9px] overflow-hidden">
+            <img src={ABOUT_PROCESO} alt="Ensamblado a mano del marco de nogal" className="warm-photo absolute inset-0 w-full h-full object-cover" />
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function EssentialsPage() {
+  return (
+    <section>
+      <PageKicker n="04" title="Esenciales de Viaje" />
+      <ul className="flex flex-wrap gap-x-3 gap-y-2 font-label uppercase tracking-wide text-xs">
+        {TRAVEL_ESSENTIALS.map((item, i) => (
+          <li key={item} className="flex items-center gap-3">
+            {item}
+            {i < TRAVEL_ESSENTIALS.length - 1 && <span className="text-graphite/30">·</span>}
+          </li>
+        ))}
+      </ul>
+    </section>
+  );
+}
+
+function LuggagePage() {
+  return (
+    <section>
+      <PageKicker n="05" title="Etiquetas de Equipaje" />
+      <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-x-6 gap-y-10">
+        {LUGGAGE_STICKERS.map((tag, i) => (
+          <LuggageTag
+            key={tag.title}
+            title={tag.title}
+            body={tag.body}
+            tone={TAG_TONES[i % TAG_TONES.length]}
+            rotate={i % 2 === 0 ? '-rotate-2' : 'rotate-2'}
+          />
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function VisaPage() {
+  return (
+    <section className="relative security-pattern rounded-[9px] p-6 sm:p-8 pb-20 overflow-hidden">
+      <PageKicker n="06" title="Visa" />
+      <h2 className="font-label uppercase tracking-wide text-sm mb-4">Destinos Autorizados</h2>
+      <ul className="grid sm:grid-cols-2 gap-x-10 gap-y-2 font-label text-xs mb-16">
+        {AUTHORIZED_DESTINATIONS.map((d) => (
+          <li key={d} className="flex items-center gap-2">
+            <span className="text-passport-ink">✓</span> {d}
+          </li>
+        ))}
+      </ul>
+      <div className="relative flex flex-wrap gap-6 justify-center">
+        {STAMP_PLACES.map((stamp) => (
+          <Stamp key={stamp.label} label={stamp.label} shape={stamp.shape} tone={stamp.tone} rotate={stamp.rotate} />
+        ))}
+      </div>
+    </section>
+  );
+}
+
+const PAGES = [CoverPage, PassengerInfoPage, AboutRelievePage, JourneyPage, EssentialsPage, LuggagePage, VisaPage];
+const PAGE_LABELS = ['Portada', 'Información del Pasajero', 'Sobre Relieve', 'Itinerario', 'Esenciales de Viaje', 'Etiquetas de Equipaje', 'Visa'];
+
+function usePageSwipe(onSwipeLeft, onSwipeRight) {
+  const startRef = useRef(null);
+  return {
+    onPointerDown(e) {
+      startRef.current = { x: e.clientX, y: e.clientY };
+    },
+    onPointerUp(e) {
+      if (!startRef.current) return;
+      const dx = e.clientX - startRef.current.x;
+      const dy = e.clientY - startRef.current.y;
+      startRef.current = null;
+      if (Math.abs(dx) > SWIPE_THRESHOLD_PX && Math.abs(dx) > Math.abs(dy)) {
+        if (dx < 0) onSwipeLeft();
+        else onSwipeRight();
+      }
+    },
+    style: { touchAction: 'pan-y' },
+  };
+}
+
 export default function About() {
   useDocumentHead({
     title: 'Sobre Relieve — Mapas en relieve hechos a mano',
@@ -84,121 +247,67 @@ export default function About() {
     canonicalPath: '/sobre',
   });
 
+  const [index, setIndex] = useState(0);
+  const [dir, setDir] = useState(1);
+
+  function go(delta) {
+    setDir(delta);
+    setIndex((i) => Math.min(PAGES.length - 1, Math.max(0, i + delta)));
+  }
+
+  function goTo(i) {
+    setDir(i > index ? 1 : -1);
+    setIndex(i);
+  }
+
+  useEffect(() => {
+    function onKey(e) {
+      if (e.key === 'ArrowRight') go(1);
+      if (e.key === 'ArrowLeft') go(-1);
+    }
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, []);
+
+  const swipe = usePageSwipe(() => go(1), () => go(-1));
+  const Page = PAGES[index];
+
   return (
-    <main className="mx-auto max-w-5xl">
-      {/* Cover */}
-      <section className="relative bg-sello-navy text-dark-fg rounded-[9px] mx-4 sm:mx-8 mt-8 aspect-[3/4] sm:aspect-[16/9] flex flex-col items-center justify-center gap-6 overflow-hidden">
-        <TopoLines className="absolute inset-0 w-full h-full opacity-10" />
-        <Crest />
-        <div className="text-center">
-          <h1 className="font-display font-light text-4xl sm:text-5xl tracking-wide">RELIEVE</h1>
-          <p className="font-label uppercase tracking-wide text-xs opacity-70 mt-3">
-            Travel through places that matter.
-          </p>
-        </div>
-      </section>
-
-      <div className="p-8 sm:p-12 space-y-20">
-        {/* Página 1 — Passenger Information */}
-        <section className="relative security-pattern rounded-[9px] p-8 overflow-hidden">
-          <TopoLines className="absolute inset-0 w-full h-full text-stone opacity-25 pointer-events-none" />
-          <div className="relative flex items-start justify-between mb-6">
-            <PageKicker n="01" title="Passenger Information" />
-            <Barcode />
-          </div>
-          <dl className="relative grid sm:grid-cols-2 gap-x-10 gap-y-4">
-            {PASSENGER_INFO.map(([label, value]) => (
-              <div key={label} className="border-b border-line pb-2 flex justify-between gap-4">
-                <dt className="font-label uppercase tracking-wide text-[10px] text-graphite/50">{label}</dt>
-                <dd className="font-label text-xs text-right">{value}</dd>
-              </div>
-            ))}
-          </dl>
-        </section>
-
-        {/* Página 2 — About Relieve */}
-        <section>
-          <PageKicker n="02" title="About Relieve" />
-          <div className="max-w-[65ch] space-y-4 leading-relaxed">
-            {ABOUT_COPY.split('\n\n').map((para, i) => (
-              <p key={i} className={i === 0 ? 'font-display text-xl font-light' : ''}>
-                {para}
-              </p>
-            ))}
-          </div>
-        </section>
-
-        {/* Página 3 — Journey */}
-        <section>
-          <PageKicker n="03" title="Journey" />
-          <div className="grid sm:grid-cols-2 gap-12 items-start">
-            <ol className="space-y-0">
-              {JOURNEY_STEPS.map((step) => (
-                <li key={step.label} className="relative pl-8 pb-8 last:pb-0 border-l border-line ml-1 last:border-transparent">
-                  <span className="absolute -left-[5px] top-1 w-[9px] h-[9px] rounded-full bg-passport-ink" />
-                  <p className="font-label uppercase tracking-wide text-[10px] text-graphite/50">{step.label}</p>
-                  <p className="font-display text-lg">{step.detail}</p>
-                </li>
-              ))}
-            </ol>
-            <div className="space-y-4">
-              <div className="relative aspect-video rounded-[9px] overflow-hidden">
-                <img src={ABOUT_IMPRESION} alt="Impresión 3D del relieve en proceso" className="warm-photo absolute inset-0 w-full h-full object-cover" />
-              </div>
-              <div className="relative aspect-video rounded-[9px] overflow-hidden">
-                <img src={ABOUT_PROCESO} alt="Ensamblado a mano del marco de nogal" className="warm-photo absolute inset-0 w-full h-full object-cover" />
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* Página 4 — Travel Essentials */}
-        <section>
-          <PageKicker n="04" title="Travel Essentials" />
-          <ul className="flex flex-wrap gap-x-3 gap-y-2 font-label uppercase tracking-wide text-xs">
-            {TRAVEL_ESSENTIALS.map((item, i) => (
-              <li key={item} className="flex items-center gap-3">
-                {item}
-                {i < TRAVEL_ESSENTIALS.length - 1 && <span className="text-graphite/30">·</span>}
-              </li>
-            ))}
-          </ul>
-        </section>
-
-        {/* Página 5 — Luggage Stickers */}
-        <section>
-          <PageKicker n="05" title="Luggage Stickers" />
-          <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-x-6 gap-y-10">
-            {LUGGAGE_STICKERS.map((tag, i) => (
-              <LuggageTag
-                key={tag.title}
-                title={tag.title}
-                body={tag.body}
-                tone={TAG_TONES[i % TAG_TONES.length]}
-                rotate={i % 2 === 0 ? '-rotate-2' : 'rotate-2'}
-              />
-            ))}
-          </div>
-        </section>
-
-        {/* Página 6 — Visa */}
-        <section className="relative security-pattern rounded-[9px] p-8 pb-20 overflow-hidden">
-          <PageKicker n="06" title="Visa" />
-          <h2 className="font-label uppercase tracking-wide text-sm mb-4">Authorized Destinations</h2>
-          <ul className="grid sm:grid-cols-2 gap-x-10 gap-y-2 font-label text-xs mb-16">
-            {AUTHORIZED_DESTINATIONS.map((d) => (
-              <li key={d} className="flex items-center gap-2">
-                <span className="text-passport-ink">✓</span> {d}
-              </li>
-            ))}
-          </ul>
-          <div className="relative flex flex-wrap gap-6 justify-center">
-            {STAMP_PLACES.map((stamp) => (
-              <Stamp key={stamp.label} label={stamp.label} shape={stamp.shape} tone={stamp.tone} rotate={stamp.rotate} />
-            ))}
-          </div>
-        </section>
+    <main className="mx-auto max-w-5xl p-4 sm:p-8" {...swipe}>
+      <div key={index} className="passport-page-enter" style={{ '--slide-from': dir > 0 ? '24px' : '-24px' }}>
+        <Page />
       </div>
+
+      <nav className="flex items-center justify-between mt-10 font-label uppercase tracking-wide text-xs">
+        <button
+          type="button"
+          onClick={() => go(-1)}
+          disabled={index === 0}
+          className="disabled:opacity-30 hover:text-passport-ink transition-colors"
+        >
+          ‹ Anterior
+        </button>
+        <div className="flex items-center gap-2">
+          {PAGES.map((_, i) => (
+            <button
+              key={i}
+              type="button"
+              onClick={() => goTo(i)}
+              aria-label={`Ir a ${PAGE_LABELS[i]}`}
+              aria-current={i === index}
+              className={`w-1.5 h-1.5 rounded-full transition-colors ${i === index ? 'bg-passport-ink' : 'bg-line'}`}
+            />
+          ))}
+        </div>
+        <button
+          type="button"
+          onClick={() => go(1)}
+          disabled={index === PAGES.length - 1}
+          className="disabled:opacity-30 hover:text-passport-ink transition-colors"
+        >
+          Siguiente ›
+        </button>
+      </nav>
     </main>
   );
 }

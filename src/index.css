@@ -140,6 +140,28 @@ body::before {
   }
 }
 
+/* Sobre-passport rebuild — page-turn transition, keyed by page index in
+   About.jsx (same re-key-to-replay pattern as .warp-reveal). Direction
+   comes from a --slide-from custom property set inline per navigation. */
+.passport-page-enter {
+  animation: passport-page-enter-anim 450ms cubic-bezier(0.2, 0.6, 0.2, 1) both;
+}
+@keyframes passport-page-enter-anim {
+  0% {
+    opacity: 0;
+    transform: translateX(var(--slide-from, 24px));
+  }
+  100% {
+    opacity: 1;
+    transform: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .passport-page-enter {
+    animation: none;
+  }
+}
+
 /* P3 — "etiquetas de archivo/baggage tags" motif: a tag with a punched
    hole on the left, dashed border, for filter chips on /buscar. */
 .baggage-tag {

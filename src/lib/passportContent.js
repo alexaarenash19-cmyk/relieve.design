@@ -2,15 +2,17 @@
 // (no longer draft). Pulled into its own module because it's stable
 // regardless of the visual treatment, which is still blocked on reference
 // images (see docs/design-refs/passport/ — not yet provided, see About.jsx).
+// All-Spanish per Ale's explicit call (first pass mirrored her brief's
+// English field labels literally; she wants Spanish throughout instead).
 export const PASSENGER_INFO = [
-  ['Brand', 'Relieve'],
-  ['Nationality', 'Made in Mexico'],
-  ['Occupation', 'Design Studio'],
-  ['Specialization', 'Topographic & Urban Relief Maps'],
-  ['Founded', '2026'],
-  ['Mission', 'Transform places into meaningful objects'],
-  ['Medium', 'Cartography · Design · Digital Fabrication'],
-  ['Status', 'Ready for Departure'],
+  ['Marca', 'Relieve'],
+  ['Nacionalidad', 'Hecho en México'],
+  ['Ocupación', 'Estudio de Diseño'],
+  ['Especialización', 'Mapas topográficos y urbanos en relieve'],
+  ['Fundación', '2026'],
+  ['Misión', 'Transformar lugares en objetos que cuentan historias'],
+  ['Medio', 'Cartografía · Diseño · Fabricación Digital'],
+  ['Estado', 'Listo para Partir'],
 ];
 
 export const ABOUT_COPY = `En Relieve transformamos lugares en objetos que cuentan historias.
@@ -26,36 +28,36 @@ Más que representar un lugar, buscamos preservar la conexión que las personas 
 Cada relieve es una invitación a recordar, descubrir y volver a viajar, esta vez desde casa.`;
 
 export const JOURNEY_STEPS = [
-  { label: 'Origin', detail: 'Raw Geographic Data' },
-  { label: 'Route Planning', detail: 'Digital Modeling' },
-  { label: 'Transit', detail: '3D Printing' },
-  { label: 'Customs', detail: 'Hand Finishing' },
-  { label: 'Arrival', detail: 'Your Space' },
+  { label: 'Origen', detail: 'Datos Geográficos Reales' },
+  { label: 'Planeación de Ruta', detail: 'Modelado Digital' },
+  { label: 'Tránsito', detail: 'Impresión 3D' },
+  { label: 'Aduana', detail: 'Acabado Artesanal' },
+  { label: 'Llegada', detail: 'Tu Espacio' },
 ];
 
 export const TRAVEL_ESSENTIALS = [
-  'Precision Cartography',
-  'Digital Fabrication',
-  'Contemporary Design',
-  'Local Production',
-  'Premium Finishes',
+  'Cartografía de Precisión',
+  'Fabricación Digital',
+  'Diseño Contemporáneo',
+  'Producción Local',
+  'Acabados Premium',
 ];
 
 export const LUGGAGE_STICKERS = [
-  { title: 'Made in Mexico', body: 'Diseñado y fabricado localmente.' },
-  { title: 'Custom Destination', body: 'Creamos mapas personalizados de lugares significativos.' },
-  { title: 'Limited Production', body: 'Fabricamos bajo pedido para garantizar la calidad.' },
-  { title: 'Topographic Design', body: 'Inspirado en la cartografía y la arquitectura.' },
-  { title: 'Travel Memories', body: 'Cada pieza conserva la memoria de un lugar.' },
+  { title: 'Hecho en México', body: 'Diseñado y fabricado localmente.' },
+  { title: 'Destino Personalizado', body: 'Creamos mapas personalizados de lugares significativos.' },
+  { title: 'Producción Limitada', body: 'Fabricamos bajo pedido para garantizar la calidad.' },
+  { title: 'Diseño Topográfico', body: 'Inspirado en la cartografía y la arquitectura.' },
+  { title: 'Recuerdos de Viaje', body: 'Cada pieza conserva la memoria de un lugar.' },
 ];
 
 export const AUTHORIZED_DESTINATIONS = [
-  'Cities',
-  'Mountains',
-  'National Parks',
-  'Coastlines',
-  'Islands',
-  'Custom Coordinates',
+  'Ciudades',
+  'Montañas',
+  'Parques Nacionales',
+  'Costas',
+  'Islas',
+  'Coordenadas Personalizadas',
 ];
 
 // Shape/tone/rotate per stamp so the visa page reads as 8 distinct stamps,
@@ -63,12 +65,12 @@ export const AUTHORIZED_DESTINATIONS = [
 // Tone sticks to navy/ink/walnut — sage measured too close in luminance to
 // the cream background to read as legible "ink" once distressed.
 export const STAMP_PLACES = [
-  { label: 'Mexico City', shape: 'circle', tone: 'navy', rotate: '-rotate-6' },
-  { label: 'Tokyo', shape: 'square', tone: 'walnut', rotate: 'rotate-3' },
-  { label: 'Paris', shape: 'triangle', tone: 'ink', rotate: '-rotate-3' },
-  { label: 'New York', shape: 'circle', tone: 'walnut', rotate: 'rotate-6' },
+  { label: 'Ciudad de México', shape: 'circle', tone: 'navy', rotate: '-rotate-6' },
+  { label: 'Tokio', shape: 'square', tone: 'walnut', rotate: 'rotate-3' },
+  { label: 'París', shape: 'triangle', tone: 'ink', rotate: '-rotate-3' },
+  { label: 'Nueva York', shape: 'circle', tone: 'walnut', rotate: 'rotate-6' },
   { label: 'Patagonia', shape: 'square', tone: 'ink', rotate: '-rotate-2' },
-  { label: 'Dolomites', shape: 'circle', tone: 'walnut', rotate: 'rotate-4' },
-  { label: 'Iceland', shape: 'triangle', tone: 'navy', rotate: 'rotate-2' },
-  { label: 'Alps', shape: 'square', tone: 'ink', rotate: '-rotate-4' },
+  { label: 'Dolomitas', shape: 'circle', tone: 'walnut', rotate: 'rotate-4' },
+  { label: 'Islandia', shape: 'triangle', tone: 'navy', rotate: 'rotate-2' },
+  { label: 'Alpes', shape: 'square', tone: 'ink', rotate: '-rotate-4' },
 ];
