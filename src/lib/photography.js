@@ -4,6 +4,7 @@
 // edit here, only the correctly-named files.
 import heroAerialCity from '../assets/photography/hero/aerial-city.jpg';
 import aboutProceso from '../assets/photography/about/proceso.jpg';
+import aboutImpresion from '../assets/photography/about/impresion.jpg';
 
 const pieceMains = import.meta.glob('../assets/photography/pieces/*/main.jpg', {
   eager: true,
@@ -27,6 +28,7 @@ const detailBySlug = Object.fromEntries(
 
 export const HERO_AERIAL_CITY = heroAerialCity;
 export const ABOUT_PROCESO = aboutProceso;
+export const ABOUT_IMPRESION = aboutImpresion;
 
 export function pieceMainPhoto(slug) {
   return mainBySlug[slug] ?? null;

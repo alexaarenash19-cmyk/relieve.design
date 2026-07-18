@@ -16,7 +16,8 @@ photography/
   hero/aerial-city.jpg       ← etapa 1 del storyboard (ciudad aérea)
   pieces/<slug>/main.jpg     ← foto principal de la pieza (una carpeta por slug)
   pieces/<slug>/detail-1.jpg ← foto de detalle (textura/marco/acabado)
-  about/proceso.jpg          ← foto de proceso para /sobre
+  about/proceso.jpg          ← foto de proceso para /sobre (taller/carpintería)
+  about/impresion.jpg        ← foto de proceso para /sobre (impresión 3D)
 ```
 
 Los testimonios (Testimonials.jsx) muestran una foto pequeña de la pieza
@@ -39,3 +40,4 @@ bundler de Vite, así que no pueden importar de `src/assets/`.
 - `pieces/popocatepetl/main.jpg` — Popocatépetl, Unsplash (Hanson Lu)
 - `pieces/*/detail-1.jpg` — textura de madera, Unsplash
 - `about/proceso.jpg` — taller de carpintería, Unsplash
+- `about/impresion.jpg` — impresión 3D en proceso, Unsplash (Jakub Żerdzicki)
