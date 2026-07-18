@@ -86,7 +86,7 @@ function LuggageTag({ title, body, tone, rotate }) {
 
 function CoverPage() {
   return (
-    <section className="relative bg-sello-navy text-dark-fg rounded-[9px] aspect-[3/4] sm:aspect-[16/9] flex flex-col items-center justify-center gap-6 overflow-hidden">
+    <section className="relative bg-sello-navy text-dark-fg aspect-[3/4] sm:aspect-[16/9] flex flex-col items-center justify-center gap-6">
       <TopoLines className="absolute inset-0 w-full h-full opacity-10" />
       <Crest />
       <div className="text-center">
@@ -101,13 +101,12 @@ function CoverPage() {
 
 function PassengerInfoPage() {
   return (
-    <section className="relative security-pattern rounded-[9px] p-6 sm:p-8 overflow-hidden">
-      <TopoLines className="absolute inset-0 w-full h-full text-stone opacity-25 pointer-events-none" />
-      <div className="relative flex items-start justify-between mb-6">
+    <section>
+      <div className="flex items-start justify-between mb-6">
         <PageKicker n="01" title="Información del Pasajero" />
         <Barcode />
       </div>
-      <dl className="relative grid sm:grid-cols-2 gap-x-10 gap-y-4">
+      <dl className="grid sm:grid-cols-2 gap-x-10 gap-y-4">
         {PASSENGER_INFO.map(([label, value]) => (
           <div key={label} className="border-b border-line pb-2 flex justify-between gap-4">
             <dt className="font-label uppercase tracking-wide text-[10px] text-graphite/50">{label}</dt>
@@ -198,7 +197,7 @@ function LuggagePage() {
 
 function VisaPage() {
   return (
-    <section className="relative security-pattern rounded-[9px] p-6 sm:p-8 pb-20 overflow-hidden">
+    <section>
       <PageKicker n="06" title="Visa" />
       <h2 className="font-label uppercase tracking-wide text-sm mb-4">Destinos Autorizados</h2>
       <ul className="grid sm:grid-cols-2 gap-x-10 gap-y-2 font-label text-xs mb-16">
@@ -208,7 +207,7 @@ function VisaPage() {
           </li>
         ))}
       </ul>
-      <div className="relative flex flex-wrap gap-6 justify-center">
+      <div className="flex flex-wrap gap-6 justify-center">
         {STAMP_PLACES.map((stamp) => (
           <Stamp key={stamp.label} label={stamp.label} shape={stamp.shape} tone={stamp.tone} rotate={stamp.rotate} />
         ))}
@@ -271,11 +270,26 @@ export default function About() {
 
   const swipe = usePageSwipe(() => go(1), () => go(-1));
   const Page = PAGES[index];
+  const isCover = index === 0;
 
   return (
     <main className="mx-auto max-w-5xl p-4 sm:p-8" {...swipe}>
-      <div key={index} className="passport-page-enter" style={{ '--slide-from': dir > 0 ? '24px' : '-24px' }}>
-        <Page />
+      <div
+        key={index}
+        className={`passport-page-enter relative rounded-[9px] shadow-lg overflow-hidden ${
+          isCover ? '' : 'security-pattern border border-line p-6 sm:p-10'
+        }`}
+        style={{ '--slide-from': dir > 0 ? '24px' : '-24px' }}
+      >
+        {!isCover && (
+          <>
+            <TopoLines className="absolute inset-0 w-full h-full text-stone opacity-20 pointer-events-none" />
+            <span className="hidden sm:block absolute inset-y-6 left-1/2 w-px bg-line" aria-hidden="true" />
+          </>
+        )}
+        <div className="relative">
+          <Page />
+        </div>
       </div>
 
       <nav className="flex items-center justify-between mt-10 font-label uppercase tracking-wide text-xs">
