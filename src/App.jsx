@@ -1,11 +1,10 @@
-import { Routes, Route, Link } from 'react-router-dom';
+import { Routes, Route, Link, useLocation } from 'react-router-dom';
 import Nav from './components/Nav.jsx';
 import CustomCursor from './components/CustomCursor.jsx';
 import PageStamp from './components/PageStamp.jsx';
 import CartDrawer from './components/CartDrawer.jsx';
 import SvgFilters from './components/SvgFilters.jsx';
 import SocialLinks from './components/SocialLinks.jsx';
-import { ExperienceViewProvider, useExperienceView } from './context/ExperienceViewContext.jsx';
 import Home from './pages/Home.jsx';
 import Collection from './pages/Collection.jsx';
 import Product from './pages/Product.jsx';
@@ -20,12 +19,10 @@ import Terms from './pages/Terms.jsx';
 import NotFound from './pages/NotFound.jsx';
 
 function Footer() {
-  // Hidden entirely while the gallery's scattered "experience view" is
-  // showing — that view is meant to read as a clean, self-contained
-  // screen with no footer visible, per the Palmer reference. Reappears
-  // normally on every other view/page.
-  const { active } = useExperienceView();
-  if (active) return null;
+  // No footer anywhere on the home page — not just the experience view —
+  // per explicit request. Every other route keeps it.
+  const location = useLocation();
+  if (location.pathname === '/') return null;
 
   return (
     <footer className="font-label uppercase tracking-wide text-xs text-graphite/70 flex items-center justify-center gap-6 p-8">
@@ -42,7 +39,7 @@ function Footer() {
 
 export default function App() {
   return (
-    <ExperienceViewProvider>
+    <>
       <SvgFilters />
       <PageStamp />
       <CustomCursor />
@@ -63,6 +60,6 @@ export default function App() {
         <Route path="*" element={<NotFound />} />
       </Routes>
       <Footer />
-    </ExperienceViewProvider>
+    </>
   );
 }

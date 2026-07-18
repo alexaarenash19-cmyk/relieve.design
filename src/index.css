@@ -198,34 +198,3 @@ body::before {
   }
 }
 
-/* Checkpoint 4 — testimonial banners towed by a plane crossing the section,
-   one after another (staggered animation-delay, see Testimonials.jsx). */
-.flap-banner {
-  animation: flap-banner-anim 27s linear infinite;
-}
-@keyframes flap-banner-anim {
-  0% {
-    transform: translateX(-40%);
-    opacity: 0;
-  }
-  4% {
-    opacity: 1;
-  }
-  30% {
-    transform: translateX(110vw);
-    opacity: 1;
-  }
-  34% {
-    opacity: 0;
-  }
-  100% {
-    transform: translateX(110vw);
-    opacity: 0;
-  }
-}
-@media (prefers-reduced-motion: reduce) {
-  .flap-banner {
-    animation: none;
-    display: none;
-  }
-}

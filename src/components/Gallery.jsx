@@ -5,7 +5,6 @@ import { useEffect, useRef, useState } from 'react';
 import { placeAlt } from '../lib/altText.js';
 import { pieceMainPhoto } from '../lib/photography.js';
 import { fetchJsonArray } from '../lib/fetchJsonArray.js';
-import { useExperienceView } from '../context/ExperienceViewContext.jsx';
 import Stamp from './Stamp.jsx';
 import TopoLines from './TopoLines.jsx';
 
@@ -27,10 +26,12 @@ const SCATTER_DEMO_ITEMS = [
 
 // Grid-aligned, hand-placed cells — straight, never overlapping, varied
 // sizes (1x1 / 2x2) but locked to a 4-col grid, not free/random positions.
-// CELL/GAP sized so one repeat block roughly fills a viewport — curated,
-// breathing room (Palmer reference), not a dense repeated mosaic.
-const CELL = 300;
-const GAP = 110;
+// Only fully-in-view tiles render (see ScatteredCanvas), so CELL/GAP need
+// to be small enough that a full block — ideally more than one — fits
+// inside a typical viewport; too large and almost nothing survives the
+// visibility filter, leaving the canvas looking empty.
+const CELL = 180;
+const GAP = 50;
 const GRID_COLS = 4;
 const GRID_ROWS = 4;
 // One GAP per column/row, including a trailing one after the last — not
@@ -111,13 +112,32 @@ export function GalleryCard({ place, variant = 'grid', slot }) {
 }
 
 // Infinite pannable canvas: drag translates an offset; the tile pattern
-// wraps (modulo BLOCK_W/H) and repeats in a 3x3 grid of copies around the
+// wraps (modulo BLOCK_W/H) and repeats in a grid of copies around the
 // wrapped origin, so panning in any direction never runs out of tiles.
+//
+// Every candidate tile's on-screen rect is computed in JS and only
+// rendered if it's FULLY inside the viewport — a tile straddling the
+// edge is skipped entirely rather than letting overflow:hidden crop it.
+// That's the only way to guarantee no photo is ever partially cut off:
+// CSS clipping crops whatever geometry lands on the boundary, it can't
+// selectively hide only-partial elements.
 function ScatteredCanvas({ items, zoom }) {
   const [offset, setOffset] = useState({ x: 0, y: 0 });
+  const [size, setSize] = useState({ w: 0, h: 0 });
+  const containerRef = useRef(null);
   const draggingRef = useRef(false);
   const startRef = useRef({ x: 0, y: 0 });
   const movedRef = useRef(false);
+
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    const ro = new ResizeObserver(([entry]) => {
+      setSize({ w: entry.contentRect.width, h: entry.contentRect.height });
+    });
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
 
   function onPointerDown(e) {
     draggingRef.current = true;
@@ -144,10 +164,37 @@ function ScatteredCanvas({ items, zoom }) {
 
   const wrappedX = ((offset.x % BLOCK_W) + BLOCK_W) % BLOCK_W;
   const wrappedY = ((offset.y % BLOCK_H) + BLOCK_H) % BLOCK_H;
-  const REPEAT = [-1, 0, 1];
+  // Enough repeats either side to cover the viewport even when zoomed out
+  // (min zoom 0.75 needs ~1.3x the unzoomed span) and at wide viewports.
+  const REPEAT = [-2, -1, 0, 1, 2];
+  const centerX = size.w / 2;
+  const centerY = size.h / 2;
+
+  const tiles = [];
+  if (size.w && size.h) {
+    for (const j of REPEAT) {
+      for (const i of REPEAT) {
+        const blockLeft = wrappedX + i * BLOCK_W - BLOCK_W / 2;
+        const blockTop = wrappedY + j * BLOCK_H - BLOCK_H / 2;
+        items.forEach((place, idx) => {
+          const slot = tilePx(TILE_PATTERN[idx % TILE_PATTERN.length]);
+          const rawLeft = centerX + blockLeft + slot.left;
+          const rawTop = centerY + blockTop + slot.top;
+          const screenLeft = centerX + (rawLeft - centerX) * zoom;
+          const screenTop = centerY + (rawTop - centerY) * zoom;
+          const screenSize = slot.size * zoom;
+          const fullyVisible =
+            screenLeft >= 0 && screenTop >= 0 && screenLeft + screenSize <= size.w && screenTop + screenSize <= size.h;
+          if (!fullyVisible) return;
+          tiles.push({ key: `${i}-${j}-${place.slug}`, place, left: rawLeft, top: rawTop, size: slot.size });
+        });
+      }
+    }
+  }
 
   return (
     <div
+      ref={containerRef}
       className="relative w-full overflow-hidden select-none cursor-grab active:cursor-grabbing"
       style={{ height: '100vh' }}
       onPointerDown={onPointerDown}
@@ -157,29 +204,14 @@ function ScatteredCanvas({ items, zoom }) {
       onClickCapture={onClickCapture}
     >
       <div className="absolute inset-0" style={{ transform: `scale(${zoom})`, transformOrigin: 'center center' }}>
-        {REPEAT.flatMap((j) =>
-          REPEAT.map((i) => (
-            <div
-              key={`${i}-${j}`}
-              className="absolute"
-              style={{
-                left: `calc(50% + ${wrappedX + i * BLOCK_W - BLOCK_W / 2}px)`,
-                top: `calc(50% + ${wrappedY + j * BLOCK_H - BLOCK_H / 2}px)`,
-                width: BLOCK_W,
-                height: BLOCK_H,
-              }}
-            >
-              {items.map((place, idx) => (
-                <GalleryCard
-                  key={place.slug}
-                  place={place}
-                  variant="scattered"
-                  slot={tilePx(TILE_PATTERN[idx % TILE_PATTERN.length])}
-                />
-              ))}
-            </div>
-          ))
-        )}
+        {tiles.map((t) => (
+          <GalleryCard
+            key={t.key}
+            place={t.place}
+            variant="scattered"
+            slot={{ left: t.left, top: t.top, size: t.size }}
+          />
+        ))}
       </div>
     </div>
   );
@@ -193,7 +225,7 @@ function ExperienceToggle({ view, onChange }) {
     <div className="sticky top-20 z-30 flex justify-center">
       <button
         onClick={() => onChange(view === 'scattered' ? 'grid' : 'scattered')}
-        className="flex items-center gap-2 rounded-full border border-graphite px-4 py-[7px] font-body text-xs bg-gallery-white/80 backdrop-blur"
+        className="flex items-center gap-2 rounded-full border border-graphite px-4 py-[7px] font-body text-xs bg-transparent"
       >
         <svg viewBox="0 0 12 12" width="10" height="10" aria-hidden="true">
           {[0, 1, 2].flatMap((r) => [0, 1, 2].map((c) => <circle key={`${r}-${c}`} cx={c * 5 + 1} cy={r * 5 + 1} r="1" fill="currentColor" />))}
@@ -205,15 +237,14 @@ function ExperienceToggle({ view, onChange }) {
 }
 
 // Ghost pill (closed/inactive) vs. dark pill (active/expanded or a child
-// chip) — same flat, borderless, no-shadow dark fill used everywhere else
-// (cursor hover pill, etc), not a bordered dropdown box.
+// chip). Ghost pills are fully transparent — no fill at all, per Palmer:
+// "no background fill, it's an outlined ghost pill" — so they float
+// directly over whatever's behind them (photo or canvas), not a solid
+// panel. Dark pills are the deliberate exception (active-state fill).
 const GHOST_PILL =
-  'rounded-full border border-graphite bg-gallery-white text-graphite px-3 py-2 font-label uppercase tracking-wide text-xs flex items-center gap-1.5';
+  'rounded-full border border-graphite bg-transparent text-graphite px-3 py-2 font-label uppercase tracking-wide text-xs flex items-center gap-1.5';
 const DARK_PILL =
   'rounded-full bg-graphite text-gallery-white px-3 py-2 font-label uppercase tracking-wide text-xs flex items-center gap-1.5';
-
-// PLACEHOLDER — no hay página ni correo de contacto real todavía.
-const CONTACT_MAILTO = 'mailto:hola@relieve.mx';
 
 const TYPE_OPTIONS = [
   { value: '', label: 'Todos' },
@@ -300,9 +331,11 @@ function BottomControlBar({ type, setType, resetFilters }) {
           <a href="/coleccion/ciudades-mexico" className={DARK_PILL}>colección</a>
           <a href="/sobre" className={DARK_PILL}>sobre</a>
           {/* Points at the real reviews section on the collection page —
-              no dedicated reviews-index page exists yet. */}
+              no dedicated reviews-index page exists yet. No "contacto" pill:
+              there's no real destination for it yet (no contact page, and a
+              mailto: link launches the visitor's mail app, which read as a
+              broken/unexpected interaction) — removed rather than fake it. */}
           <a href="/coleccion/ciudades-mexico#resenas" className={DARK_PILL}>reviews</a>
-          <a href={CONTACT_MAILTO} className={DARK_PILL}>contacto</a>
         </>
       )}
 
@@ -359,14 +392,14 @@ function DragHintAndZoom({ setZoom, showHint }) {
         <button
           onClick={() => setZoom((z) => Math.max(0.75, z - 0.15))}
           aria-label="Alejar"
-          className="w-6 h-6 rounded-full border border-graphite bg-gallery-white flex items-center justify-center text-xs text-graphite"
+          className="w-6 h-6 rounded-full border border-graphite bg-transparent flex items-center justify-center text-xs text-graphite"
         >
           −
         </button>
         <button
           onClick={() => setZoom((z) => Math.min(1.4, z + 0.15))}
           aria-label="Acercar"
-          className="w-6 h-6 rounded-full border border-graphite bg-gallery-white flex items-center justify-center text-xs text-graphite"
+          className="w-6 h-6 rounded-full border border-graphite bg-transparent flex items-center justify-center text-xs text-graphite"
         >
           +
         </button>
@@ -380,20 +413,11 @@ export default function Gallery() {
   const [type, setType] = useState('');
   const [view, setView] = useState('scattered');
   const [zoom, setZoom] = useState(1);
-  const { setActive } = useExperienceView();
 
   useEffect(() => {
     const query = type ? `?type=${type}` : '';
     fetchJsonArray(`/api/places${query}`).then(setPlaces);
   }, [type]);
-
-  // Scattered mode IS the "experience view" — tell Home/App to hide
-  // Testimonials/footer while it's showing, and stop hiding them the
-  // moment the user switches to grid view or navigates away.
-  useEffect(() => {
-    setActive(view === 'scattered');
-    return () => setActive(false);
-  }, [view, setActive]);
 
   function resetFilters() {
     setType('');
