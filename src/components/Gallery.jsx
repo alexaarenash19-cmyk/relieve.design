@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from 'react';
 import { placeAlt } from '../lib/altText.js';
 import { pieceMainPhoto } from '../lib/photography.js';
 import { fetchJsonArray } from '../lib/fetchJsonArray.js';
+import { useExperienceView } from '../context/ExperienceViewContext.jsx';
 import Stamp from './Stamp.jsx';
 import TopoLines from './TopoLines.jsx';
 
@@ -258,7 +259,10 @@ function FilterChip({ label, active, onClick }) {
   );
 }
 
-function BottomControlBar({ type, setType, setZoom, showHint }) {
+// Center cluster: menu/filter pills. Palmer keeps this separate from the
+// drag-hint/zoom cluster, which sits at bottom-right instead of sharing
+// this centered row.
+function BottomControlBar({ type, setType, resetFilters }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [filterOpen, setFilterOpen] = useState(false);
   const [activeChip, setActiveChip] = useState(null); // 'color' | 'tipo' | 'tamano' | null
@@ -275,6 +279,10 @@ function BottomControlBar({ type, setType, setZoom, showHint }) {
   }
   function toggleChip(chip) {
     setActiveChip((c) => (c === chip ? null : chip));
+  }
+  function handleReset() {
+    resetFilters();
+    setActiveChip(null);
   }
 
   // sticky (not fixed) — same reason as ExperienceToggle above: a
@@ -307,6 +315,7 @@ function BottomControlBar({ type, setType, setZoom, showHint }) {
           <FilterChip label="color" active={activeChip === 'color'} onClick={() => toggleChip('color')} />
           <FilterChip label="tipo" active={activeChip === 'tipo'} onClick={() => toggleChip('tipo')} />
           <FilterChip label="⌀ tamaño" active={activeChip === 'tamano'} onClick={() => toggleChip('tamano')} />
+          <button onClick={handleReset} className={GHOST_PILL}>reset</button>
         </>
       )}
 
@@ -330,14 +339,23 @@ function BottomControlBar({ type, setType, setZoom, showHint }) {
           <span className="font-label uppercase tracking-wide text-[10px] text-graphite/50">Próximamente</span>
         </div>
       )}
+    </div>
+    </div>
+  );
+}
 
-      {showHint && (
-        <span className="hidden sm:inline font-label uppercase tracking-wide text-[10px] text-graphite/50 ml-2">
-          drag to explore
-        </span>
-      )}
-
-      <div className="flex gap-1 ml-2">
+// Right cluster: drag hint + zoom, deliberately separate from the centered
+// menu/filter cluster and right-aligned (Palmer: "sits at bottom-right"),
+// small type, not sharing the centered row.
+function DragHintAndZoom({ setZoom, showHint }) {
+  return (
+    <div className="sticky bottom-66 z-30 flex justify-end pr-6">
+      <div className="flex items-center gap-2">
+        {showHint && (
+          <span className="font-label uppercase tracking-wide text-[9px] text-graphite/50">
+            drag to explore
+          </span>
+        )}
         <button
           onClick={() => setZoom((z) => Math.max(0.75, z - 0.15))}
           aria-label="Alejar"
@@ -354,7 +372,6 @@ function BottomControlBar({ type, setType, setZoom, showHint }) {
         </button>
       </div>
     </div>
-    </div>
   );
 }
 
@@ -363,18 +380,36 @@ export default function Gallery() {
   const [type, setType] = useState('');
   const [view, setView] = useState('scattered');
   const [zoom, setZoom] = useState(1);
+  const { setActive } = useExperienceView();
 
   useEffect(() => {
     const query = type ? `?type=${type}` : '';
     fetchJsonArray(`/api/places${query}`).then(setPlaces);
   }, [type]);
 
+  // Scattered mode IS the "experience view" — tell Home/App to hide
+  // Testimonials/footer while it's showing, and stop hiding them the
+  // moment the user switches to grid view or navigates away.
+  useEffect(() => {
+    setActive(view === 'scattered');
+    return () => setActive(false);
+  }, [view, setActive]);
+
+  function resetFilters() {
+    setType('');
+  }
+
   return (
     <section className="relative pb-28">
       <ExperienceToggle view={view} onChange={setView} />
 
       {view === 'scattered' ? (
-        <ScatteredCanvas items={SCATTER_DEMO_ITEMS} zoom={zoom} />
+        <>
+          <ScatteredCanvas items={SCATTER_DEMO_ITEMS} zoom={zoom} />
+          {/* No content after the canvas in this view — at least 1/4
+              screen of empty space, nothing to scroll into. */}
+          <div style={{ height: '25vh' }} aria-hidden="true" />
+        </>
       ) : (
         <div
           className="grid gap-px bg-line p-px"
@@ -386,11 +421,8 @@ export default function Gallery() {
         </div>
       )}
 
-      <BottomControlBar
-        type={type} setType={setType}
-        setZoom={setZoom}
-        showHint={view === 'scattered'}
-      />
+      <BottomControlBar type={type} setType={setType} resetFilters={resetFilters} />
+      <DragHintAndZoom setZoom={setZoom} showHint={view === 'scattered'} />
     </section>
   );
 }

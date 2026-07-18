@@ -5,6 +5,7 @@ import PageStamp from './components/PageStamp.jsx';
 import CartDrawer from './components/CartDrawer.jsx';
 import SvgFilters from './components/SvgFilters.jsx';
 import SocialLinks from './components/SocialLinks.jsx';
+import { ExperienceViewProvider, useExperienceView } from './context/ExperienceViewContext.jsx';
 import Home from './pages/Home.jsx';
 import Collection from './pages/Collection.jsx';
 import Product from './pages/Product.jsx';
@@ -18,9 +19,30 @@ import PrivacyNotice from './pages/PrivacyNotice.jsx';
 import Terms from './pages/Terms.jsx';
 import NotFound from './pages/NotFound.jsx';
 
+function Footer() {
+  // Hidden entirely while the gallery's scattered "experience view" is
+  // showing — that view is meant to read as a clean, self-contained
+  // screen with no footer visible, per the Palmer reference. Reappears
+  // normally on every other view/page.
+  const { active } = useExperienceView();
+  if (active) return null;
+
+  return (
+    <footer className="font-label uppercase tracking-wide text-xs text-graphite/70 flex items-center justify-center gap-6 p-8">
+      <Link to="/aviso-privacidad" className="hover:text-passport-ink hover:underline">
+        Aviso de privacidad
+      </Link>
+      <Link to="/terminos" className="hover:text-passport-ink hover:underline">
+        Términos
+      </Link>
+      <SocialLinks />
+    </footer>
+  );
+}
+
 export default function App() {
   return (
-    <>
+    <ExperienceViewProvider>
       <SvgFilters />
       <PageStamp />
       <CustomCursor />
@@ -40,15 +62,7 @@ export default function App() {
         <Route path="/terminos" element={<Terms />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
-      <footer className="font-label uppercase tracking-wide text-xs text-graphite/70 flex items-center justify-center gap-6 p-8">
-        <Link to="/aviso-privacidad" className="hover:text-passport-ink hover:underline">
-          Aviso de privacidad
-        </Link>
-        <Link to="/terminos" className="hover:text-passport-ink hover:underline">
-          Términos
-        </Link>
-        <SocialLinks />
-      </footer>
-    </>
+      <Footer />
+    </ExperienceViewProvider>
   );
 }
