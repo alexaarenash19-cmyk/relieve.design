@@ -22,11 +22,10 @@
   --font-label: "Courier Prime", monospace;
   --font-body: "Inter", sans-serif;
 
-  /* Pinned to their literal pixel value, overriding Tailwind's default
+  /* Pinned to its literal pixel value, overriding Tailwind's default
      dynamic spacing scale (where mt-96 would otherwise compute to
      calc(0.25rem * 96) = 384px) — used by the gallery's bottom control
-     bar so its gap from the images above/below is exact, not scaled. */
-  --spacing-66: 66px;
+     bar so its gap from the images above is exact, not scaled. */
   --spacing-96: 96px;
 }
 
