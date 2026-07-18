@@ -4,8 +4,15 @@
 import TopoLines from '../components/TopoLines.jsx';
 import Stamp from '../components/Stamp.jsx';
 import { ABOUT_PROCESO } from '../lib/photography.js';
+import { useDocumentHead } from '../lib/useDocumentHead.js';
 
 export default function About() {
+  useDocumentHead({
+    title: 'Sobre Relieve — Mapas en relieve hechos a mano',
+    description: 'Cómo hacemos cada pieza: datos de elevación reales, impresión 3D, marco de nogal armado a mano. Sin coordenadas inventadas.',
+    canonicalPath: '/sobre',
+  });
+
   return (
     <main className="grid md:grid-cols-2 gap-12 max-w-5xl mx-auto p-8">
       <div className="relative aspect-square rounded-[9px] flex items-center justify-center overflow-hidden">

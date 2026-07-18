@@ -11,6 +11,7 @@ import TopoLines from '../components/TopoLines.jsx';
 import DeparturesBoard from '../components/DeparturesBoard.jsx';
 import { fetchJsonArray } from '../lib/fetchJsonArray.js';
 import { CATEGORIES, categoryLabel } from '../lib/categories.js';
+import { useDocumentHead } from '../lib/useDocumentHead.js';
 
 const ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
 
@@ -20,6 +21,14 @@ export default function Search() {
   const [type, setType] = useState('');
   const [letter, setLetter] = useState(null);
   const inputRef = useRef(null);
+
+  // Canonicalizes to the bare path regardless of query/type/letter filters
+  // so filtered views don't read as duplicate content.
+  useDocumentHead({
+    title: 'Buscar un lugar — Relieve',
+    description: 'Encuentra tu ciudad, montaña, estadio o circuito favorito entre las piezas disponibles en Relieve.',
+    canonicalPath: '/buscar',
+  });
 
   useEffect(() => {
     fetchJsonArray('/api/places').then(setPlaces);

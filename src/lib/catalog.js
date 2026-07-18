@@ -2,12 +2,21 @@
 // change — mirroring the seed migration here beats adding an endpoint just
 // to list four small static tables. If admin ever edits these live, add a
 // GET /api/catalog and fetch instead.
+//
+// PLACEHOLDER labels — Ale will confirm/rename these; only `label` needs to
+// change (`code` stays stable, it's what cart/pricing/orders key on), and
+// changing it here updates every piece at once, nothing hardcoded per SKU.
 export const SIZES = [
-  { code: 'chico', label: 'Chico', dims: '20x25 cm' },
+  { code: 'chico', label: 'Mini', dims: '20x25 cm' },
   { code: 'mediano', label: 'Mediano', dims: '30x40 cm', featured: true },
   { code: 'grande', label: 'Grande', dims: '40x50 cm' },
-  { code: 'especial', label: 'Especial', dims: '50x70 cm' },
+  { code: 'especial', label: 'King', dims: '50x70 cm' },
 ];
+
+// PLACEHOLDER — Ale to confirm real production/shipping timelines. One
+// constant, not per-piece: every piece is made to order the same way.
+export const PRODUCTION_DAYS = '10–15';
+export const SHIPPING_DAYS = '3–5';
 
 export const FRAMES = [
   { code: 'nogal', label: 'Nogal', hex: '#7A5A43' }, // --walnut — ui-ux.md "marco de nogal"

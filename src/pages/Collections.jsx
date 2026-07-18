@@ -8,6 +8,7 @@ import { useEffect, useState } from 'react';
 import { GalleryCard } from '../components/Gallery.jsx';
 import { fetchJsonArray } from '../lib/fetchJsonArray.js';
 import { CATEGORIES } from '../lib/categories.js';
+import { useDocumentHead } from '../lib/useDocumentHead.js';
 
 function byName(a, b) {
   return a.name.localeCompare(b.name, 'es');
@@ -17,6 +18,12 @@ export default function Collections() {
   const [places, setPlaces] = useState([]);
   const [reviews, setReviews] = useState([]);
   const [view, setView] = useState('todos'); // 'todos' | 'categoria'
+
+  useDocumentHead({
+    title: 'Colecciones — Relieve',
+    description: 'Todos los mapas en relieve de Relieve, o explóralos por categoría: ciudades, montañas, estadios y circuitos de México.',
+    canonicalPath: '/colecciones',
+  });
 
   useEffect(() => {
     let cancelled = false;

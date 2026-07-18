@@ -4,7 +4,8 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { useCart } from '../context/CartContext.jsx';
-import { SIZES, FRAMES, COLORS } from '../lib/catalog.js';
+import { SIZES, FRAMES, COLORS, PRODUCTION_DAYS, SHIPPING_DAYS } from '../lib/catalog.js';
+import { useDocumentHead } from '../lib/useDocumentHead.js';
 import RollingPrice from '../components/RollingPrice.jsx';
 import WaitlistDialog from '../components/WaitlistDialog.jsx';
 import Button from '../components/Button.jsx';
@@ -72,6 +73,15 @@ export default function Product() {
     };
   }, [sizeCode, frameCode, capelo, plateText]);
 
+  useDocumentHead({
+    title: place ? `${place.name} — Mapa en relieve | Relieve` : undefined,
+    description: place
+      ? (place.story?.slice(0, 155) ?? `Mapa en relieve de ${place.name}, enmarcado en nogal.`)
+      : undefined,
+    image: place?.thumb_url,
+    canonicalPath: `/pieza/${slug}`,
+  });
+
   if (error) {
     return (
       <main className="max-w-md mx-auto p-8 text-center">
@@ -128,10 +138,17 @@ export default function Product() {
   return (
     <main className="grid md:grid-cols-2 gap-8 p-8 max-w-5xl mx-auto">
       <div>
+        {/* No per-variant photography exists (a made-to-order piece can't
+            be pre-shot in every size/color/frame combination) — the frame
+            border and background color respond to the actual selection
+            instead, a real visual preview rather than a static photo. */}
         <div
           key={place.slug + activePhoto}
-          className="warp-reveal warm-photo relative aspect-square rounded-[9px] overflow-hidden flex items-center justify-center"
-          style={{ backgroundColor: selectedColor?.hex ?? '#C8C3BC' }}
+          className="warp-reveal warm-photo relative aspect-square rounded-[9px] overflow-hidden flex items-center justify-center transition-[border-color] duration-300"
+          style={{
+            backgroundColor: selectedColor?.hex ?? '#C8C3BC',
+            border: `10px solid ${selectedFrame?.hex ?? '#7A5A43'}`,
+          }}
         >
           {activePhoto ? (
             <img
@@ -292,8 +309,13 @@ export default function Product() {
 
         <RollingPrice
           cents={unitPriceCents ?? place.base_price}
-          className="font-label text-2xl font-bold block mb-6"
+          className="font-label text-2xl font-bold block mb-2"
         />
+
+        {/* Made-to-order, no inventory — every piece needs this. */}
+        <p className="font-label uppercase tracking-wide text-[11px] text-graphite/60 mb-6">
+          Se fabrica en {PRODUCTION_DAYS} días hábiles · llega {SHIPPING_DAYS} días después
+        </p>
 
         {place.status === 'soldout' ? (
           <WaitlistDialog placeSlug={place.slug} />
