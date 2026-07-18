@@ -14,6 +14,7 @@ const REVEAL_ZONE_PX = 72;
 
 export default function Nav() {
   const [solid, setSolid] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
   const [visible, setVisible] = useState(
     () => typeof window !== 'undefined' && !window.matchMedia('(pointer: fine)').matches
   );
@@ -51,13 +52,37 @@ export default function Nav() {
         <Link to="/buscar" data-cursor-label="Ver destino" className="hover:text-passport-ink transition-colors">
           Buscar
         </Link>
-        <Link to="/sobre" data-cursor-label="Ver destino" className="hover:text-passport-ink transition-colors">
+        <Link
+          to="/sobre"
+          data-cursor-label="Ver destino"
+          className="hidden sm:inline hover:text-passport-ink transition-colors"
+        >
           Sobre
         </Link>
         <button onClick={toggleCart} className="font-label uppercase tracking-wide hover:text-passport-ink transition-colors">
           Carrito{count > 0 ? ` (${count})` : ''}
         </button>
+        <button
+          onClick={() => setMenuOpen((v) => !v)}
+          aria-expanded={menuOpen}
+          aria-label="Menú"
+          className="sm:hidden font-label uppercase tracking-wide hover:text-passport-ink transition-colors"
+        >
+          Menú
+        </button>
       </div>
+      {menuOpen && (
+        <div className="sm:hidden absolute top-full right-6 mt-1 bg-gallery-white/95 backdrop-blur border border-line rounded-[9px] px-4 py-3">
+          <Link
+            to="/sobre"
+            data-cursor-label="Ver destino"
+            onClick={() => setMenuOpen(false)}
+            className="font-label uppercase tracking-wide text-xs hover:text-passport-ink transition-colors"
+          >
+            Sobre
+          </Link>
+        </div>
+      )}
     </nav>
   );
 }
