@@ -1,9 +1,15 @@
-// Issue #50 — /coleccion/:slug: pieces grid + approved reviews at the bottom
-// via <details>/<summary> (native disclosure — no custom component needed).
+// Issue #50 — /coleccion/:slug: pieces in one category, grid + approved
+// reviews at the bottom via <details>/<summary> (native disclosure — no
+// custom component needed). `:slug` is a category value (src/lib/
+// categories.js), not a separate collections-table slug — categoryLabel()
+// gives the proper display name instead of title-casing the raw slug,
+// which is what was leaking "Ciudades Mexico"-style text into this page's
+// heading and the reviews section reached through it.
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { GalleryCard } from '../components/Gallery.jsx';
 import { fetchJsonArray } from '../lib/fetchJsonArray.js';
+import { categoryLabel } from '../lib/categories.js';
 
 export default function Collection() {
   const { slug } = useParams();
@@ -12,10 +18,11 @@ export default function Collection() {
 
   useEffect(() => {
     let cancelled = false;
-    fetchJsonArray(`/api/places?collection=${slug}`).then((data) => {
+    fetchJsonArray(`/api/places?type=${slug}`).then((data) => {
       if (cancelled) return;
-      setPlaces(data);
-      Promise.all(data.map((p) => fetchJsonArray(`/api/reviews?place=${p.slug}`))).then((lists) => {
+      const sorted = [...data].sort((a, b) => a.name.localeCompare(b.name, 'es'));
+      setPlaces(sorted);
+      Promise.all(sorted.map((p) => fetchJsonArray(`/api/reviews?place=${p.slug}`))).then((lists) => {
         if (!cancelled) setReviews(lists.flat());
       });
     });
@@ -26,7 +33,7 @@ export default function Collection() {
 
   return (
     <main className="p-8">
-      <h1 className="font-display font-light text-3xl mb-6 capitalize">{slug.replace(/-/g, ' ')}</h1>
+      <h1 className="font-display font-light text-3xl mb-6">{categoryLabel(slug)}</h1>
 
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-px bg-line">
         {places.map((place) => (

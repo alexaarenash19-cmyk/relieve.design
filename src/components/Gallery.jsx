@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from 'react';
 import { placeAlt } from '../lib/altText.js';
 import { pieceMainPhoto } from '../lib/photography.js';
 import { fetchJsonArray } from '../lib/fetchJsonArray.js';
+import { CATEGORIES } from '../lib/categories.js';
 import Stamp from './Stamp.jsx';
 import TopoLines from './TopoLines.jsx';
 
@@ -246,11 +247,9 @@ const GHOST_PILL =
 const DARK_PILL =
   'rounded-full bg-graphite text-gallery-white px-3 py-2 font-label uppercase tracking-wide text-xs flex items-center gap-1.5';
 
-const TYPE_OPTIONS = [
-  { value: '', label: 'Todos' },
-  { value: 'ciudad', label: 'Ciudad' },
-  { value: 'montana', label: 'Montaña' },
-];
+// Same taxonomy as /buscar and /colecciones — CATEGORIES is the one
+// source of truth, not a separate list per filter UI.
+const TYPE_OPTIONS = [{ value: '', label: 'Todos' }, ...CATEGORIES];
 
 function MenuIcon() {
   return (
@@ -328,14 +327,14 @@ function BottomControlBar({ type, setType, resetFilters }) {
       </button>
       {menuOpen && (
         <>
-          <a href="/coleccion/ciudades-mexico" className={DARK_PILL}>colección</a>
+          <a href="/colecciones" className={DARK_PILL}>colección</a>
           <a href="/sobre" className={DARK_PILL}>sobre</a>
-          {/* Points at the real reviews section on the collection page —
-              no dedicated reviews-index page exists yet. No "contacto" pill:
-              there's no real destination for it yet (no contact page, and a
-              mailto: link launches the visitor's mail app, which read as a
-              broken/unexpected interaction) — removed rather than fake it. */}
-          <a href="/coleccion/ciudades-mexico#resenas" className={DARK_PILL}>reviews</a>
+          {/* Points at the reviews section on the collections index page.
+              No "contacto" pill: there's no real destination for it yet (no
+              contact page, and a mailto: link launches the visitor's mail
+              app, which read as a broken/unexpected interaction) — removed
+              rather than fake it. */}
+          <a href="/colecciones#resenas" className={DARK_PILL}>reviews</a>
         </>
       )}
 

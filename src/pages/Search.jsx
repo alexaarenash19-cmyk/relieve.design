@@ -4,26 +4,25 @@
 // Fetches the (small, pilot-sized) catalog once and filters client-side —
 // no network round-trip per keystroke. size/frame/orientation aren't place
 // attributes in the schema (they're per-order personalization), so the only
-// real place filters are collection and type; those are what's wired here.
+// real place filter is category (`type`) — same taxonomy as the experience
+// view's "tipo" chip and /colecciones, not a separate collections list.
 import { useEffect, useMemo, useRef, useState } from 'react';
 import TopoLines from '../components/TopoLines.jsx';
 import DeparturesBoard from '../components/DeparturesBoard.jsx';
 import { fetchJsonArray } from '../lib/fetchJsonArray.js';
+import { CATEGORIES, categoryLabel } from '../lib/categories.js';
 
 const ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
 
 export default function Search() {
   const [places, setPlaces] = useState([]);
-  const [collections, setCollections] = useState([]);
   const [query, setQuery] = useState('');
-  const [collection, setCollection] = useState('');
   const [type, setType] = useState('');
   const [letter, setLetter] = useState(null);
   const inputRef = useRef(null);
 
   useEffect(() => {
     fetchJsonArray('/api/places').then(setPlaces);
-    fetchJsonArray('/api/collections').then(setCollections);
   }, []);
 
   useEffect(() => {
@@ -45,7 +44,6 @@ export default function Search() {
   const filtered = places.filter((p) => {
     if (query && !p.name.toLowerCase().includes(query.toLowerCase())) return false;
     if (type && p.type !== type) return false;
-    if (collection && p.collection !== collection) return false;
     if (letter && p.name[0].toUpperCase() !== letter) return false;
     return true;
   });
@@ -85,24 +83,13 @@ export default function Search() {
 
       <div className="flex gap-3 mb-6 font-label uppercase tracking-wide text-xs">
         <div className="baggage-tag border border-dashed border-line rounded pr-3 py-1">
-          <select
-            value={collection}
-            onChange={(e) => setCollection(e.target.value)}
-            className="bg-transparent"
-          >
-            <option value="">Toda colección</option>
-            {collections.map((c) => (
-              <option key={c.slug} value={c.slug}>
-                {c.name}
+          <select value={type} onChange={(e) => setType(e.target.value)} className="bg-transparent">
+            <option value="">Todas las categorías</option>
+            {CATEGORIES.map((c) => (
+              <option key={c.value} value={c.value}>
+                {c.label}
               </option>
             ))}
-          </select>
-        </div>
-        <div className="baggage-tag border border-dashed border-line rounded pr-3 py-1">
-          <select value={type} onChange={(e) => setType(e.target.value)} className="bg-transparent">
-            <option value="">Todos</option>
-            <option value="ciudad">Ciudades</option>
-            <option value="montana">Montañas</option>
           </select>
         </div>
       </div>
@@ -121,7 +108,7 @@ export default function Search() {
                   p.type === 'montana' ? 'text-walnut' : 'text-explorer-blue'
                 }`}
               >
-                {p.type === 'montana' ? 'Montaña' : 'Ciudad'}
+                {categoryLabel(p.type)}
               </span>
             </a>
           ),

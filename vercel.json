@@ -1,6 +1,5 @@
 {
   "rewrites": [
-    { "source": "/api/collections", "destination": "/api/catalog?resource=collections" },
     { "source": "/api/pricing", "destination": "/api/catalog?resource=pricing" },
     { "source": "/api/waitlist", "destination": "/api/catalog?resource=waitlist" },
     { "source": "/api/places", "destination": "/api/catalog?resource=places" },

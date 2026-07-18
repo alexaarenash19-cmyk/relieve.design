@@ -1,40 +1,26 @@
-// Consolidated storefront-read/write endpoints — collections, places,
-// pricing, waitlist, order status — merged into one function so the Vercel
-// Hobby plan's 12-function cap has real margin. Same URLs, same behavior:
-// vercel.json rewrites each original path here with a `resource` query param.
-// Kept separate from checkout/reviews/webhooks/admin because those need
-// either bodyParser:false (multipart, raw signature bytes) or extra
-// auth/critical-path isolation — merging those in would change behavior,
-// not just organization.
+// Consolidated storefront-read/write endpoints — places, pricing, waitlist,
+// order status — merged into one function so the Vercel Hobby plan's
+// 12-function cap has real margin. Same URLs, same behavior: vercel.json
+// rewrites each original path here with a `resource` query param. Kept
+// separate from checkout/reviews/webhooks/admin because those need either
+// bodyParser:false (multipart, raw signature bytes) or extra auth/critical-
+// path isolation — merging those in would change behavior, not just
+// organization.
 //
 // PLACEHOLDER fallback: when Supabase isn't reachable (no catalog connected
-// yet — the reported 500s), collections/places/waitlist fall back to
+// yet — the reported 500s), places/waitlist fall back to
 // ../lib/dummyCatalog.js instead of erroring, so the site is fully
 // browsable/testable today. Real data silently takes over the moment the
 // queries start succeeding — nothing to flip off by hand.
 import { supabase } from '../lib/supabase.js';
 import { sendError } from '../lib/errors.js';
 import { calcUnitPriceCents, PricingError } from '../lib/pricing.js';
-import { DUMMY_COLLECTION, DUMMY_PLACES, findDummyPlace } from '../lib/dummyCatalog.js';
+import { DUMMY_PLACES, findDummyPlace } from '../lib/dummyCatalog.js';
 
-// Issue #22: GET /api/collections
-async function getCollections(req, res) {
-  if (req.method !== 'GET') {
-    res.setHeader('Allow', 'GET');
-    return sendError(res, 405, 'method_not_allowed', 'Use GET');
-  }
-
-  const { data, error } = await supabase
-    .from('collections')
-    .select('id, slug, name, photo_url')
-    .eq('active', true)
-    .order('sort');
-
-  if (error) return res.status(200).json([DUMMY_COLLECTION]);
-  return res.status(200).json(data);
-}
-
-// Issue #23/#24: GET /api/places?q=&collection=&type= and GET /api/places/:slug
+// Issue #23/#24: GET /api/places?q=&type= and GET /api/places/:slug
+// `type` doubles as the category (src/lib/categories.js) — the collections
+// table/endpoint was a separate taxonomy for the same grouping and was
+// removed rather than kept in parallel.
 async function getPlaces(req, res) {
   if (req.method !== 'GET') {
     res.setHeader('Allow', 'GET');
@@ -44,11 +30,11 @@ async function getPlaces(req, res) {
   const { slug } = req.query;
   if (slug) return getPlaceDetail(req, res, slug);
 
-  const { q, collection, type } = req.query;
+  const { q, type } = req.query;
 
   let query = supabase
     .from('places')
-    .select('slug, name, type, thumb_url, base_price_cents, status, collections(slug)');
+    .select('slug, name, type, thumb_url, base_price_cents, status');
 
   if (q) query = query.ilike('name', `%${q}%`);
   if (type) query = query.eq('type', type);
@@ -57,10 +43,7 @@ async function getPlaces(req, res) {
 
   if (error) {
     const places = DUMMY_PLACES.filter(
-      (p) =>
-        (!q || p.name.toLowerCase().includes(q.toLowerCase())) &&
-        (!type || p.type === type) &&
-        (!collection || p.collection === collection)
+      (p) => (!q || p.name.toLowerCase().includes(q.toLowerCase())) && (!type || p.type === type)
     ).map(({ id, aerial_url, model_url, lat, lng, elevation_m, story, base_price_cents, ...p }) => ({
       ...p,
       base_price: base_price_cents,
@@ -68,14 +51,7 @@ async function getPlaces(req, res) {
     return res.status(200).json(places);
   }
 
-  const places = data
-    .filter((p) => !collection || p.collections?.slug === collection)
-    .map(({ collections, base_price_cents, ...p }) => ({
-      ...p,
-      base_price: base_price_cents,
-      collection: collections?.slug ?? null,
-    }));
-
+  const places = data.map(({ base_price_cents, ...p }) => ({ ...p, base_price: base_price_cents }));
   return res.status(200).json(places);
 }
 
@@ -91,7 +67,7 @@ async function getPlaceDetail(req, res, slug) {
   if (error) {
     const dummy = findDummyPlace(slug);
     if (!dummy) return sendError(res, 404, 'not_found', 'Place not found');
-    const { id, collection, base_price_cents, ...rest } = dummy;
+    const { id, base_price_cents, ...rest } = dummy;
     return res.status(200).json({ ...rest, base_price: base_price_cents, reviews_count: 0 });
   }
 
@@ -197,7 +173,6 @@ async function getOrder(req, res) {
 }
 
 const RESOURCES = {
-  collections: getCollections,
   places: getPlaces,
   pricing: postPricing,
   waitlist: postWaitlist,

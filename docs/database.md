@@ -27,14 +27,14 @@ CREATE TABLE collections (
 );
 ```
 
-### places (el lugar: ciudad o montaña)
+### places (el lugar: ciudad, montaña, estadio, circuito F1, u otro sitio en México)
 ```sql
 CREATE TABLE places (
   id            SERIAL PRIMARY KEY,
-  collection_id INT REFERENCES collections(id),
+  collection_id INT REFERENCES collections(id),  -- legado; la categoría real es `type` (src/lib/categories.js)
   slug          TEXT UNIQUE NOT NULL,       -- 'monterrey'
   name          TEXT NOT NULL,              -- 'Monterrey'
-  type          TEXT CHECK (type IN ('ciudad','montana')) NOT NULL,
+  type          TEXT CHECK (type IN ('ciudad','estadio','f1','mexico','montana')) NOT NULL,
   country       TEXT DEFAULT 'MX',
   lat           NUMERIC(9,6),               -- coordenadas reales o NULL
   lng           NUMERIC(9,6),

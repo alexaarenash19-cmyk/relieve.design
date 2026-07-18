@@ -1,6 +1,6 @@
 // Minimal self-check for api/catalog.js's resource dispatch — the file that
-// consolidates collections/places/pricing/waitlist/orders into one function
-// so the Vercel Hobby plan's 12-function cap has real margin.
+// consolidates places/pricing/waitlist/orders into one function so the
+// Vercel Hobby plan's 12-function cap has real margin.
 // Run: node tests/catalog.test.mjs
 import assert from 'node:assert';
 
@@ -42,7 +42,7 @@ function mockReq(method, query, body) {
 // 2. Wrong method on a known resource is rejected before hitting the DB.
 {
   const res = mockRes();
-  await handler(mockReq('POST', { resource: 'collections' }), res);
+  await handler(mockReq('POST', { resource: 'places' }), res);
   assert.strictEqual(res.statusCode, 405);
 }
 {
@@ -73,19 +73,13 @@ function mockReq(method, query, body) {
 }
 
 // 5. Dummy catalog fallback (P0): with Supabase unreachable (SUPABASE_URL
-// above resolves nowhere), reads serve the 5 placeholder pieces instead of
+// above resolves nowhere), reads serve the placeholder pieces instead of
 // a 500 — this is the actual bug the fallback exists to fix.
-{
-  const res = mockRes();
-  await handler(mockReq('GET', { resource: 'collections' }), res);
-  assert.strictEqual(res.statusCode, 200);
-  assert.ok(res.body.length >= 1, 'expected at least the dummy collection');
-}
 {
   const res = mockRes();
   await handler(mockReq('GET', { resource: 'places' }), res);
   assert.strictEqual(res.statusCode, 200);
-  assert.strictEqual(res.body.length, 5, 'expected the 5 dummy places');
+  assert.strictEqual(res.body.length, 7, 'expected the 7 dummy places');
 }
 {
   const res = mockRes();
@@ -99,6 +93,15 @@ function mockReq(method, query, body) {
   const res = mockRes();
   await handler(mockReq('GET', { resource: 'places', slug: 'no-existe' }), res);
   assert.strictEqual(res.statusCode, 404);
+}
+// type filter (also the category taxonomy — src/lib/categories.js) still
+// works against the dummy fallback.
+{
+  const res = mockRes();
+  await handler(mockReq('GET', { resource: 'places', type: 'f1' }), res);
+  assert.strictEqual(res.statusCode, 200);
+  assert.strictEqual(res.body.length, 1);
+  assert.strictEqual(res.body[0].slug, 'autodromo-hermanos-rodriguez');
 }
 // Pricing falls back to the hardcoded catalog mirror too.
 {

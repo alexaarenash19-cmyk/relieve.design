@@ -6,6 +6,7 @@ import CartDrawer from './components/CartDrawer.jsx';
 import SvgFilters from './components/SvgFilters.jsx';
 import SocialLinks from './components/SocialLinks.jsx';
 import Home from './pages/Home.jsx';
+import Collections from './pages/Collections.jsx';
 import Collection from './pages/Collection.jsx';
 import Product from './pages/Product.jsx';
 import Personalize from './pages/Personalize.jsx';
@@ -47,6 +48,7 @@ export default function App() {
       <CartDrawer />
       <Routes>
         <Route path="/" element={<Home />} />
+        <Route path="/colecciones" element={<Collections />} />
         <Route path="/coleccion/:slug" element={<Collection />} />
         <Route path="/pieza/:slug" element={<Product />} />
         <Route path="/personaliza" element={<Personalize />} />

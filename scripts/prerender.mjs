@@ -7,11 +7,12 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { createClient } from '@supabase/supabase-js';
+import { CATEGORIES } from '../src/lib/categories.js';
 
 // Issue #64 — sitemap.xml covering all indexable routes.
 // /carrito and /pedido/:token are excluded: transactional/private, no
 // indexable content of their own.
-const STATIC_ROUTES = ['/', '/personaliza', '/buscar', '/sobre', '/envios', '/faq', '/aviso-privacidad', '/terminos'];
+const STATIC_ROUTES = ['/', '/personaliza', '/buscar', '/sobre', '/envios', '/faq', '/aviso-privacidad', '/terminos', '/colecciones'];
 
 export function buildSitemap(siteUrl, dynamicPaths = []) {
   const urls = [...STATIC_ROUTES, ...dynamicPaths]
@@ -59,13 +60,12 @@ async function main() {
   }
 
   const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_KEY);
-  const [{ data: places, error: placesError }, { data: collections, error: collectionsError }] = await Promise.all([
-    supabase.from('places').select('slug, name, story, thumb_url, base_price_cents, type'),
-    supabase.from('collections').select('slug'),
-  ]);
+  const { data: places, error: placesError } = await supabase
+    .from('places')
+    .select('slug, name, story, thumb_url, base_price_cents, type');
 
-  if (placesError || collectionsError) {
-    console.error('[prerender] failed to fetch catalog, skipping:', (placesError ?? collectionsError).message);
+  if (placesError) {
+    console.error('[prerender] failed to fetch catalog, skipping:', placesError.message);
     await fs.writeFile(path.join(DIST, 'sitemap.xml'), buildSitemap(siteUrl));
     return;
   }
@@ -81,7 +81,7 @@ async function main() {
 
   const dynamicPaths = [
     ...places.map((p) => `/pieza/${p.slug}`),
-    ...collections.map((c) => `/coleccion/${c.slug}`),
+    ...CATEGORIES.map((c) => `/coleccion/${c.value}`),
   ];
   await fs.writeFile(path.join(DIST, 'sitemap.xml'), buildSitemap(siteUrl, dynamicPaths));
 
