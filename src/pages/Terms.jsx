@@ -16,9 +16,9 @@ export default function Terms() {
       <h2 className="font-display font-light text-xl mt-8 mb-3">Precios y pago</h2>
       <p className="mb-4">
         Los precios se muestran en pesos mexicanos (MXN) e incluyen IVA. El
-        pago se procesa mediante Stripe (tarjeta, OXXO, meses sin intereses
-        según elegibilidad). El precio final se recalcula en el servidor al
-        momento del pago.
+        pago se procesa mediante Stripe (tarjeta u OXXO, de contado — no
+        ofrecemos meses sin intereses). El precio final se recalcula en el
+        servidor al momento del pago.
       </p>
 
       <h2 className="font-display font-light text-xl mt-8 mb-3">Envíos</h2>

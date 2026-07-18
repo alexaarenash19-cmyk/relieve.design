@@ -103,26 +103,47 @@ export default function Search() {
         </div>
       </div>
 
-      <DeparturesBoard
-        rows={filtered.map((p) => ({
-          key: p.slug,
-          node: (
-            <a
-              href={`/pieza/${p.slug}`}
-              className="flex items-center justify-between py-3 hover:bg-line/40 px-1"
-            >
-              <span className="font-display font-light text-lg normal-case">{p.name}</span>
-              <span
-                className={`uppercase tracking-wide text-xs ${
-                  p.type === 'montana' ? 'text-walnut' : 'text-explorer-blue'
-                }`}
+      {query && filtered.length === 0 ? (
+        // Business differentiator is "si no tenemos el dato real, lo
+        // dejamos en blanco" — someone searching for a place we don't have
+        // needs to know that clearly, with a way to ask for it, instead of
+        // silently seeing an empty list and assuming search is broken.
+        <div className="border border-line rounded-[9px] p-6 text-center">
+          <p className="font-label uppercase tracking-wide text-xs text-graphite/60 mb-2">
+            No disponible
+          </p>
+          <p className="mb-4">
+            No tenemos “{query}” en el catálogo todavía.
+          </p>
+          <a
+            href={`mailto:hola@relieve.mx?subject=${encodeURIComponent(`Solicito: ${query}`)}&body=${encodeURIComponent(`Me gustaría un mapa en relieve de: ${query}`)}`}
+            className="font-label uppercase tracking-wide text-xs text-passport-ink underline"
+          >
+            Solicita tu lugar →
+          </a>
+        </div>
+      ) : (
+        <DeparturesBoard
+          rows={filtered.map((p) => ({
+            key: p.slug,
+            node: (
+              <a
+                href={`/pieza/${p.slug}`}
+                className="flex items-center justify-between py-3 hover:bg-line/40 px-1"
               >
-                {categoryLabel(p.type)}
-              </span>
-            </a>
-          ),
-        }))}
-      />
+                <span className="font-display font-light text-lg normal-case">{p.name}</span>
+                <span
+                  className={`uppercase tracking-wide text-xs ${
+                    p.type === 'montana' ? 'text-walnut' : 'text-explorer-blue'
+                  }`}
+                >
+                  {categoryLabel(p.type)}
+                </span>
+              </a>
+            ),
+          }))}
+        />
+      )}
     </main>
   );
 }
