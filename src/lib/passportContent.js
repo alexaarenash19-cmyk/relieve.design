@@ -63,14 +63,16 @@ export const AUTHORIZED_DESTINATIONS = [
 // Shape/tone/rotate per stamp so the visa page reads as 8 distinct stamps,
 // not one shape repeated (per design refs — Clovis Retif / country visas).
 // Tone sticks to navy/ink/walnut — sage measured too close in luminance to
-// the cream background to read as legible "ink" once distressed.
+// the cream background to read as legible "ink" once distressed. Shapes
+// balanced 2x each across circle/oval/square/triangle per the refs
+// (círculo, óvalo, rectángulo, triángulo — no todos la misma forma).
 export const STAMP_PLACES = [
   { label: 'Ciudad de México', shape: 'circle', tone: 'navy', rotate: '-rotate-6' },
   { label: 'Tokio', shape: 'square', tone: 'walnut', rotate: 'rotate-3' },
   { label: 'París', shape: 'triangle', tone: 'ink', rotate: '-rotate-3' },
-  { label: 'Nueva York', shape: 'circle', tone: 'walnut', rotate: 'rotate-6' },
+  { label: 'Nueva York', shape: 'oval', tone: 'walnut', rotate: 'rotate-6' },
   { label: 'Patagonia', shape: 'square', tone: 'ink', rotate: '-rotate-2' },
   { label: 'Dolomitas', shape: 'circle', tone: 'walnut', rotate: 'rotate-4' },
   { label: 'Islandia', shape: 'triangle', tone: 'navy', rotate: 'rotate-2' },
-  { label: 'Alpes', shape: 'square', tone: 'ink', rotate: '-rotate-4' },
+  { label: 'Alpes', shape: 'oval', tone: 'ink', rotate: '-rotate-4' },
 ];

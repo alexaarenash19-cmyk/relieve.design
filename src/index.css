@@ -140,26 +140,38 @@ body::before {
   }
 }
 
-/* Sobre-passport rebuild — page-turn transition, keyed by page index in
-   About.jsx (same re-key-to-replay pattern as .warp-reveal). Direction
-   comes from a --slide-from custom property set inline per navigation. */
-.passport-page-enter {
-  animation: passport-page-enter-anim 450ms cubic-bezier(0.2, 0.6, 0.2, 1) both;
+/* Passport-flipbook rebuild — react-pageflip (StPageFlip) now owns the
+   page-turn animation and its own in-flip curl shadow; this is just the
+   static "resting on a table" ambient shadow under the whole book, plus
+   material textures so cover/pages don't read as flat vector (per design
+   refs: pebbled leather on the cover, grained paper on interior pages).
+   Reuses the same feTurbulence data-URI trick as the site-wide body::before
+   grain, scoped to the passport instead of the whole page. */
+.passport-shell {
+  filter: drop-shadow(0 22px 32px rgba(35, 35, 35, 0.16)) drop-shadow(0 6px 10px rgba(35, 35, 35, 0.1));
 }
-@keyframes passport-page-enter-anim {
-  0% {
-    opacity: 0;
-    transform: translateX(var(--slide-from, 24px));
-  }
-  100% {
-    opacity: 1;
-    transform: none;
-  }
+.leather-texture,
+.paper-texture {
+  position: relative;
 }
-@media (prefers-reduced-motion: reduce) {
-  .passport-page-enter {
-    animation: none;
-  }
+.leather-texture::after,
+.paper-texture::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.leather-texture::after {
+  /* overlay barely shows against a dark base — screen (brightens only)
+     reads as light catching pebbled-leather grain instead. */
+  opacity: 0.3;
+  mix-blend-mode: screen;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+.paper-texture::after {
+  opacity: 0.07;
+  mix-blend-mode: multiply;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
 }
 
 /* P3 — "etiquetas de archivo/baggage tags" motif: a tag with a punched
