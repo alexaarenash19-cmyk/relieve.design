@@ -30,16 +30,16 @@ const SCATTER_DEMO_ITEMS = [
 // Only fully-in-view tiles render (see ScatteredCanvas), so CELL/GAP need
 // to be small enough that a full block — ideally more than one — fits
 // inside a typical viewport; too large and almost nothing survives the
-// visibility filter, leaving the canvas looking empty.
-const CELL = 180;
-const GAP = 50;
+// visibility filter, leaving the canvas looking empty. On a phone-width
+// viewport the desktop size leaves room for ~1 tile total (a 2x2 tile
+// alone is wider than a 390px screen) — mobile audit caught this — so the
+// cell/gap scale down below MOBILE_BREAKPOINT instead of staying fixed.
+const CELL_BASE = 180;
+const GAP_BASE = 50;
 const GRID_COLS = 4;
 const GRID_ROWS = 4;
-// One GAP per column/row, including a trailing one after the last — not
-// (COLS - 1) gaps — so the repeat period leaves a real gutter at the seam
-// between tiled blocks too, not just between cells inside one block.
-const BLOCK_W = GRID_COLS * (CELL + GAP);
-const BLOCK_H = GRID_ROWS * (CELL + GAP);
+const MOBILE_BREAKPOINT = 640;
+const MOBILE_SCALE = 0.5;
 
 const TILE_PATTERN = [
   { col: 0, row: 0, span: 2 },
@@ -53,11 +53,11 @@ const TILE_PATTERN = [
   { col: 0, row: 3, span: 1 },
 ];
 
-function tilePx({ col, row, span }) {
+function tilePx({ col, row, span }, cell, gap) {
   return {
-    left: col * (CELL + GAP),
-    top: row * (CELL + GAP),
-    size: span * CELL + (span - 1) * GAP,
+    left: col * (cell + gap),
+    top: row * (cell + gap),
+    size: span * cell + (span - 1) * gap,
   };
 }
 
@@ -163,8 +163,17 @@ function ScatteredCanvas({ items, zoom }) {
     }
   }
 
-  const wrappedX = ((offset.x % BLOCK_W) + BLOCK_W) % BLOCK_W;
-  const wrappedY = ((offset.y % BLOCK_H) + BLOCK_H) % BLOCK_H;
+  // One GAP per column/row, including a trailing one after the last — not
+  // (COLS - 1) gaps — so the repeat period leaves a real gutter at the
+  // seam between tiled blocks too, not just between cells inside one block.
+  const mobileScale = size.w && size.w < MOBILE_BREAKPOINT ? MOBILE_SCALE : 1;
+  const cell = CELL_BASE * mobileScale;
+  const gap = GAP_BASE * mobileScale;
+  const blockW = GRID_COLS * (cell + gap);
+  const blockH = GRID_ROWS * (cell + gap);
+
+  const wrappedX = ((offset.x % blockW) + blockW) % blockW;
+  const wrappedY = ((offset.y % blockH) + blockH) % blockH;
   // Enough repeats either side to cover the viewport even when zoomed out
   // (min zoom 0.75 needs ~1.3x the unzoomed span) and at wide viewports.
   const REPEAT = [-2, -1, 0, 1, 2];
@@ -175,10 +184,10 @@ function ScatteredCanvas({ items, zoom }) {
   if (size.w && size.h) {
     for (const j of REPEAT) {
       for (const i of REPEAT) {
-        const blockLeft = wrappedX + i * BLOCK_W - BLOCK_W / 2;
-        const blockTop = wrappedY + j * BLOCK_H - BLOCK_H / 2;
+        const blockLeft = wrappedX + i * blockW - blockW / 2;
+        const blockTop = wrappedY + j * blockH - blockH / 2;
         items.forEach((place, idx) => {
-          const slot = tilePx(TILE_PATTERN[idx % TILE_PATTERN.length]);
+          const slot = tilePx(TILE_PATTERN[idx % TILE_PATTERN.length], cell, gap);
           const rawLeft = centerX + blockLeft + slot.left;
           const rawTop = centerY + blockTop + slot.top;
           const screenLeft = centerX + (rawLeft - centerX) * zoom;
@@ -197,7 +206,14 @@ function ScatteredCanvas({ items, zoom }) {
     <div
       ref={containerRef}
       className="relative w-full overflow-hidden select-none cursor-grab active:cursor-grabbing"
-      style={{ height: '100vh' }}
+      // Pointer events already handle touch same as mouse (drag-to-explore
+      // needs no separate mobile implementation) — but without this, a
+      // touch-drag here would also try to natively scroll the page at the
+      // same time, since touch gestures default to scrolling unless told
+      // otherwise. Blocks that conflict; panning inside a full-viewport
+      // canvas is a familiar mobile pattern (maps apps), not something to
+      // replace on small screens.
+      style={{ height: '100vh', touchAction: 'none' }}
       onPointerDown={onPointerDown}
       onPointerMove={onPointerMove}
       onPointerUp={onPointerUp}
