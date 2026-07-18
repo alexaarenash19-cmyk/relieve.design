@@ -158,6 +158,17 @@ body::before {
   border: 1px solid currentColor;
 }
 
+/* Sobre-passport rebuild — faint guilloché/security-pattern lattice for
+   the "Passenger Information" and "Visa" pages, per the passport design
+   refs (watermark backgrounds). Reuses --color-line, already subtle
+   enough at full opacity to not need a separate opacity trick. */
+.security-pattern {
+  background-color: var(--color-gallery-white);
+  background-image:
+    repeating-linear-gradient(45deg, var(--color-line) 0, var(--color-line) 1px, transparent 1px, transparent 12px),
+    repeating-linear-gradient(-45deg, var(--color-line) 0, var(--color-line) 1px, transparent 1px, transparent 12px);
+}
+
 /* Issue #55 (P2) — boarding-pass perforated edge on the cart drawer: a
    scalloped strip of "punched" circles down the drawer's left edge. */
 .boarding-pass-edge {

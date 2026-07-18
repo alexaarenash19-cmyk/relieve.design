@@ -1,0 +1,74 @@
+// Copy for the "Sobre Relieve" passport redesign — approved by Ale, final
+// (no longer draft). Pulled into its own module because it's stable
+// regardless of the visual treatment, which is still blocked on reference
+// images (see docs/design-refs/passport/ — not yet provided, see About.jsx).
+export const PASSENGER_INFO = [
+  ['Brand', 'Relieve'],
+  ['Nationality', 'Made in Mexico'],
+  ['Occupation', 'Design Studio'],
+  ['Specialization', 'Topographic & Urban Relief Maps'],
+  ['Founded', '2026'],
+  ['Mission', 'Transform places into meaningful objects'],
+  ['Medium', 'Cartography · Design · Digital Fabrication'],
+  ['Status', 'Ready for Departure'],
+];
+
+export const ABOUT_COPY = `En Relieve transformamos lugares en objetos que cuentan historias.
+
+Diseñamos mapas topográficos y urbanos en relieve que convierten paisajes, ciudades y recuerdos en piezas para habitar. Cada obra nace de información geoespacial precisa y es reinterpretada mediante un proceso de diseño, fabricación digital y acabado artesanal para crear objetos con valor estético y emocional.
+
+Creemos que los espacios que nos marcan merecen permanecer presentes: la ciudad donde creciste, la montaña que conquistaste, el lugar donde comenzó una historia o el destino que cambió tu forma de ver el mundo.
+
+Nuestro trabajo combina cartografía, arquitectura y diseño de producto para crear piezas contemporáneas que invitan a explorar el territorio desde una nueva perspectiva.
+
+Más que representar un lugar, buscamos preservar la conexión que las personas tienen con él.
+
+Cada relieve es una invitación a recordar, descubrir y volver a viajar, esta vez desde casa.`;
+
+export const JOURNEY_STEPS = [
+  { label: 'Origin', detail: 'Raw Geographic Data' },
+  { label: 'Route Planning', detail: 'Digital Modeling' },
+  { label: 'Transit', detail: '3D Printing' },
+  { label: 'Customs', detail: 'Hand Finishing' },
+  { label: 'Arrival', detail: 'Your Space' },
+];
+
+export const TRAVEL_ESSENTIALS = [
+  'Precision Cartography',
+  'Digital Fabrication',
+  'Contemporary Design',
+  'Local Production',
+  'Premium Finishes',
+];
+
+export const LUGGAGE_STICKERS = [
+  { title: 'Made in Mexico', body: 'Diseñado y fabricado localmente.' },
+  { title: 'Custom Destination', body: 'Creamos mapas personalizados de lugares significativos.' },
+  { title: 'Limited Production', body: 'Fabricamos bajo pedido para garantizar la calidad.' },
+  { title: 'Topographic Design', body: 'Inspirado en la cartografía y la arquitectura.' },
+  { title: 'Travel Memories', body: 'Cada pieza conserva la memoria de un lugar.' },
+];
+
+export const AUTHORIZED_DESTINATIONS = [
+  'Cities',
+  'Mountains',
+  'National Parks',
+  'Coastlines',
+  'Islands',
+  'Custom Coordinates',
+];
+
+// Shape/tone/rotate per stamp so the visa page reads as 8 distinct stamps,
+// not one shape repeated (per design refs — Clovis Retif / country visas).
+// Tone sticks to navy/ink/walnut — sage measured too close in luminance to
+// the cream background to read as legible "ink" once distressed.
+export const STAMP_PLACES = [
+  { label: 'Mexico City', shape: 'circle', tone: 'navy', rotate: '-rotate-6' },
+  { label: 'Tokyo', shape: 'square', tone: 'walnut', rotate: 'rotate-3' },
+  { label: 'Paris', shape: 'triangle', tone: 'ink', rotate: '-rotate-3' },
+  { label: 'New York', shape: 'circle', tone: 'walnut', rotate: 'rotate-6' },
+  { label: 'Patagonia', shape: 'square', tone: 'ink', rotate: '-rotate-2' },
+  { label: 'Dolomites', shape: 'circle', tone: 'walnut', rotate: 'rotate-4' },
+  { label: 'Iceland', shape: 'triangle', tone: 'navy', rotate: 'rotate-2' },
+  { label: 'Alps', shape: 'square', tone: 'ink', rotate: '-rotate-4' },
+];
