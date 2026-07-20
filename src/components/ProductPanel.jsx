@@ -83,6 +83,7 @@ export default function ProductPanel() {
       <div
         onClick={closeProduct}
         aria-hidden="true"
+        data-cursor="close"
         className={`fixed inset-0 bg-graphite/40 z-40 transition-opacity duration-300 ${
           isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
         }`}
@@ -96,7 +97,12 @@ export default function ProductPanel() {
         }`}
       >
         <div className="p-6 md:p-10">
-          <button onClick={closeProduct} aria-label="Cerrar" className="text-xl leading-none mb-6 block ml-auto">
+          <button
+            onClick={closeProduct}
+            aria-label="Cerrar"
+            data-cursor="close"
+            className="text-xl leading-none mb-6 block ml-auto"
+          >
             ×
           </button>
 

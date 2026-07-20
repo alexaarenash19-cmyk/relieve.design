@@ -49,8 +49,6 @@ function tilePx({ col, row, span }, cell, gap) {
 export function GalleryCard({ place, variant = 'grid', slot }) {
   const { openProduct } = useProductPanel();
   const photo = pieceMainPhoto(place.slug) ?? place.thumb_url;
-  const cursorLabel =
-    variant === 'scattered' ? `+ ${place.name}${place.variant ? ` — ${place.variant}` : ''}` : undefined;
 
   const tileStyle =
     variant === 'scattered'
@@ -72,7 +70,7 @@ export function GalleryCard({ place, variant = 'grid', slot }) {
     <a
       href={`/pieza/${place.slug}`}
       onClick={handleClick}
-      data-cursor-label={cursorLabel}
+      data-cursor={variant === 'scattered' ? 'view' : undefined}
       className={
         variant === 'scattered'
           ? 'group block select-none'
@@ -203,7 +201,8 @@ function ScatteredCanvas({ items, zoom }) {
   return (
     <div
       ref={containerRef}
-      className="relative w-full overflow-hidden select-none cursor-grab active:cursor-grabbing"
+      data-cursor="drag"
+      className="relative w-full overflow-hidden select-none cursor-none"
       // Pointer events already handle touch same as mouse (drag-to-explore
       // needs no separate mobile implementation) — but without this, a
       // touch-drag here would also try to natively scroll the page at the
