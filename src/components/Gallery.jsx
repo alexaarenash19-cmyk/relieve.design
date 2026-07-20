@@ -3,27 +3,12 @@
 // ("Card Surface").
 import { useEffect, useRef, useState } from 'react';
 import { placeAlt } from '../lib/altText.js';
-import { pieceMainPhoto } from '../lib/photography.js';
+import { pieceMainPhoto, thumbUrlForWidth } from '../lib/photography.js';
 import { fetchJsonArray } from '../lib/fetchJsonArray.js';
 import { CATEGORIES } from '../lib/categories.js';
+import { useProductPanel } from '../context/ProductPanelContext.jsx';
 import Stamp from './Stamp.jsx';
 import TopoLines from './TopoLines.jsx';
-
-// TEMPORARY — hardcoded so the scatter/drag/zoom interaction is checkable
-// today without depending on /api/places or /api/collections. Not real
-// catalog data; delete this and switch the scattered view back to `filtered`
-// once those endpoints are trusted again.
-const SCATTER_DEMO_ITEMS = [
-  { slug: 'demo-1', name: 'Monterrey', variant: 'Mediano', thumb_url: 'https://images.unsplash.com/photo-1642321215251-bd9999b0b408?fm=jpg&q=70&w=800&auto=format&fit=crop' },
-  { slug: 'demo-2', name: 'Ciudad de México', variant: 'Grande', thumb_url: 'https://images.unsplash.com/photo-1591049433264-618fa2f4558f?fm=jpg&q=70&w=800&auto=format&fit=crop' },
-  { slug: 'demo-3', name: 'Popocatépetl', variant: 'Especial', thumb_url: 'https://images.unsplash.com/photo-1562196531-60920785b7ca?fm=jpg&q=70&w=800&auto=format&fit=crop' },
-  { slug: 'demo-4', name: 'Oaxaca', variant: 'Mini', thumb_url: 'https://images.unsplash.com/photo-1641511256207-3e3ced99393e?fm=jpg&q=70&w=800&auto=format&fit=crop' },
-  { slug: 'demo-5', name: 'San Miguel de Allende', variant: 'Mediano', thumb_url: 'https://images.unsplash.com/photo-1598535989263-cb097f8ac3f0?fm=jpg&q=70&w=800&auto=format&fit=crop' },
-  { slug: 'demo-6', name: 'Manila', variant: 'Mini', thumb_url: 'https://images.unsplash.com/photo-1526731955462-f6085f39e742?fm=jpg&q=70&w=800&auto=format&fit=crop' },
-  { slug: 'demo-7', name: 'Sala', variant: 'Mediano', thumb_url: 'https://images.unsplash.com/photo-1769117549887-d7ab37279060?fm=jpg&q=70&w=800&auto=format&fit=crop' },
-  { slug: 'demo-8', name: 'Muro', variant: 'Mini', thumb_url: 'https://images.unsplash.com/photo-1738682767944-d3c255abac3c?fm=jpg&q=70&w=800&auto=format&fit=crop' },
-  { slug: 'demo-9', name: 'Retrato', variant: 'Grande', thumb_url: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?fm=jpg&q=70&w=800&auto=format&fit=crop' },
-];
 
 // Grid-aligned, hand-placed cells — straight, never overlapping, varied
 // sizes (1x1 / 2x2) but locked to a 4-col grid, not free/random positions.
@@ -62,18 +47,37 @@ function tilePx({ col, row, span }, cell, gap) {
 }
 
 export function GalleryCard({ place, variant = 'grid', slot }) {
-  const photo = pieceMainPhoto(place.slug) ?? place.thumb_url;
-  const cursorLabel =
-    variant === 'scattered' ? `+ ${place.name}${place.variant ? ` — ${place.variant}` : ''}` : undefined;
+  const { openProduct } = useProductPanel();
+  const photo = thumbUrlForWidth(pieceMainPhoto(place.slug) ?? place.thumb_url, 360);
+  const cursorLabel = variant === 'scattered' ? `+ ${place.name}` : undefined;
+  const [loaded, setLoaded] = useState(false);
 
   const tileStyle =
     variant === 'scattered'
-      ? { position: 'absolute', top: slot.top, left: slot.left, width: slot.size, height: slot.size }
+      ? {
+          position: 'absolute',
+          top: slot.top,
+          left: slot.left,
+          width: slot.size,
+          height: slot.size,
+        }
       : undefined;
+
+  // Scattered (canvas) tiles open the product panel in place — a real
+  // navigation here would tear down the whole canvas just to preview one
+  // piece. Grid tiles (search/collections pages) keep navigating normally;
+  // /pieza/:slug stays the real destination either way (panel CTA, direct
+  // links, SEO).
+  function handleClick(e) {
+    if (variant !== 'scattered') return;
+    e.preventDefault();
+    openProduct(place.slug);
+  }
 
   return (
     <a
       href={`/pieza/${place.slug}`}
+      onClick={handleClick}
       data-cursor-label={cursorLabel}
       className={
         variant === 'scattered'
@@ -84,19 +88,27 @@ export function GalleryCard({ place, variant = 'grid', slot }) {
     >
       <div
         className={`warm-photo relative w-full h-full aspect-square bg-stone overflow-hidden flex items-center justify-center ${
-          variant === 'scattered' ? 'shadow-[0_16px_32px_-16px_rgba(35,35,35,0.35)]' : ''
+          variant === 'scattered'
+            ? 'shadow-[0_16px_32px_-16px_rgba(35,35,35,0.35)]'
+            : ''
         }`}
       >
         {photo ? (
           <img
             src={photo}
             alt={placeAlt(place)}
-            className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+            onLoad={() => setLoaded(true)}
+            className={`w-full h-full object-cover transition-[transform,opacity] duration-300 group-hover:scale-105 ${
+              loaded ? 'opacity-100' : 'opacity-0'
+            }`}
             draggable={false}
-            loading={variant === 'scattered' ? 'lazy' : undefined}
+            loading="eager"
+            decoding="async"
           />
         ) : (
-          <span className="font-label uppercase tracking-wide text-xs text-graphite/60">{place.name}</span>
+          <span className="font-label uppercase tracking-wide text-xs text-graphite/60">
+            {place.name}
+          </span>
         )}
         {/* Route/contour overlay drawn ON the photo, not floating alone. */}
         <TopoLines className="absolute inset-0 w-full h-full text-dark-fg mix-blend-screen opacity-70 pointer-events-none" />
@@ -107,7 +119,9 @@ export function GalleryCard({ place, variant = 'grid', slot }) {
           />
         )}
       </div>
-      {variant !== 'scattered' && <p className="font-display text-sm px-3 py-2">{place.name}</p>}
+      {variant !== 'scattered' && (
+        <p className="font-display text-sm px-3 py-2">{place.name}</p>
+      )}
     </a>
   );
 }
@@ -147,8 +161,12 @@ function ScatteredCanvas({ items, zoom }) {
   }
   function onPointerMove(e) {
     if (!draggingRef.current) return;
-    const next = { x: e.clientX - startRef.current.x, y: e.clientY - startRef.current.y };
-    if (Math.abs(next.x - offset.x) > 4 || Math.abs(next.y - offset.y) > 4) movedRef.current = true;
+    const next = {
+      x: e.clientX - startRef.current.x,
+      y: e.clientY - startRef.current.y,
+    };
+    if (Math.abs(next.x - offset.x) > 4 || Math.abs(next.y - offset.y) > 4)
+      movedRef.current = true;
     setOffset(next);
   }
   function onPointerUp() {
@@ -187,16 +205,29 @@ function ScatteredCanvas({ items, zoom }) {
         const blockLeft = wrappedX + i * blockW - blockW / 2;
         const blockTop = wrappedY + j * blockH - blockH / 2;
         items.forEach((place, idx) => {
-          const slot = tilePx(TILE_PATTERN[idx % TILE_PATTERN.length], cell, gap);
+          const slot = tilePx(
+            TILE_PATTERN[idx % TILE_PATTERN.length],
+            cell,
+            gap,
+          );
           const rawLeft = centerX + blockLeft + slot.left;
           const rawTop = centerY + blockTop + slot.top;
           const screenLeft = centerX + (rawLeft - centerX) * zoom;
           const screenTop = centerY + (rawTop - centerY) * zoom;
           const screenSize = slot.size * zoom;
           const fullyVisible =
-            screenLeft >= 0 && screenTop >= 0 && screenLeft + screenSize <= size.w && screenTop + screenSize <= size.h;
+            screenLeft >= 0 &&
+            screenTop >= 0 &&
+            screenLeft + screenSize <= size.w &&
+            screenTop + screenSize <= size.h;
           if (!fullyVisible) return;
-          tiles.push({ key: `${i}-${j}-${place.slug}`, place, left: rawLeft, top: rawTop, size: slot.size });
+          tiles.push({
+            key: `${i}-${j}-${place.slug}`,
+            place,
+            left: rawLeft,
+            top: rawTop,
+            size: slot.size,
+          });
         });
       }
     }
@@ -220,7 +251,13 @@ function ScatteredCanvas({ items, zoom }) {
       onPointerLeave={onPointerUp}
       onClickCapture={onClickCapture}
     >
-      <div className="absolute inset-0" style={{ transform: `scale(${zoom})`, transformOrigin: 'center center' }}>
+      <div
+        className="absolute inset-0"
+        style={{
+          transform: `scale(${zoom})`,
+          transformOrigin: 'center center',
+        }}
+      >
         {tiles.map((t) => (
           <GalleryCard
             key={t.key}
@@ -245,7 +282,17 @@ function ExperienceToggle({ view, onChange }) {
         className="flex items-center gap-2 rounded-full border border-graphite px-4 py-[7px] font-body text-xs bg-transparent"
       >
         <svg viewBox="0 0 12 12" width="10" height="10" aria-hidden="true">
-          {[0, 1, 2].flatMap((r) => [0, 1, 2].map((c) => <circle key={`${r}-${c}`} cx={c * 5 + 1} cy={r * 5 + 1} r="1" fill="currentColor" />))}
+          {[0, 1, 2].flatMap((r) =>
+            [0, 1, 2].map((c) => (
+              <circle
+                key={`${r}-${c}`}
+                cx={c * 5 + 1}
+                cy={r * 5 + 1}
+                r="1"
+                fill="currentColor"
+              />
+            )),
+          )}
         </svg>
         experience view
       </button>
@@ -336,58 +383,88 @@ function BottomControlBar({ type, setType, resetFilters }) {
   // scroll past the gallery.
   return (
     <div className="sticky bottom-5 mt-96 z-30 flex justify-center">
-    <div className="relative flex flex-wrap items-center justify-center gap-2 px-4">
-      <button onClick={toggleMenu} className={menuOpen ? DARK_PILL : GHOST_PILL}>
-        {menuOpen ? <CloseIcon /> : <MenuIcon />}
-        {menuOpen ? 'cerrar' : 'menu'}
-      </button>
-      {menuOpen && (
-        <>
-          <a href="/colecciones" className={DARK_PILL}>colección</a>
-          <a href="/sobre" className={DARK_PILL}>sobre</a>
-          {/* Points at the reviews section on the collections index page.
+      <div className="relative flex flex-wrap items-center justify-center gap-2 px-4">
+        <button
+          onClick={toggleMenu}
+          className={menuOpen ? DARK_PILL : GHOST_PILL}
+        >
+          {menuOpen ? <CloseIcon /> : <MenuIcon />}
+          {menuOpen ? 'cerrar' : 'menu'}
+        </button>
+        {menuOpen && (
+          <>
+            <a href="/colecciones" className={DARK_PILL}>
+              colección
+            </a>
+            <a href="/sobre" className={DARK_PILL}>
+              sobre
+            </a>
+            {/* Points at the reviews section on the collections index page.
               No "contacto" pill: there's no real destination for it yet (no
               contact page, and a mailto: link launches the visitor's mail
               app, which read as a broken/unexpected interaction) — removed
               rather than fake it. */}
-          <a href="/colecciones#resenas" className={DARK_PILL}>reviews</a>
-        </>
-      )}
+            <a href="/colecciones#resenas" className={DARK_PILL}>
+              reviews
+            </a>
+          </>
+        )}
 
-      <button onClick={toggleFilter} className={filterOpen ? DARK_PILL : GHOST_PILL}>
-        {filterOpen ? <CloseIcon /> : <FilterIcon />}
-        {filterOpen ? 'cerrar' : 'filter'}
-      </button>
-      {filterOpen && (
-        <>
-          <FilterChip label="color" active={activeChip === 'color'} onClick={() => toggleChip('color')} />
-          <FilterChip label="tipo" active={activeChip === 'tipo'} onClick={() => toggleChip('tipo')} />
-          <FilterChip label="⌀ tamaño" active={activeChip === 'tamano'} onClick={() => toggleChip('tamano')} />
-          <button onClick={handleReset} className={GHOST_PILL}>reset</button>
-        </>
-      )}
-
-      {activeChip === 'tipo' && (
-        <div className="absolute bottom-12 left-1/2 -translate-x-1/2 bg-gallery-white border border-line rounded-[9px] p-2 flex gap-1.5">
-          {TYPE_OPTIONS.map((opt) => (
-            <button
-              key={opt.value}
-              onClick={() => setType(opt.value)}
-              className={`rounded-full px-3 py-1.5 font-label uppercase tracking-wide text-[10px] ${
-                type === opt.value ? 'bg-graphite text-gallery-white' : 'border border-line text-graphite'
-              }`}
-            >
-              {opt.label}
+        <button
+          onClick={toggleFilter}
+          className={filterOpen ? DARK_PILL : GHOST_PILL}
+        >
+          {filterOpen ? <CloseIcon /> : <FilterIcon />}
+          {filterOpen ? 'cerrar' : 'filter'}
+        </button>
+        {filterOpen && (
+          <>
+            <FilterChip
+              label="color"
+              active={activeChip === 'color'}
+              onClick={() => toggleChip('color')}
+            />
+            <FilterChip
+              label="tipo"
+              active={activeChip === 'tipo'}
+              onClick={() => toggleChip('tipo')}
+            />
+            <FilterChip
+              label="⌀ tamaño"
+              active={activeChip === 'tamano'}
+              onClick={() => toggleChip('tamano')}
+            />
+            <button onClick={handleReset} className={GHOST_PILL}>
+              reset
             </button>
-          ))}
-        </div>
-      )}
-      {(activeChip === 'color' || activeChip === 'tamano') && (
-        <div className="absolute bottom-12 left-1/2 -translate-x-1/2 bg-gallery-white border border-line rounded-[9px] px-3 py-2 whitespace-nowrap">
-          <span className="font-label uppercase tracking-wide text-[10px] text-graphite/50">Próximamente</span>
-        </div>
-      )}
-    </div>
+          </>
+        )}
+
+        {activeChip === 'tipo' && (
+          <div className="absolute bottom-12 left-1/2 -translate-x-1/2 bg-gallery-white border border-line rounded-[9px] p-2 flex gap-1.5">
+            {TYPE_OPTIONS.map((opt) => (
+              <button
+                key={opt.value}
+                onClick={() => setType(opt.value)}
+                className={`rounded-full px-3 py-1.5 font-label uppercase tracking-wide text-[10px] ${
+                  type === opt.value
+                    ? 'bg-graphite text-gallery-white'
+                    : 'border border-line text-graphite'
+                }`}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
+        )}
+        {(activeChip === 'color' || activeChip === 'tamano') && (
+          <div className="absolute bottom-12 left-1/2 -translate-x-1/2 bg-gallery-white border border-line rounded-[9px] px-3 py-2 whitespace-nowrap">
+            <span className="font-label uppercase tracking-wide text-[10px] text-graphite/50">
+              Próximamente
+            </span>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
@@ -423,11 +500,28 @@ function DragHintAndZoom({ setZoom, showHint }) {
   );
 }
 
-export default function Gallery() {
+// PRD sección 3.2 — the canvas mounts oversized and settles down to its
+// final scale right after the hero-once wipe reveals it (Home.jsx passes
+// zoomIn only for that one transition, never on a direct/repeat load).
+// Two renders on purpose: paint at scale(1.15) first, THEN flip to 1 on the
+// next frame — setting both in the same render never animates, since CSS
+// transitions only fire on a *change* the browser gets to paint in between.
+function useZoomIn(zoomIn) {
+  const [settled, setSettled] = useState(!zoomIn);
+  useEffect(() => {
+    if (!zoomIn) return;
+    const id = requestAnimationFrame(() => setSettled(true));
+    return () => cancelAnimationFrame(id);
+  }, [zoomIn]);
+  return settled;
+}
+
+export default function Gallery({ zoomIn = false }) {
   const [places, setPlaces] = useState([]);
   const [type, setType] = useState('');
   const [view, setView] = useState('scattered');
   const [zoom, setZoom] = useState(1);
+  const settled = useZoomIn(zoomIn);
 
   useEffect(() => {
     const query = type ? `?type=${type}` : '';
@@ -439,12 +533,15 @@ export default function Gallery() {
   }
 
   return (
-    <section className="relative pb-28">
+    <section
+      className="relative pb-28 transition-transform duration-500 ease-out"
+      style={{ transform: settled ? 'scale(1)' : 'scale(1.15)' }}
+    >
       <ExperienceToggle view={view} onChange={setView} />
 
       {view === 'scattered' ? (
         <>
-          <ScatteredCanvas items={SCATTER_DEMO_ITEMS} zoom={zoom} />
+          <ScatteredCanvas items={places} zoom={zoom} />
           {/* No content after the canvas in this view — at least 1/4
               screen of empty space, nothing to scroll into. */}
           <div style={{ height: '25vh' }} aria-hidden="true" />
@@ -452,7 +549,9 @@ export default function Gallery() {
       ) : (
         <div
           className="grid gap-px bg-line p-px"
-          style={{ gridTemplateColumns: `repeat(${Math.round(3 * zoom)}, minmax(0, 1fr))` }}
+          style={{
+            gridTemplateColumns: `repeat(${Math.round(3 * zoom)}, minmax(0, 1fr))`,
+          }}
         >
           {places.map((place) => (
             <GalleryCard key={place.slug} place={place} variant="grid" />
@@ -460,7 +559,11 @@ export default function Gallery() {
         </div>
       )}
 
-      <BottomControlBar type={type} setType={setType} resetFilters={resetFilters} />
+      <BottomControlBar
+        type={type}
+        setType={setType}
+        resetFilters={resetFilters}
+      />
       <DragHintAndZoom setZoom={setZoom} showHint={view === 'scattered'} />
     </section>
   );

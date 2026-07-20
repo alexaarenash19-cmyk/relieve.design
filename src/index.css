@@ -140,6 +140,28 @@ body::before {
   }
 }
 
+/* PRD "Relieve: Fix de carga + paridad de efectos con Palmer" sección 2.2 —
+   letter-by-letter reveal, one span per character (LetterReveal.jsx). */
+.letter-reveal-char {
+  display: inline-block;
+  animation: letter-reveal-anim 0.5s ease-out both;
+}
+@keyframes letter-reveal-anim {
+  0% {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .letter-reveal-char {
+    animation: none;
+  }
+}
+
 /* Passport-flipbook rebuild — react-pageflip (StPageFlip) now owns the
    page-turn animation and its own in-flip curl shadow; this is just the
    static "resting on a table" ambient shadow under the whole book, plus
