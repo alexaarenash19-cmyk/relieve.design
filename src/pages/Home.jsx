@@ -37,13 +37,21 @@ function heroAlreadySeen() {
 // Watches the hero's scroll progress (0-1, via HeroScrollContext) and fires
 // once when it completes. Rendered inside HeroScrollProvider so it can read
 // progress; renders nothing itself.
+// GSAP's ScrollTrigger scrub progress lands a hair short of the literal
+// value 1 at the true end of scroll (measured live: ~0.997 at max native
+// scroll, browser verification 2026-07-20) — Lenis's virtual scroll and the
+// pin-spacer's height are each independently rounded, so their combined
+// "done" point almost never lands on an exact float 1. Waiting for a
+// strict === 1 left the hero-once transition unreachable by scrolling.
+const HERO_COMPLETE_THRESHOLD = 0.995;
+
 function HeroCompletionWatcher({ onDone }) {
   const { progress } = useHeroScroll();
   const { wipe } = usePageWipe();
   const firedRef = useRef(false);
 
   useEffect(() => {
-    if (progress < 1 || firedRef.current) return;
+    if (progress < HERO_COMPLETE_THRESHOLD || firedRef.current) return;
     firedRef.current = true;
     try {
       sessionStorage.setItem(HERO_SEEN_KEY, '1');
