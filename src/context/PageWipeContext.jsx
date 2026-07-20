@@ -9,9 +9,13 @@ import { TRANSLATE_Y } from '../lib/pageWipe.js';
 
 const PageWipeContext = createContext(null);
 
-const COVER_MS = 350;
+// These must match the overlay div's CSS transition duration below (300ms)
+// exactly — a mismatch here means onCovered/idle fire before or after the
+// animation has actually finished, which is what caused the zoom-in bug
+// (see the transition-class fix below for the other half of that bug).
+const COVER_MS = 300;
 const HOLD_MS = 80;
-const UNCOVER_MS = 350;
+const UNCOVER_MS = 300;
 
 export function PageWipeProvider({ children }) {
   const [phase, setPhase] = useState('idle');
@@ -37,7 +41,14 @@ export function PageWipeProvider({ children }) {
       {children}
       <div
         aria-hidden="true"
-        className="fixed inset-0 z-[200] bg-gallery-white pointer-events-none transition-transform duration-300 ease-in-out"
+        // idle sits at the opposite off-screen edge from uncovering
+        // (100% vs -100%) — animating that reset would sweep the overlay
+        // back across the whole screen as an unintended second cover, right
+        // on top of whatever just got revealed (this is what was masking
+        // the canvas zoom-in). idle must snap, not transition.
+        className={`fixed inset-0 z-[200] bg-gallery-white pointer-events-none ${
+          phase === 'idle' ? '' : 'transition-transform duration-300 ease-in-out'
+        }`}
         style={{ transform: `translateY(${TRANSLATE_Y[phase]})` }}
       />
     </PageWipeContext.Provider>

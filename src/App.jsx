@@ -28,7 +28,10 @@ function Footer() {
 
   return (
     <footer className="font-label uppercase tracking-wide text-xs text-graphite/70 flex items-center justify-center gap-6 p-8">
-      <Link to="/aviso-privacidad" className="hover:text-passport-ink hover:underline">
+      <Link
+        to="/aviso-privacidad"
+        className="hover:text-passport-ink hover:underline"
+      >
         Aviso de privacidad
       </Link>
       <Link to="/terminos" className="hover:text-passport-ink hover:underline">

@@ -39,7 +39,10 @@ function usePlace(slug) {
 }
 
 function PhotoCarousel({ place }) {
-  const photos = [pieceMainPhoto(place.slug) ?? place.thumb_url, pieceDetailPhoto(place.slug)].filter(Boolean);
+  const photos = [
+    pieceMainPhoto(place.slug) ?? place.thumb_url,
+    pieceDetailPhoto(place.slug),
+  ].filter(Boolean);
   const [active, setActive] = useState(0);
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const photo = photos[active];
@@ -52,7 +55,9 @@ function PhotoCarousel({ place }) {
         data-cursor="view"
         className="warm-photo relative w-full aspect-square rounded-[9px] overflow-hidden bg-stone block"
       >
-        {photo && <img src={photo} alt="" className="w-full h-full object-cover" />}
+        {photo && (
+          <img src={photo} alt="" className="w-full h-full object-cover" />
+        )}
         <TopoLines className="absolute inset-0 w-full h-full text-dark-fg mix-blend-screen opacity-70 pointer-events-none" />
       </button>
       {photos.length > 1 && (
@@ -65,13 +70,22 @@ function PhotoCarousel({ place }) {
                 active === i ? 'border-sello-navy' : 'border-line'
               }`}
             >
-              <img src={url} alt="" className="warm-photo w-full h-full object-cover" />
+              <img
+                src={url}
+                alt=""
+                className="warm-photo w-full h-full object-cover"
+              />
             </button>
           ))}
         </div>
       )}
       {lightboxOpen && (
-        <Lightbox photos={photos} index={active} onIndexChange={setActive} onClose={() => setLightboxOpen(false)} />
+        <Lightbox
+          photos={photos}
+          index={active}
+          onIndexChange={setActive}
+          onClose={() => setLightboxOpen(false)}
+        />
       )}
     </div>
   );
@@ -94,7 +108,6 @@ export default function ProductPanel() {
       <div
         onClick={closeProduct}
         aria-hidden="true"
-        data-cursor="close"
         className={`fixed inset-0 bg-graphite/40 z-40 transition-opacity duration-300 ${
           isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
         }`}
@@ -111,7 +124,6 @@ export default function ProductPanel() {
           <button
             onClick={closeProduct}
             aria-label="Cerrar"
-            data-cursor="close"
             className="text-xl leading-none mb-6 block ml-auto"
           >
             ×
@@ -143,9 +155,17 @@ export default function ProductPanel() {
                 )}
               </dl>
 
-              <RollingPrice cents={place.base_price} className="font-label text-2xl font-bold block mb-6" />
+              <RollingPrice
+                cents={place.base_price}
+                className="font-label text-2xl font-bold block mb-6"
+              />
 
-              <Button as="a" href={`/pieza/${place.slug}`} onClick={closeProduct} className="w-full">
+              <Button
+                as="a"
+                href={`/pieza/${place.slug}`}
+                onClick={closeProduct}
+                className="w-full"
+              >
                 Personalizar
               </Button>
             </>

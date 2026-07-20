@@ -37,3 +37,22 @@ export function pieceMainPhoto(slug) {
 export function pieceDetailPhoto(slug) {
   return detailBySlug[slug] ?? null;
 }
+
+// Canvas tiles render photos at ~180px (90px on mobile), but thumb_url from
+// the catalog can be a full-size remote image (e.g. Unsplash `w=1200`) —
+// requesting and decoding that in full is wasted bandwidth/CPU for a small
+// tile. Overrides the `w` query param down to a tile-appropriate width;
+// falls back to the original URL untouched for local bundled assets
+// (relative import.meta.glob paths, no `w` param to override) or any URL
+// that fails to parse.
+export function thumbUrlForWidth(url, width) {
+  if (!url) return url;
+  try {
+    const u = new URL(url, typeof window !== 'undefined' ? window.location.origin : undefined);
+    if (!u.searchParams.has('w')) return url;
+    u.searchParams.set('w', String(width));
+    return u.toString();
+  } catch {
+    return url;
+  }
+}

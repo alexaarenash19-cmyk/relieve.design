@@ -6,11 +6,19 @@
 // sets each span's stagger delay.
 const STAGGER_S = 0.03;
 
-export default function LetterReveal({ text, as: As = 'span', className = '' }) {
+export default function LetterReveal({
+  text,
+  as: As = 'span',
+  className = '',
+}) {
   return (
     <As className={className}>
       {[...text].map((char, i) => (
-        <span key={i} className="letter-reveal-char" style={{ animationDelay: `${i * STAGGER_S}s` }}>
+        <span
+          key={i}
+          className="letter-reveal-char"
+          style={{ animationDelay: `${i * STAGGER_S}s` }}
+        >
           {char}
         </span>
       ))}

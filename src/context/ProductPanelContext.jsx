@@ -28,6 +28,7 @@ export function ProductPanelProvider({ children }) {
 // eslint-disable-next-line react-refresh/only-export-components -- hook belongs next to its provider
 export function useProductPanel() {
   const ctx = useContext(ProductPanelContext);
-  if (!ctx) throw new Error('useProductPanel must be used within ProductPanelProvider');
+  if (!ctx)
+    throw new Error('useProductPanel must be used within ProductPanelProvider');
   return ctx;
 }

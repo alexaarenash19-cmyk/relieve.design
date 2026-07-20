@@ -9,14 +9,18 @@ export default function Lightbox({ photos, index, onIndexChange, onClose }) {
     function onKeydown(e) {
       if (e.key === 'Escape') onClose();
       if (e.key === 'ArrowRight') onIndexChange((index + 1) % photos.length);
-      if (e.key === 'ArrowLeft') onIndexChange((index - 1 + photos.length) % photos.length);
+      if (e.key === 'ArrowLeft')
+        onIndexChange((index - 1 + photos.length) % photos.length);
     }
     window.addEventListener('keydown', onKeydown);
     return () => window.removeEventListener('keydown', onKeydown);
   }, [index, photos.length, onIndexChange, onClose]);
 
   return (
-    <div className="fixed inset-0 z-[150] bg-dark-bg/95 flex items-center justify-center" onClick={onClose} data-cursor="close">
+    <div
+      className="fixed inset-0 z-[150] bg-dark-bg/95 flex items-center justify-center"
+      onClick={onClose}
+    >
       <img
         src={photos[index]}
         alt=""
@@ -39,11 +43,16 @@ export default function Lightbox({ photos, index, onIndexChange, onClose }) {
           <>
             <button
               className="underline underline-offset-4"
-              onClick={() => onIndexChange((index - 1 + photos.length) % photos.length)}
+              onClick={() =>
+                onIndexChange((index - 1 + photos.length) % photos.length)
+              }
             >
               prev
             </button>
-            <button className="underline underline-offset-4" onClick={() => onIndexChange((index + 1) % photos.length)}>
+            <button
+              className="underline underline-offset-4"
+              onClick={() => onIndexChange((index + 1) % photos.length)}
+            >
               next
             </button>
           </>

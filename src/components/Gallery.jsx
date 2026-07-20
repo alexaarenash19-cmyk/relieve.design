@@ -3,7 +3,7 @@
 // ("Card Surface").
 import { useEffect, useRef, useState } from 'react';
 import { placeAlt } from '../lib/altText.js';
-import { pieceMainPhoto } from '../lib/photography.js';
+import { pieceMainPhoto, thumbUrlForWidth } from '../lib/photography.js';
 import { fetchJsonArray } from '../lib/fetchJsonArray.js';
 import { CATEGORIES } from '../lib/categories.js';
 import { useProductPanel } from '../context/ProductPanelContext.jsx';
@@ -48,11 +48,19 @@ function tilePx({ col, row, span }, cell, gap) {
 
 export function GalleryCard({ place, variant = 'grid', slot }) {
   const { openProduct } = useProductPanel();
-  const photo = pieceMainPhoto(place.slug) ?? place.thumb_url;
+  const photo = thumbUrlForWidth(pieceMainPhoto(place.slug) ?? place.thumb_url, 360);
+  const cursorLabel = variant === 'scattered' ? `+ ${place.name}` : undefined;
+  const [loaded, setLoaded] = useState(false);
 
   const tileStyle =
     variant === 'scattered'
-      ? { position: 'absolute', top: slot.top, left: slot.left, width: slot.size, height: slot.size }
+      ? {
+          position: 'absolute',
+          top: slot.top,
+          left: slot.left,
+          width: slot.size,
+          height: slot.size,
+        }
       : undefined;
 
   // Scattered (canvas) tiles open the product panel in place — a real
@@ -70,7 +78,7 @@ export function GalleryCard({ place, variant = 'grid', slot }) {
     <a
       href={`/pieza/${place.slug}`}
       onClick={handleClick}
-      data-cursor={variant === 'scattered' ? 'view' : undefined}
+      data-cursor-label={cursorLabel}
       className={
         variant === 'scattered'
           ? 'group block select-none'
@@ -80,19 +88,27 @@ export function GalleryCard({ place, variant = 'grid', slot }) {
     >
       <div
         className={`warm-photo relative w-full h-full aspect-square bg-stone overflow-hidden flex items-center justify-center ${
-          variant === 'scattered' ? 'shadow-[0_16px_32px_-16px_rgba(35,35,35,0.35)]' : ''
+          variant === 'scattered'
+            ? 'shadow-[0_16px_32px_-16px_rgba(35,35,35,0.35)]'
+            : ''
         }`}
       >
         {photo ? (
           <img
             src={photo}
             alt={placeAlt(place)}
-            className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+            onLoad={() => setLoaded(true)}
+            className={`w-full h-full object-cover transition-[transform,opacity] duration-300 group-hover:scale-105 ${
+              loaded ? 'opacity-100' : 'opacity-0'
+            }`}
             draggable={false}
-            loading={variant === 'scattered' ? 'lazy' : undefined}
+            loading="eager"
+            decoding="async"
           />
         ) : (
-          <span className="font-label uppercase tracking-wide text-xs text-graphite/60">{place.name}</span>
+          <span className="font-label uppercase tracking-wide text-xs text-graphite/60">
+            {place.name}
+          </span>
         )}
         {/* Route/contour overlay drawn ON the photo, not floating alone. */}
         <TopoLines className="absolute inset-0 w-full h-full text-dark-fg mix-blend-screen opacity-70 pointer-events-none" />
@@ -103,7 +119,9 @@ export function GalleryCard({ place, variant = 'grid', slot }) {
           />
         )}
       </div>
-      {variant !== 'scattered' && <p className="font-display text-sm px-3 py-2">{place.name}</p>}
+      {variant !== 'scattered' && (
+        <p className="font-display text-sm px-3 py-2">{place.name}</p>
+      )}
     </a>
   );
 }
@@ -143,8 +161,12 @@ function ScatteredCanvas({ items, zoom }) {
   }
   function onPointerMove(e) {
     if (!draggingRef.current) return;
-    const next = { x: e.clientX - startRef.current.x, y: e.clientY - startRef.current.y };
-    if (Math.abs(next.x - offset.x) > 4 || Math.abs(next.y - offset.y) > 4) movedRef.current = true;
+    const next = {
+      x: e.clientX - startRef.current.x,
+      y: e.clientY - startRef.current.y,
+    };
+    if (Math.abs(next.x - offset.x) > 4 || Math.abs(next.y - offset.y) > 4)
+      movedRef.current = true;
     setOffset(next);
   }
   function onPointerUp() {
@@ -183,16 +205,29 @@ function ScatteredCanvas({ items, zoom }) {
         const blockLeft = wrappedX + i * blockW - blockW / 2;
         const blockTop = wrappedY + j * blockH - blockH / 2;
         items.forEach((place, idx) => {
-          const slot = tilePx(TILE_PATTERN[idx % TILE_PATTERN.length], cell, gap);
+          const slot = tilePx(
+            TILE_PATTERN[idx % TILE_PATTERN.length],
+            cell,
+            gap,
+          );
           const rawLeft = centerX + blockLeft + slot.left;
           const rawTop = centerY + blockTop + slot.top;
           const screenLeft = centerX + (rawLeft - centerX) * zoom;
           const screenTop = centerY + (rawTop - centerY) * zoom;
           const screenSize = slot.size * zoom;
           const fullyVisible =
-            screenLeft >= 0 && screenTop >= 0 && screenLeft + screenSize <= size.w && screenTop + screenSize <= size.h;
+            screenLeft >= 0 &&
+            screenTop >= 0 &&
+            screenLeft + screenSize <= size.w &&
+            screenTop + screenSize <= size.h;
           if (!fullyVisible) return;
-          tiles.push({ key: `${i}-${j}-${place.slug}`, place, left: rawLeft, top: rawTop, size: slot.size });
+          tiles.push({
+            key: `${i}-${j}-${place.slug}`,
+            place,
+            left: rawLeft,
+            top: rawTop,
+            size: slot.size,
+          });
         });
       }
     }
@@ -201,8 +236,7 @@ function ScatteredCanvas({ items, zoom }) {
   return (
     <div
       ref={containerRef}
-      data-cursor="drag"
-      className="relative w-full overflow-hidden select-none cursor-none"
+      className="relative w-full overflow-hidden select-none cursor-grab active:cursor-grabbing"
       // Pointer events already handle touch same as mouse (drag-to-explore
       // needs no separate mobile implementation) — but without this, a
       // touch-drag here would also try to natively scroll the page at the
@@ -217,7 +251,13 @@ function ScatteredCanvas({ items, zoom }) {
       onPointerLeave={onPointerUp}
       onClickCapture={onClickCapture}
     >
-      <div className="absolute inset-0" style={{ transform: `scale(${zoom})`, transformOrigin: 'center center' }}>
+      <div
+        className="absolute inset-0"
+        style={{
+          transform: `scale(${zoom})`,
+          transformOrigin: 'center center',
+        }}
+      >
         {tiles.map((t) => (
           <GalleryCard
             key={t.key}
@@ -242,7 +282,17 @@ function ExperienceToggle({ view, onChange }) {
         className="flex items-center gap-2 rounded-full border border-graphite px-4 py-[7px] font-body text-xs bg-transparent"
       >
         <svg viewBox="0 0 12 12" width="10" height="10" aria-hidden="true">
-          {[0, 1, 2].flatMap((r) => [0, 1, 2].map((c) => <circle key={`${r}-${c}`} cx={c * 5 + 1} cy={r * 5 + 1} r="1" fill="currentColor" />))}
+          {[0, 1, 2].flatMap((r) =>
+            [0, 1, 2].map((c) => (
+              <circle
+                key={`${r}-${c}`}
+                cx={c * 5 + 1}
+                cy={r * 5 + 1}
+                r="1"
+                fill="currentColor"
+              />
+            )),
+          )}
         </svg>
         experience view
       </button>
@@ -333,58 +383,88 @@ function BottomControlBar({ type, setType, resetFilters }) {
   // scroll past the gallery.
   return (
     <div className="sticky bottom-5 mt-96 z-30 flex justify-center">
-    <div className="relative flex flex-wrap items-center justify-center gap-2 px-4">
-      <button onClick={toggleMenu} className={menuOpen ? DARK_PILL : GHOST_PILL}>
-        {menuOpen ? <CloseIcon /> : <MenuIcon />}
-        {menuOpen ? 'cerrar' : 'menu'}
-      </button>
-      {menuOpen && (
-        <>
-          <a href="/colecciones" className={DARK_PILL}>colección</a>
-          <a href="/sobre" className={DARK_PILL}>sobre</a>
-          {/* Points at the reviews section on the collections index page.
+      <div className="relative flex flex-wrap items-center justify-center gap-2 px-4">
+        <button
+          onClick={toggleMenu}
+          className={menuOpen ? DARK_PILL : GHOST_PILL}
+        >
+          {menuOpen ? <CloseIcon /> : <MenuIcon />}
+          {menuOpen ? 'cerrar' : 'menu'}
+        </button>
+        {menuOpen && (
+          <>
+            <a href="/colecciones" className={DARK_PILL}>
+              colección
+            </a>
+            <a href="/sobre" className={DARK_PILL}>
+              sobre
+            </a>
+            {/* Points at the reviews section on the collections index page.
               No "contacto" pill: there's no real destination for it yet (no
               contact page, and a mailto: link launches the visitor's mail
               app, which read as a broken/unexpected interaction) — removed
               rather than fake it. */}
-          <a href="/colecciones#resenas" className={DARK_PILL}>reviews</a>
-        </>
-      )}
+            <a href="/colecciones#resenas" className={DARK_PILL}>
+              reviews
+            </a>
+          </>
+        )}
 
-      <button onClick={toggleFilter} className={filterOpen ? DARK_PILL : GHOST_PILL}>
-        {filterOpen ? <CloseIcon /> : <FilterIcon />}
-        {filterOpen ? 'cerrar' : 'filter'}
-      </button>
-      {filterOpen && (
-        <>
-          <FilterChip label="color" active={activeChip === 'color'} onClick={() => toggleChip('color')} />
-          <FilterChip label="tipo" active={activeChip === 'tipo'} onClick={() => toggleChip('tipo')} />
-          <FilterChip label="⌀ tamaño" active={activeChip === 'tamano'} onClick={() => toggleChip('tamano')} />
-          <button onClick={handleReset} className={GHOST_PILL}>reset</button>
-        </>
-      )}
-
-      {activeChip === 'tipo' && (
-        <div className="absolute bottom-12 left-1/2 -translate-x-1/2 bg-gallery-white border border-line rounded-[9px] p-2 flex gap-1.5">
-          {TYPE_OPTIONS.map((opt) => (
-            <button
-              key={opt.value}
-              onClick={() => setType(opt.value)}
-              className={`rounded-full px-3 py-1.5 font-label uppercase tracking-wide text-[10px] ${
-                type === opt.value ? 'bg-graphite text-gallery-white' : 'border border-line text-graphite'
-              }`}
-            >
-              {opt.label}
+        <button
+          onClick={toggleFilter}
+          className={filterOpen ? DARK_PILL : GHOST_PILL}
+        >
+          {filterOpen ? <CloseIcon /> : <FilterIcon />}
+          {filterOpen ? 'cerrar' : 'filter'}
+        </button>
+        {filterOpen && (
+          <>
+            <FilterChip
+              label="color"
+              active={activeChip === 'color'}
+              onClick={() => toggleChip('color')}
+            />
+            <FilterChip
+              label="tipo"
+              active={activeChip === 'tipo'}
+              onClick={() => toggleChip('tipo')}
+            />
+            <FilterChip
+              label="⌀ tamaño"
+              active={activeChip === 'tamano'}
+              onClick={() => toggleChip('tamano')}
+            />
+            <button onClick={handleReset} className={GHOST_PILL}>
+              reset
             </button>
-          ))}
-        </div>
-      )}
-      {(activeChip === 'color' || activeChip === 'tamano') && (
-        <div className="absolute bottom-12 left-1/2 -translate-x-1/2 bg-gallery-white border border-line rounded-[9px] px-3 py-2 whitespace-nowrap">
-          <span className="font-label uppercase tracking-wide text-[10px] text-graphite/50">Próximamente</span>
-        </div>
-      )}
-    </div>
+          </>
+        )}
+
+        {activeChip === 'tipo' && (
+          <div className="absolute bottom-12 left-1/2 -translate-x-1/2 bg-gallery-white border border-line rounded-[9px] p-2 flex gap-1.5">
+            {TYPE_OPTIONS.map((opt) => (
+              <button
+                key={opt.value}
+                onClick={() => setType(opt.value)}
+                className={`rounded-full px-3 py-1.5 font-label uppercase tracking-wide text-[10px] ${
+                  type === opt.value
+                    ? 'bg-graphite text-gallery-white'
+                    : 'border border-line text-graphite'
+                }`}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
+        )}
+        {(activeChip === 'color' || activeChip === 'tamano') && (
+          <div className="absolute bottom-12 left-1/2 -translate-x-1/2 bg-gallery-white border border-line rounded-[9px] px-3 py-2 whitespace-nowrap">
+            <span className="font-label uppercase tracking-wide text-[10px] text-graphite/50">
+              Próximamente
+            </span>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
@@ -469,7 +549,9 @@ export default function Gallery({ zoomIn = false }) {
       ) : (
         <div
           className="grid gap-px bg-line p-px"
-          style={{ gridTemplateColumns: `repeat(${Math.round(3 * zoom)}, minmax(0, 1fr))` }}
+          style={{
+            gridTemplateColumns: `repeat(${Math.round(3 * zoom)}, minmax(0, 1fr))`,
+          }}
         >
           {places.map((place) => (
             <GalleryCard key={place.slug} place={place} variant="grid" />
@@ -477,7 +559,11 @@ export default function Gallery({ zoomIn = false }) {
         </div>
       )}
 
-      <BottomControlBar type={type} setType={setType} resetFilters={resetFilters} />
+      <BottomControlBar
+        type={type}
+        setType={setType}
+        resetFilters={resetFilters}
+      />
       <DragHintAndZoom setZoom={setZoom} showHint={view === 'scattered'} />
     </section>
   );

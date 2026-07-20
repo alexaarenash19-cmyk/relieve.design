@@ -16,19 +16,28 @@ import { useEffect, useRef, useState } from 'react';
 import HeroSection from '../components/HeroSection.jsx';
 import HeroScrollSection from '../components/HeroScrollSection.jsx';
 import HeroReducedMotion from '../components/HeroReducedMotion.jsx';
-import { HeroScrollProvider, useHeroScroll } from '../context/HeroScrollContext.jsx';
+import {
+  HeroScrollProvider,
+  useHeroScroll,
+} from '../context/HeroScrollContext.jsx';
 import { usePageWipe } from '../context/PageWipeContext.jsx';
 import Gallery from '../components/Gallery.jsx';
 
 const HERO_SEEN_KEY = 'relieve_hero_seen';
 
 function prefersReducedMotion() {
-  return typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  return (
+    typeof window !== 'undefined' &&
+    window.matchMedia('(prefers-reduced-motion: reduce)').matches
+  );
 }
 
 function heroAlreadySeen() {
   try {
-    return typeof window !== 'undefined' && sessionStorage.getItem(HERO_SEEN_KEY) === '1';
+    return (
+      typeof window !== 'undefined' &&
+      sessionStorage.getItem(HERO_SEEN_KEY) === '1'
+    );
   } catch {
     return false; // storage disabled/unavailable — treat as first visit, harmless replay
   }
