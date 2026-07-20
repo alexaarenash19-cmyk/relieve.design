@@ -14,6 +14,7 @@ import RollingPrice from './RollingPrice.jsx';
 import Button from './Button.jsx';
 import TopoLines from './TopoLines.jsx';
 import LetterReveal from './LetterReveal.jsx';
+import Lightbox from './Lightbox.jsx';
 
 function usePlace(slug) {
   const [place, setPlace] = useState(null);
@@ -40,14 +41,20 @@ function usePlace(slug) {
 function PhotoCarousel({ place }) {
   const photos = [pieceMainPhoto(place.slug) ?? place.thumb_url, pieceDetailPhoto(place.slug)].filter(Boolean);
   const [active, setActive] = useState(0);
+  const [lightboxOpen, setLightboxOpen] = useState(false);
   const photo = photos[active];
 
   return (
     <div>
-      <div className="warm-photo relative aspect-square rounded-[9px] overflow-hidden bg-stone">
+      <button
+        type="button"
+        onClick={() => setLightboxOpen(true)}
+        data-cursor="view"
+        className="warm-photo relative w-full aspect-square rounded-[9px] overflow-hidden bg-stone block"
+      >
         {photo && <img src={photo} alt="" className="w-full h-full object-cover" />}
         <TopoLines className="absolute inset-0 w-full h-full text-dark-fg mix-blend-screen opacity-70 pointer-events-none" />
-      </div>
+      </button>
       {photos.length > 1 && (
         <div className="flex gap-2 mt-3">
           {photos.map((url, i) => (
@@ -62,6 +69,9 @@ function PhotoCarousel({ place }) {
             </button>
           ))}
         </div>
+      )}
+      {lightboxOpen && (
+        <Lightbox photos={photos} index={active} onIndexChange={setActive} onClose={() => setLightboxOpen(false)} />
       )}
     </div>
   );
