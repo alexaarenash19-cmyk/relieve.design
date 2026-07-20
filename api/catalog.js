@@ -42,16 +42,38 @@ async function getPlaces(req, res) {
   const { data, error } = await query.order('name');
 
   if (error) {
+    res.setHeader('Cache-Control', 'no-store');
     const places = DUMMY_PLACES.filter(
-      (p) => (!q || p.name.toLowerCase().includes(q.toLowerCase())) && (!type || p.type === type)
-    ).map(({ id, aerial_url, model_url, lat, lng, elevation_m, story, base_price_cents, ...p }) => ({
-      ...p,
-      base_price: base_price_cents,
-    }));
+      (p) =>
+        (!q || p.name.toLowerCase().includes(q.toLowerCase())) &&
+        (!type || p.type === type),
+    ).map(
+      ({
+        id,
+        aerial_url,
+        model_url,
+        lat,
+        lng,
+        elevation_m,
+        story,
+        base_price_cents,
+        ...p
+      }) => ({
+        ...p,
+        base_price: base_price_cents,
+      }),
+    );
     return res.status(200).json(places);
   }
 
-  const places = data.map(({ base_price_cents, ...p }) => ({ ...p, base_price: base_price_cents }));
+  res.setHeader(
+    'Cache-Control',
+    'public, s-maxage=3600, stale-while-revalidate=86400',
+  );
+  const places = data.map(({ base_price_cents, ...p }) => ({
+    ...p,
+    base_price: base_price_cents,
+  }));
   return res.status(200).json(places);
 }
 
@@ -59,19 +81,25 @@ async function getPlaceDetail(req, res, slug) {
   const { data: place, error } = await supabase
     .from('places')
     .select(
-      'id, slug, name, type, lat, lng, elevation_m, story, aerial_url, model_url, thumb_url, base_price_cents, status'
+      'id, slug, name, type, lat, lng, elevation_m, story, aerial_url, model_url, thumb_url, base_price_cents, status',
     )
     .eq('slug', slug)
     .maybeSingle();
 
   if (error) {
+    res.setHeader('Cache-Control', 'no-store');
     const dummy = findDummyPlace(slug);
     if (!dummy) return sendError(res, 404, 'not_found', 'Place not found');
     const { id, base_price_cents, ...rest } = dummy;
-    return res.status(200).json({ ...rest, base_price: base_price_cents, reviews_count: 0 });
+    return res
+      .status(200)
+      .json({ ...rest, base_price: base_price_cents, reviews_count: 0 });
   }
 
-  if (!place) return sendError(res, 404, 'not_found', 'Place not found');
+  if (!place) {
+    res.setHeader('Cache-Control', 'no-store');
+    return sendError(res, 404, 'not_found', 'Place not found');
+  }
 
   const { count } = await supabase
     .from('reviews')
@@ -80,6 +108,10 @@ async function getPlaceDetail(req, res, slug) {
     .eq('place_id', place.id);
 
   const { id, base_price_cents, ...rest } = place;
+  res.setHeader(
+    'Cache-Control',
+    'public, s-maxage=3600, stale-while-revalidate=86400',
+  );
   return res.status(200).json({
     ...rest,
     base_price: base_price_cents,
@@ -96,14 +128,24 @@ async function postPricing(req, res) {
 
   const { size_code, frame_code, addons = [] } = req.body ?? {};
   if (!size_code || !frame_code) {
-    return sendError(res, 400, 'invalid_request', 'size_code and frame_code are required');
+    return sendError(
+      res,
+      400,
+      'invalid_request',
+      'size_code and frame_code are required',
+    );
   }
 
   try {
-    const unit_price = await calcUnitPriceCents({ size_code, frame_code, addons });
+    const unit_price = await calcUnitPriceCents({
+      size_code,
+      frame_code,
+      addons,
+    });
     return res.status(200).json({ unit_price });
   } catch (err) {
-    if (err instanceof PricingError) return sendError(res, 400, err.code, err.message);
+    if (err instanceof PricingError)
+      return sendError(res, 400, err.code, err.message);
     return sendError(res, 500, 'db_error', err.message);
   }
 }
@@ -117,7 +159,12 @@ async function postWaitlist(req, res) {
 
   const { place_slug, size_code, email } = req.body ?? {};
   if (!place_slug || !email) {
-    return sendError(res, 400, 'invalid_request', 'place_slug and email are required');
+    return sendError(
+      res,
+      400,
+      'invalid_request',
+      'place_slug and email are required',
+    );
   }
 
   const { data: place, error: placeError } = await supabase
@@ -133,7 +180,13 @@ async function postWaitlist(req, res) {
     if (findDummyPlace(place_slug)) return res.status(201).json({ ok: true });
     return sendError(res, 500, 'db_error', placeError.message);
   }
-  if (!place) return sendError(res, 400, 'invalid_place', `Unknown place_slug: ${place_slug}`);
+  if (!place)
+    return sendError(
+      res,
+      400,
+      'invalid_place',
+      `Unknown place_slug: ${place_slug}`,
+    );
 
   const { error } = await supabase
     .from('waitlist')
@@ -163,7 +216,9 @@ async function getOrder(req, res) {
 
   const { data: items, error: itemsError } = await supabase
     .from('order_items')
-    .select('place_id, custom_place, size_code, frame_code, color_code, qty, unit_price_cents')
+    .select(
+      'place_id, custom_place, size_code, frame_code, color_code, qty, unit_price_cents',
+    )
     .eq('order_id', order.id);
 
   if (itemsError) return sendError(res, 500, 'db_error', itemsError.message);
