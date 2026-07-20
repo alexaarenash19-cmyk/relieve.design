@@ -13,6 +13,7 @@ import { categoryLabel } from '../lib/categories.js';
 import RollingPrice from './RollingPrice.jsx';
 import Button from './Button.jsx';
 import TopoLines from './TopoLines.jsx';
+import LetterReveal from './LetterReveal.jsx';
 
 function usePlace(slug) {
   const [place, setPlace] = useState(null);
@@ -112,7 +113,12 @@ export default function ProductPanel() {
             <>
               <PhotoCarousel place={place} />
 
-              <h2 className="font-display font-light text-3xl mt-6 mb-4">{place.name}</h2>
+              <LetterReveal
+                key={place.slug}
+                text={place.name}
+                as="h2"
+                className="font-display font-light text-3xl mt-6 mb-4"
+              />
 
               <dl className="border-t border-line mb-6">
                 <div className="grid grid-cols-2 border-b border-line py-2 font-label uppercase tracking-wide text-xs">
