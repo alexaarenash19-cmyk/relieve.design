@@ -407,11 +407,28 @@ function DragHintAndZoom({ setZoom, showHint }) {
   );
 }
 
-export default function Gallery() {
+// PRD sección 3.2 — the canvas mounts oversized and settles down to its
+// final scale right after the hero-once wipe reveals it (Home.jsx passes
+// zoomIn only for that one transition, never on a direct/repeat load).
+// Two renders on purpose: paint at scale(1.15) first, THEN flip to 1 on the
+// next frame — setting both in the same render never animates, since CSS
+// transitions only fire on a *change* the browser gets to paint in between.
+function useZoomIn(zoomIn) {
+  const [settled, setSettled] = useState(!zoomIn);
+  useEffect(() => {
+    if (!zoomIn) return;
+    const id = requestAnimationFrame(() => setSettled(true));
+    return () => cancelAnimationFrame(id);
+  }, [zoomIn]);
+  return settled;
+}
+
+export default function Gallery({ zoomIn = false }) {
   const [places, setPlaces] = useState([]);
   const [type, setType] = useState('');
   const [view, setView] = useState('scattered');
   const [zoom, setZoom] = useState(1);
+  const settled = useZoomIn(zoomIn);
 
   useEffect(() => {
     const query = type ? `?type=${type}` : '';
@@ -423,7 +440,10 @@ export default function Gallery() {
   }
 
   return (
-    <section className="relative pb-28">
+    <section
+      className="relative pb-28 transition-transform duration-500 ease-out"
+      style={{ transform: settled ? 'scale(1)' : 'scale(1.15)' }}
+    >
       <ExperienceToggle view={view} onChange={setView} />
 
       {view === 'scattered' ? (
