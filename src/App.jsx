@@ -3,6 +3,7 @@ import Nav from './components/Nav.jsx';
 import CustomCursor from './components/CustomCursor.jsx';
 import PageStamp from './components/PageStamp.jsx';
 import CartDrawer from './components/CartDrawer.jsx';
+import ProductPanel from './components/ProductPanel.jsx';
 import SvgFilters from './components/SvgFilters.jsx';
 import SocialLinks from './components/SocialLinks.jsx';
 import Home from './pages/Home.jsx';
@@ -46,6 +47,7 @@ export default function App() {
       <CustomCursor />
       <Nav />
       <CartDrawer />
+      <ProductPanel />
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/colecciones" element={<Collections />} />

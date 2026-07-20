@@ -4,6 +4,7 @@ import { BrowserRouter } from 'react-router-dom';
 import App from './App.jsx';
 import { CartProvider } from './context/CartContext.jsx';
 import { PageWipeProvider } from './context/PageWipeContext.jsx';
+import { ProductPanelProvider } from './context/ProductPanelContext.jsx';
 import './index.css';
 
 createRoot(document.getElementById('root')).render(
@@ -11,7 +12,9 @@ createRoot(document.getElementById('root')).render(
     <BrowserRouter>
       <PageWipeProvider>
         <CartProvider>
-          <App />
+          <ProductPanelProvider>
+            <App />
+          </ProductPanelProvider>
         </CartProvider>
       </PageWipeProvider>
     </BrowserRouter>

@@ -6,6 +6,7 @@ import { placeAlt } from '../lib/altText.js';
 import { pieceMainPhoto } from '../lib/photography.js';
 import { fetchJsonArray } from '../lib/fetchJsonArray.js';
 import { CATEGORIES } from '../lib/categories.js';
+import { useProductPanel } from '../context/ProductPanelContext.jsx';
 import Stamp from './Stamp.jsx';
 import TopoLines from './TopoLines.jsx';
 
@@ -46,6 +47,7 @@ function tilePx({ col, row, span }, cell, gap) {
 }
 
 export function GalleryCard({ place, variant = 'grid', slot }) {
+  const { openProduct } = useProductPanel();
   const photo = pieceMainPhoto(place.slug) ?? place.thumb_url;
   const cursorLabel =
     variant === 'scattered' ? `+ ${place.name}${place.variant ? ` — ${place.variant}` : ''}` : undefined;
@@ -55,9 +57,21 @@ export function GalleryCard({ place, variant = 'grid', slot }) {
       ? { position: 'absolute', top: slot.top, left: slot.left, width: slot.size, height: slot.size }
       : undefined;
 
+  // Scattered (canvas) tiles open the product panel in place — a real
+  // navigation here would tear down the whole canvas just to preview one
+  // piece. Grid tiles (search/collections pages) keep navigating normally;
+  // /pieza/:slug stays the real destination either way (panel CTA, direct
+  // links, SEO).
+  function handleClick(e) {
+    if (variant !== 'scattered') return;
+    e.preventDefault();
+    openProduct(place.slug);
+  }
+
   return (
     <a
       href={`/pieza/${place.slug}`}
+      onClick={handleClick}
       data-cursor-label={cursorLabel}
       className={
         variant === 'scattered'
