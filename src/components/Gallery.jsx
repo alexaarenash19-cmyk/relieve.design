@@ -9,22 +9,6 @@ import { CATEGORIES } from '../lib/categories.js';
 import Stamp from './Stamp.jsx';
 import TopoLines from './TopoLines.jsx';
 
-// TEMPORARY — hardcoded so the scatter/drag/zoom interaction is checkable
-// today without depending on /api/places or /api/collections. Not real
-// catalog data; delete this and switch the scattered view back to `filtered`
-// once those endpoints are trusted again.
-const SCATTER_DEMO_ITEMS = [
-  { slug: 'demo-1', name: 'Monterrey', variant: 'Mediano', thumb_url: 'https://images.unsplash.com/photo-1642321215251-bd9999b0b408?fm=jpg&q=70&w=800&auto=format&fit=crop' },
-  { slug: 'demo-2', name: 'Ciudad de México', variant: 'Grande', thumb_url: 'https://images.unsplash.com/photo-1591049433264-618fa2f4558f?fm=jpg&q=70&w=800&auto=format&fit=crop' },
-  { slug: 'demo-3', name: 'Popocatépetl', variant: 'Especial', thumb_url: 'https://images.unsplash.com/photo-1562196531-60920785b7ca?fm=jpg&q=70&w=800&auto=format&fit=crop' },
-  { slug: 'demo-4', name: 'Oaxaca', variant: 'Mini', thumb_url: 'https://images.unsplash.com/photo-1641511256207-3e3ced99393e?fm=jpg&q=70&w=800&auto=format&fit=crop' },
-  { slug: 'demo-5', name: 'San Miguel de Allende', variant: 'Mediano', thumb_url: 'https://images.unsplash.com/photo-1598535989263-cb097f8ac3f0?fm=jpg&q=70&w=800&auto=format&fit=crop' },
-  { slug: 'demo-6', name: 'Manila', variant: 'Mini', thumb_url: 'https://images.unsplash.com/photo-1526731955462-f6085f39e742?fm=jpg&q=70&w=800&auto=format&fit=crop' },
-  { slug: 'demo-7', name: 'Sala', variant: 'Mediano', thumb_url: 'https://images.unsplash.com/photo-1769117549887-d7ab37279060?fm=jpg&q=70&w=800&auto=format&fit=crop' },
-  { slug: 'demo-8', name: 'Muro', variant: 'Mini', thumb_url: 'https://images.unsplash.com/photo-1738682767944-d3c255abac3c?fm=jpg&q=70&w=800&auto=format&fit=crop' },
-  { slug: 'demo-9', name: 'Retrato', variant: 'Grande', thumb_url: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?fm=jpg&q=70&w=800&auto=format&fit=crop' },
-];
-
 // Grid-aligned, hand-placed cells — straight, never overlapping, varied
 // sizes (1x1 / 2x2) but locked to a 4-col grid, not free/random positions.
 // Only fully-in-view tiles render (see ScatteredCanvas), so CELL/GAP need
@@ -444,7 +428,7 @@ export default function Gallery() {
 
       {view === 'scattered' ? (
         <>
-          <ScatteredCanvas items={SCATTER_DEMO_ITEMS} zoom={zoom} />
+          <ScatteredCanvas items={places} zoom={zoom} />
           {/* No content after the canvas in this view — at least 1/4
               screen of empty space, nothing to scroll into. */}
           <div style={{ height: '25vh' }} aria-hidden="true" />
