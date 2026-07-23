@@ -594,7 +594,11 @@ export default function Gallery({ zoomIn = false }) {
   return (
     <section
       className="relative pb-28 transition-transform duration-500 ease-out"
-      style={{ transform: settled ? 'scale(1)' : 'scale(1.15)' }}
+      style={{
+        transform: settled
+          ? 'scale(1) translateY(0)'
+          : 'scale(1.15) translateY(-70px)',
+      }}
     >
       <ExperienceToggle view={view} onChange={setView} />
 
