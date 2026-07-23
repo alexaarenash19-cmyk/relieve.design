@@ -6,6 +6,7 @@ import { placeAlt } from '../lib/altText.js';
 import { pieceMainPhoto, thumbUrlForWidth } from '../lib/photography.js';
 import { fetchJsonArray } from '../lib/fetchJsonArray.js';
 import { CATEGORIES } from '../lib/categories.js';
+import { SIZES } from '../lib/catalog.js';
 import { useProductPanel } from '../context/ProductPanelContext.jsx';
 import Stamp from './Stamp.jsx';
 import TopoLines from './TopoLines.jsx';
@@ -48,7 +49,10 @@ function tilePx({ col, row, span }, cell, gap) {
 
 export function GalleryCard({ place, variant = 'grid', slot }) {
   const { openProduct } = useProductPanel();
-  const photo = thumbUrlForWidth(pieceMainPhoto(place.slug) ?? place.thumb_url, 360);
+  const photo = thumbUrlForWidth(
+    pieceMainPhoto(place.slug) ?? place.thumb_url,
+    360,
+  );
   const cursorLabel = variant === 'scattered' ? `+ ${place.name}` : undefined;
   const [loaded, setLoaded] = useState(false);
 
@@ -314,6 +318,20 @@ const DARK_PILL =
 // source of truth, not a separate list per filter UI.
 const TYPE_OPTIONS = [{ value: '', label: 'Todos' }, ...CATEGORIES];
 
+// Every piece is made to order in any size/color — these chips don't
+// narrow `places` (there's no per-piece size/color field), they're a
+// preview toggle so visitors can browse the format they're picturing.
+// SIZES is the same catalog used at checkout (src/lib/catalog.js).
+const SIZE_OPTIONS = [
+  { value: '', label: 'Todos' },
+  ...SIZES.map((s) => ({ value: s.code, label: s.label })),
+];
+const COLOR_OPTIONS = [
+  { value: '', label: 'Todos' },
+  { value: 'blanco', label: 'Blanco' },
+  { value: 'negro', label: 'Negro mate' },
+];
+
 function MenuIcon() {
   return (
     <svg viewBox="0 0 14 10" width="12" height="9" aria-hidden="true">
@@ -355,7 +373,15 @@ function FilterChip({ label, active, onClick }) {
 // Center cluster: menu/filter pills. Palmer keeps this separate from the
 // drag-hint/zoom cluster, which sits at bottom-right instead of sharing
 // this centered row.
-function BottomControlBar({ type, setType, resetFilters }) {
+function BottomControlBar({
+  type,
+  setType,
+  size,
+  setSize,
+  color,
+  setColor,
+  resetFilters,
+}) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [filterOpen, setFilterOpen] = useState(false);
   const [activeChip, setActiveChip] = useState(null); // 'color' | 'tipo' | 'tamano' | null
@@ -378,11 +404,11 @@ function BottomControlBar({ type, setType, resetFilters }) {
     setActiveChip(null);
   }
 
-  // sticky (not fixed) — same reason as ExperienceToggle above: a
-  // viewport-fixed bar would float over Testimonials/footer once you
-  // scroll past the gallery.
+  // fixed (not sticky) — always floating and clickable regardless of scroll
+  // position in the infinite canvas, per Ale's feedback (was sticky, which
+  // stopped tracking once you scrolled past its containing section).
   return (
-    <div className="sticky bottom-5 mt-96 z-30 flex justify-center">
+    <div className="fixed bottom-5 inset-x-0 z-30 flex justify-center">
       <div className="relative flex flex-wrap items-center justify-center gap-2 px-4">
         <button
           onClick={toggleMenu}
@@ -394,7 +420,7 @@ function BottomControlBar({ type, setType, resetFilters }) {
         {menuOpen && (
           <>
             <a href="/colecciones" className={DARK_PILL}>
-              colección
+              colecciones
             </a>
             <a href="/sobre" className={DARK_PILL}>
               sobre
@@ -405,7 +431,7 @@ function BottomControlBar({ type, setType, resetFilters }) {
               app, which read as a broken/unexpected interaction) — removed
               rather than fake it. */}
             <a href="/colecciones#resenas" className={DARK_PILL}>
-              reviews
+              reseñas
             </a>
           </>
         )}
@@ -457,11 +483,38 @@ function BottomControlBar({ type, setType, resetFilters }) {
             ))}
           </div>
         )}
-        {(activeChip === 'color' || activeChip === 'tamano') && (
-          <div className="absolute bottom-12 left-1/2 -translate-x-1/2 bg-gallery-white border border-line rounded-[9px] px-3 py-2 whitespace-nowrap">
-            <span className="font-label uppercase tracking-wide text-[10px] text-graphite/50">
-              Próximamente
-            </span>
+        {activeChip === 'color' && (
+          <div className="absolute bottom-12 left-1/2 -translate-x-1/2 bg-gallery-white border border-line rounded-[9px] p-2 flex gap-1.5">
+            {COLOR_OPTIONS.map((opt) => (
+              <button
+                key={opt.value}
+                onClick={() => setColor(opt.value)}
+                className={`rounded-full px-3 py-1.5 font-label uppercase tracking-wide text-[10px] ${
+                  color === opt.value
+                    ? 'bg-graphite text-gallery-white'
+                    : 'border border-line text-graphite'
+                }`}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
+        )}
+        {activeChip === 'tamano' && (
+          <div className="absolute bottom-12 left-1/2 -translate-x-1/2 bg-gallery-white border border-line rounded-[9px] p-2 flex gap-1.5">
+            {SIZE_OPTIONS.map((opt) => (
+              <button
+                key={opt.value}
+                onClick={() => setSize(opt.value)}
+                className={`rounded-full px-3 py-1.5 font-label uppercase tracking-wide text-[10px] ${
+                  size === opt.value
+                    ? 'bg-graphite text-gallery-white'
+                    : 'border border-line text-graphite'
+                }`}
+              >
+                {opt.label}
+              </button>
+            ))}
           </div>
         )}
       </div>
@@ -519,6 +572,10 @@ function useZoomIn(zoomIn) {
 export default function Gallery({ zoomIn = false }) {
   const [places, setPlaces] = useState([]);
   const [type, setType] = useState('');
+  // size/color are a browsing preview only — every piece is made to order
+  // in any size/color, so these don't touch the /api/places query.
+  const [size, setSize] = useState('');
+  const [color, setColor] = useState('');
   const [view, setView] = useState('scattered');
   const [zoom, setZoom] = useState(1);
   const settled = useZoomIn(zoomIn);
@@ -530,6 +587,8 @@ export default function Gallery({ zoomIn = false }) {
 
   function resetFilters() {
     setType('');
+    setSize('');
+    setColor('');
   }
 
   return (
@@ -562,6 +621,10 @@ export default function Gallery({ zoomIn = false }) {
       <BottomControlBar
         type={type}
         setType={setType}
+        size={size}
+        setSize={setSize}
+        color={color}
+        setColor={setColor}
         resetFilters={resetFilters}
       />
       <DragHintAndZoom setZoom={setZoom} showHint={view === 'scattered'} />

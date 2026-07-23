@@ -8,7 +8,9 @@ export default function CustomCursor() {
   const [pos, setPos] = useState({ x: -100, y: -100 });
   const [label, setLabel] = useState(null);
   const [enabled] = useState(
-    () => typeof window !== 'undefined' && window.matchMedia('(pointer: fine)').matches
+    () =>
+      typeof window !== 'undefined' &&
+      window.matchMedia('(pointer: fine)').matches,
   );
 
   useEffect(() => {

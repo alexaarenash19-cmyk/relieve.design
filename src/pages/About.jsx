@@ -33,10 +33,15 @@ import {
   STAMP_PLACES,
 } from '../lib/passportContent.js';
 
-const TONE_HEX = { navy: '#22405c', ink: '#355a75', walnut: '#7a5a43', sage: '#aeb99e' };
+const TONE_HEX = {
+  navy: '#22405c',
+  ink: '#355a75',
+  walnut: '#7a5a43',
+  sage: '#aeb99e',
+};
 const TAG_TONES = ['navy', 'walnut', 'ink', 'walnut', 'navy'];
-const BOOK_WIDTH = 340;
-const BOOK_HEIGHT = 476; // 3:4.2 ratio, matches Ale's spec exactly
+const BOOK_WIDTH = 480;
+const BOOK_HEIGHT = 672; // 3:4.2 ratio, matches Ale's spec exactly — sized up so page content fits without scrolling
 
 function PageKicker({ n, title }) {
   return (
@@ -49,9 +54,16 @@ function PageKicker({ n, title }) {
 function Barcode({ className = '' }) {
   const bars = [2, 1, 3, 1, 1, 2, 4, 1, 2, 1, 3, 2, 1, 1, 4, 2, 1, 3];
   return (
-    <div className={`flex items-end gap-[1.5px] h-6 ${className}`} aria-hidden="true">
+    <div
+      className={`flex items-end gap-[1.5px] h-6 ${className}`}
+      aria-hidden="true"
+    >
       {bars.map((w, i) => (
-        <span key={i} style={{ width: `${w}px` }} className="bg-graphite h-full" />
+        <span
+          key={i}
+          style={{ width: `${w}px` }}
+          className="bg-graphite h-full"
+        />
       ))}
     </div>
   );
@@ -59,12 +71,46 @@ function Barcode({ className = '' }) {
 
 function Crest() {
   return (
-    <svg viewBox="0 0 200 200" className="w-24 h-24 text-dark-fg" aria-hidden="true">
-      <circle cx="100" cy="100" r="92" fill="none" stroke="currentColor" strokeWidth="1.5" />
-      <circle cx="100" cy="100" r="84" fill="none" stroke="currentColor" strokeWidth="1" opacity="0.6" />
-      <path d="M100 55 L120 100 L80 100 Z" fill="none" stroke="currentColor" strokeWidth="1.5" />
+    <svg
+      viewBox="0 0 200 200"
+      className="w-24 h-24 text-dark-fg"
+      aria-hidden="true"
+    >
+      <circle
+        cx="100"
+        cy="100"
+        r="92"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.5"
+      />
+      <circle
+        cx="100"
+        cy="100"
+        r="84"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1"
+        opacity="0.6"
+      />
+      <path
+        d="M100 55 L120 100 L80 100 Z"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.5"
+      />
       {[112, 128, 144].map((r) => (
-        <ellipse key={r} cx="100" cy="108" rx={r * 0.42} ry={r * 0.24} fill="none" stroke="currentColor" strokeWidth="1" opacity={0.5 - r * 0.001} />
+        <ellipse
+          key={r}
+          cx="100"
+          cy="108"
+          rx={r * 0.42}
+          ry={r * 0.24}
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1"
+          opacity={0.5 - r * 0.001}
+        />
       ))}
       {[-1, 1].map((side) => (
         <path
@@ -90,17 +136,48 @@ function PassportTag({ title, body, tone, rotate }) {
       className={`paper-texture relative w-full aspect-[220/96] ${rotate}`}
       style={{ filter: 'drop-shadow(2px 4px 4px rgba(35,35,35,0.2))' }}
     >
-      <svg viewBox="0 0 220 96" className="absolute inset-0 w-full h-full" aria-hidden="true">
-        <rect x="3" y="3" width="214" height="90" rx="12" fill="#F6F3ED" stroke="#E4DED3" strokeWidth="1.5" />
-        <path d="M28,22 Q20,10 36,10 Q52,10 44,22" fill="none" stroke={hex} strokeWidth="2" opacity="0.5" />
-        <circle cx="36" cy="24" r="7" fill="none" stroke={hex} strokeWidth="2.5" />
+      <svg
+        viewBox="0 0 220 96"
+        className="absolute inset-0 w-full h-full"
+        aria-hidden="true"
+      >
+        <rect
+          x="3"
+          y="3"
+          width="214"
+          height="90"
+          rx="12"
+          fill="#F6F3ED"
+          stroke="#E4DED3"
+          strokeWidth="1.5"
+        />
+        <path
+          d="M28,22 Q20,10 36,10 Q52,10 44,22"
+          fill="none"
+          stroke={hex}
+          strokeWidth="2"
+          opacity="0.5"
+        />
+        <circle
+          cx="36"
+          cy="24"
+          r="7"
+          fill="none"
+          stroke={hex}
+          strokeWidth="2.5"
+        />
       </svg>
       <div className="relative h-full pl-14 pr-4 py-3 flex flex-col justify-center">
         <Barcode className="mb-1.5 opacity-70" />
-        <p className="font-label uppercase tracking-wide text-[9px] font-bold" style={{ color: hex }}>
+        <p
+          className="font-label uppercase tracking-wide text-[9px] font-bold"
+          style={{ color: hex }}
+        >
           TO · {title}
         </p>
-        <p className="text-[9px] leading-snug text-graphite/80 mt-0.5">{body}</p>
+        <p className="text-[9px] leading-snug text-graphite/80 mt-0.5">
+          {body}
+        </p>
       </div>
     </div>
   );
@@ -136,11 +213,16 @@ function BoardingPass() {
 
 const CoverLeaf = forwardRef(function CoverLeaf(_, ref) {
   return (
-    <div ref={ref} className="leather-texture relative w-full h-full bg-sello-navy text-dark-fg flex flex-col items-center justify-center gap-5 overflow-hidden">
+    <div
+      ref={ref}
+      className="leather-texture relative w-full h-full bg-sello-navy text-dark-fg flex flex-col items-center justify-center gap-5 overflow-hidden"
+    >
       <TopoLines className="absolute inset-0 w-full h-full opacity-10" />
       <Crest />
       <div className="relative text-center px-6">
-        <h1 className="font-display font-light text-4xl tracking-wide">RELIEVE</h1>
+        <h1 className="font-display font-light text-4xl tracking-wide">
+          RELIEVE
+        </h1>
         <p className="font-label uppercase tracking-wide text-[10px] opacity-70 mt-2">
           Viaja a través de lugares que importan.
         </p>
@@ -151,9 +233,14 @@ const CoverLeaf = forwardRef(function CoverLeaf(_, ref) {
 
 const ContentLeaf = forwardRef(function ContentLeaf({ children }, ref) {
   return (
-    <div ref={ref} className="paper-texture security-pattern relative w-full h-full overflow-hidden">
+    <div
+      ref={ref}
+      className="paper-texture security-pattern relative w-full h-full overflow-hidden"
+    >
       <TopoLines className="absolute inset-0 w-full h-full text-stone opacity-20 pointer-events-none" />
-      <div className="relative w-full h-full overflow-y-auto px-4 py-4">{children}</div>
+      <div className="relative w-full h-full overflow-y-auto px-4 py-4">
+        {children}
+      </div>
     </div>
   );
 });
@@ -168,7 +255,9 @@ function PassengerInfoBody() {
       <dl className="space-y-2.5">
         {PASSENGER_INFO.map(([label, value]) => (
           <div key={label} className="border-b border-line pb-1.5">
-            <dt className="font-label uppercase tracking-wide text-[8px] text-graphite/50">{label}</dt>
+            <dt className="font-label uppercase tracking-wide text-[8px] text-graphite/50">
+              {label}
+            </dt>
             <dd className="font-label text-[10px] mt-0.5">{value}</dd>
           </div>
         ))}
@@ -183,7 +272,12 @@ function AboutRelievePageBody() {
       <PageKicker n="02" title="Sobre Relieve" />
       <div className="space-y-2.5 text-[11px] leading-relaxed">
         {ABOUT_COPY.split('\n\n').map((para, i) => (
-          <p key={i} className={i === 0 ? 'font-display text-sm font-light leading-snug' : ''}>
+          <p
+            key={i}
+            className={
+              i === 0 ? 'font-display text-sm font-light leading-snug' : ''
+            }
+          >
             {para}
           </p>
         ))}
@@ -200,17 +294,27 @@ function JourneyPageBody() {
         {JOURNEY_STEPS.map((step) => (
           <li key={step.label} className="relative pl-4 border-l border-line">
             <span className="absolute -left-[3.5px] top-1 w-[7px] h-[7px] rounded-full bg-passport-ink" />
-            <p className="font-label uppercase tracking-wide text-[8px] text-graphite/50">{step.label}</p>
+            <p className="font-label uppercase tracking-wide text-[8px] text-graphite/50">
+              {step.label}
+            </p>
             <p className="font-display text-sm">{step.detail}</p>
           </li>
         ))}
       </ol>
       <div className="grid grid-cols-2 gap-2 mb-4">
         <div className="relative aspect-square rounded-[6px] overflow-hidden">
-          <img src={ABOUT_IMPRESION} alt="Impresión 3D del relieve en proceso" className="warm-photo absolute inset-0 w-full h-full object-cover" />
+          <img
+            src={ABOUT_IMPRESION}
+            alt="Impresión 3D del relieve en proceso"
+            className="warm-photo absolute inset-0 w-full h-full object-cover"
+          />
         </div>
         <div className="relative aspect-square rounded-[6px] overflow-hidden">
-          <img src={ABOUT_PROCESO} alt="Ensamblado a mano del marco de nogal" className="warm-photo absolute inset-0 w-full h-full object-cover" />
+          <img
+            src={ABOUT_PROCESO}
+            alt="Ensamblado a mano del marco de nogal"
+            className="warm-photo absolute inset-0 w-full h-full object-cover"
+          />
         </div>
       </div>
       <BoardingPass />
@@ -256,7 +360,9 @@ function VisaPageBody() {
   return (
     <>
       <PageKicker n="06" title="Visa" />
-      <h2 className="font-label uppercase tracking-wide text-[10px] mb-2">Destinos Autorizados</h2>
+      <h2 className="font-label uppercase tracking-wide text-[10px] mb-2">
+        Destinos Autorizados
+      </h2>
       <ul className="space-y-1 font-label text-[10px] mb-4">
         {AUTHORIZED_DESTINATIONS.map((d) => (
           <li key={d} className="flex items-center gap-2">
@@ -266,7 +372,14 @@ function VisaPageBody() {
       </ul>
       <div className="flex flex-wrap gap-4 justify-center pb-2">
         {STAMP_PLACES.map((stamp) => (
-          <Stamp key={stamp.label} label={stamp.label} shape={stamp.shape} tone={stamp.tone} rotate={stamp.rotate} className="scale-[0.8]" />
+          <Stamp
+            key={stamp.label}
+            label={stamp.label}
+            shape={stamp.shape}
+            tone={stamp.tone}
+            rotate={stamp.rotate}
+            className="scale-[0.8]"
+          />
         ))}
       </div>
     </>
@@ -274,12 +387,21 @@ function VisaPageBody() {
 }
 
 const PAGE_COUNT = 7;
-const PAGE_LABELS = ['Portada', 'Información del Pasajero', 'Sobre Relieve', 'Itinerario', 'Esenciales de Viaje', 'Etiquetas de Equipaje', 'Visa'];
+const PAGE_LABELS = [
+  'Portada',
+  'Información del Pasajero',
+  'Sobre Relieve',
+  'Itinerario',
+  'Esenciales de Viaje',
+  'Etiquetas de Equipaje',
+  'Visa',
+];
 
 export default function About() {
   useDocumentHead({
     title: 'Sobre Relieve — Mapas en relieve hechos a mano',
-    description: 'Relieve transforma lugares en objetos que cuentan historias: mapas topográficos y urbanos en relieve, de datos geoespaciales reales a marco de nogal hecho a mano.',
+    description:
+      'Relieve transforma lugares en objetos que cuentan historias: mapas topográficos y urbanos en relieve, de datos geoespaciales reales a marco de nogal hecho a mano.',
     canonicalPath: '/sobre',
   });
 
@@ -291,16 +413,16 @@ export default function About() {
   }
 
   return (
-    <main className="mx-auto max-w-2xl px-4 py-10 flex flex-col items-center">
+    <main className="mx-auto max-w-3xl px-4 py-10 flex flex-col items-center">
       <div className="passport-shell">
         <HTMLFlipBook
           width={BOOK_WIDTH}
           height={BOOK_HEIGHT}
           size="stretch"
-          minWidth={260}
-          maxWidth={420}
-          minHeight={365}
-          maxHeight={588}
+          minWidth={364}
+          maxWidth={588}
+          minHeight={510}
+          maxHeight={824}
           showCover={false}
           drawShadow
           maxShadowOpacity={0.35}
@@ -332,7 +454,10 @@ export default function About() {
         </HTMLFlipBook>
       </div>
 
-      <nav className="flex items-center justify-between w-full mt-8 font-label uppercase tracking-wide text-xs" style={{ maxWidth: BOOK_WIDTH }}>
+      <nav
+        className="flex items-center justify-between w-full mt-8 font-label uppercase tracking-wide text-xs"
+        style={{ maxWidth: BOOK_WIDTH }}
+      >
         <button
           type="button"
           onClick={() => flipRef.current?.pageFlip()?.flipPrev()}

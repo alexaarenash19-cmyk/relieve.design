@@ -47,7 +47,9 @@ export function PageWipeProvider({ children }) {
         // on top of whatever just got revealed (this is what was masking
         // the canvas zoom-in). idle must snap, not transition.
         className={`fixed inset-0 z-[200] bg-gallery-white pointer-events-none ${
-          phase === 'idle' ? '' : 'transition-transform duration-300 ease-in-out'
+          phase === 'idle'
+            ? ''
+            : 'transition-transform duration-300 ease-in-out'
         }`}
         style={{ transform: `translateY(${TRANSLATE_Y[phase]})` }}
       />

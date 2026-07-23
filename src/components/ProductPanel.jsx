@@ -116,8 +116,8 @@ export default function ProductPanel() {
         role="dialog"
         aria-label="Detalle de pieza"
         aria-hidden={!isOpen}
-        className={`fixed inset-y-0 right-0 z-50 w-full md:max-w-[50vw] bg-gallery-white overflow-y-auto transition-transform duration-300 ${
-          isOpen ? 'translate-x-0' : 'translate-x-full'
+        className={`fixed inset-y-0 left-0 z-50 w-full md:max-w-[50vw] bg-gallery-white overflow-y-auto transition-transform duration-300 ${
+          isOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
         <div className="p-6 md:p-10">
