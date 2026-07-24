@@ -24,31 +24,31 @@ async function priceItem(item) {
     throw new PricingError('invalid_item', 'Each item needs place_slug or custom_place');
   }
 
-  let place = null;
-  if (place_slug) {
-    const { data } = await supabase
-      .from('places')
-      .select('id, name')
-      .eq('slug', place_slug)
-      .maybeSingle();
-    if (!data) throw new PricingError('invalid_place', `Unknown place_slug: ${place_slug}`);
-    place = data;
-  }
-
-  if (color_code) {
-    const { data: color } = await supabase
-      .from('colors')
-      .select('code')
-      .eq('code', color_code)
-      .maybeSingle();
-    if (!color) throw new PricingError('invalid_color', `Unknown color_code: ${color_code}`);
-  }
-
   const addons = [];
   if (capelo) addons.push('capelo');
   if (plate_text) addons.push('placa');
 
-  const unit_price_cents = await calcUnitPriceCents({ size_code, frame_code, addons });
+  // These three lookups are independent of each other — running them
+  // sequentially (as this used to) adds two extra network round-trips to
+  // Supabase per item for no reason; every millisecond here is on the
+  // critical path between the customer clicking "pagar" and reaching Stripe.
+  const [placeResult, colorResult, unit_price_cents] = await Promise.all([
+    place_slug
+      ? supabase.from('places').select('id, name').eq('slug', place_slug).maybeSingle()
+      : Promise.resolve({ data: null }),
+    color_code
+      ? supabase.from('colors').select('code').eq('code', color_code).maybeSingle()
+      : Promise.resolve({ data: null }),
+    calcUnitPriceCents({ size_code, frame_code, addons }),
+  ]);
+
+  if (place_slug && !placeResult.data) {
+    throw new PricingError('invalid_place', `Unknown place_slug: ${place_slug}`);
+  }
+  if (color_code && !colorResult.data) {
+    throw new PricingError('invalid_color', `Unknown color_code: ${color_code}`);
+  }
+  const place = placeResult.data;
   const name = `Relieve · ${place?.name ?? custom_place} · ${size_code} · ${frame_code}`;
 
   return {
