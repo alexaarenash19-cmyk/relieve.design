@@ -82,6 +82,22 @@ export default async function handler(req, res) {
     return sendError(res, 500, 'db_error', err.message);
   }
 
+  const subtotal_cents = priced.reduce((sum, p) => sum + p.unit_price_cents * p.qty, 0);
+
+  // Best-effort checkout-attempt capture for the checkout-abandonado n8n
+  // workflow — never let a carts failure block or fail a real checkout.
+  let cartId = null;
+  try {
+    const { data: cart } = await supabase
+      .from('carts')
+      .insert({ email, items: priced, subtotal_cents })
+      .select('id')
+      .single();
+    cartId = cart?.id ?? null;
+  } catch (err) {
+    console.error('[carts] failed to record checkout attempt', err);
+  }
+
   const line_items = priced.map((p) => ({
     price_data: {
       currency: 'mxn',
@@ -106,6 +122,18 @@ export default async function handler(req, res) {
     success_url: `${SITE_URL}/pedido/success?session_id={CHECKOUT_SESSION_ID}`,
     cancel_url: SITE_URL, // /carrito was a page, now the cart is a drawer (P2) — cart state persists in localStorage regardless
   });
+
+  // Fire-and-forget: linking the session id isn't on the critical path to
+  // returning the checkout URL to the customer.
+  if (cartId) {
+    supabase
+      .from('carts')
+      .update({ stripe_session_id: session.id })
+      .eq('id', cartId)
+      .then(({ error }) => {
+        if (error) console.error('[carts] failed to link stripe_session_id', error);
+      });
+  }
 
   return res.status(200).json({ url: session.url });
 }
