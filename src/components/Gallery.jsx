@@ -592,35 +592,44 @@ export default function Gallery({ zoomIn = false }) {
   }
 
   return (
-    <section
-      className="relative pb-28 transition-transform duration-500 ease-out"
-      style={{
-        transform: settled
-          ? 'scale(1) translateY(0)'
-          : 'scale(1.15) translateY(-70px)',
-      }}
-    >
-      <ExperienceToggle view={view} onChange={setView} />
+    <section className="relative pb-28">
+      {/* transform lives here, not on the <section> itself — a transform
+          on any ancestor of a `position: fixed` element makes it a new
+          containing block, which was trapping BottomControlBar's
+          `fixed bottom-5` inside this (much taller than one screen)
+          section instead of the real viewport. Keeping BottomControlBar
+          and DragHintAndZoom as direct children of the untransformed
+          <section> below fixes that. */}
+      <div
+        className="transition-transform duration-500 ease-out"
+        style={{
+          transform: settled
+            ? 'scale(1) translateY(0)'
+            : 'scale(1.15) translateY(-70px)',
+        }}
+      >
+        <ExperienceToggle view={view} onChange={setView} />
 
-      {view === 'scattered' ? (
-        <>
-          <ScatteredCanvas items={places} zoom={zoom} />
-          {/* No content after the canvas in this view — at least 1/4
-              screen of empty space, nothing to scroll into. */}
-          <div style={{ height: '25vh' }} aria-hidden="true" />
-        </>
-      ) : (
-        <div
-          className="grid gap-px bg-line p-px"
-          style={{
-            gridTemplateColumns: `repeat(${Math.round(3 * zoom)}, minmax(0, 1fr))`,
-          }}
-        >
-          {places.map((place) => (
-            <GalleryCard key={place.slug} place={place} variant="grid" />
-          ))}
-        </div>
-      )}
+        {view === 'scattered' ? (
+          <>
+            <ScatteredCanvas items={places} zoom={zoom} />
+            {/* No content after the canvas in this view — at least 1/4
+                screen of empty space, nothing to scroll into. */}
+            <div style={{ height: '25vh' }} aria-hidden="true" />
+          </>
+        ) : (
+          <div
+            className="grid gap-px bg-line p-px"
+            style={{
+              gridTemplateColumns: `repeat(${Math.round(3 * zoom)}, minmax(0, 1fr))`,
+            }}
+          >
+            {places.map((place) => (
+              <GalleryCard key={place.slug} place={place} variant="grid" />
+            ))}
+          </div>
+        )}
+      </div>
 
       <BottomControlBar
         type={type}
