@@ -20,6 +20,19 @@ function generateOrderNumber() {
   return `RLV-${new Date().getFullYear()}-${String(Date.now()).slice(-6)}`;
 }
 
+// Mirrors api/checkout.js's encodeItemsMetadata — Stripe caps each metadata
+// value at 500 chars, so items are split across items_0, items_1, ... there
+// instead of one `items` key. Falls back to the old single-key shape for
+// any session created before this fix (avoids silently losing items on
+// in-flight sessions at deploy time).
+function decodeItemsMetadata(metadata) {
+  const chunkCount = Number(metadata?.items_chunks ?? 0);
+  if (!chunkCount) return JSON.parse(metadata?.items ?? '[]');
+  let json = '';
+  for (let i = 0; i < chunkCount; i++) json += metadata[`items_${i}`] ?? '';
+  return JSON.parse(json);
+}
+
 async function createOrderFromSession(session) {
   const { data: existing } = await supabase
     .from('orders')
@@ -28,7 +41,7 @@ async function createOrderFromSession(session) {
     .maybeSingle();
   if (existing) return; // already processed this session
 
-  const items = JSON.parse(session.metadata?.items ?? '[]');
+  const items = decodeItemsMetadata(session.metadata);
   const is_gift = session.metadata?.is_gift === 'true';
   const gift_message = session.metadata?.gift_message || null;
 
