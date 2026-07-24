@@ -17,6 +17,27 @@ import { calcUnitPriceCents, PricingError } from '../lib/pricing.js';
 const stripe = process.env.STRIPE_SECRET_KEY ? new Stripe(process.env.STRIPE_SECRET_KEY) : null;
 const SITE_URL = process.env.SITE_URL || 'http://localhost:5173';
 
+// Stripe caps each metadata VALUE at 500 characters. Confirmed live tonight:
+// a 4-item cart (509 chars of JSON) made `items: JSON.stringify(items)`
+// exceed that, Stripe's API rejected the session, and because the call
+// wasn't wrapped in try/catch, that became an uncaught FUNCTION_INVOCATION_FAILED
+// instead of a normal error — carts as small as 4 pieces could crash checkout
+// outright. Split across multiple keys instead of one; the webhook
+// (api/webhooks/stripe.js) reassembles them the same way.
+const METADATA_CHUNK_SIZE = 450; // margin under Stripe's 500-char limit
+function encodeItemsMetadata(items) {
+  const json = JSON.stringify(items);
+  const chunks = [];
+  for (let i = 0; i < json.length; i += METADATA_CHUNK_SIZE) {
+    chunks.push(json.slice(i, i + METADATA_CHUNK_SIZE));
+  }
+  const metadata = { items_chunks: String(chunks.length) };
+  chunks.forEach((chunk, i) => {
+    metadata[`items_${i}`] = chunk;
+  });
+  return metadata;
+}
+
 async function priceItem(item) {
   const { place_slug, custom_place, size_code, frame_code, color_code, capelo, plate_text, qty } = item;
 
@@ -91,21 +112,31 @@ export default async function handler(req, res) {
     quantity: p.qty,
   }));
 
-  const session = await stripe.checkout.sessions.create({
-    mode: 'payment',
-    currency: 'mxn',
-    customer_email: email,
-    payment_method_types: ['card', 'oxxo'],
-    shipping_address_collection: { allowed_countries: ['MX'] },
-    line_items,
-    metadata: {
-      items: JSON.stringify(items),
-      is_gift: String(is_gift),
-      gift_message: gift_message ?? '',
-    },
-    success_url: `${SITE_URL}/pedido/success?session_id={CHECKOUT_SESSION_ID}`,
-    cancel_url: SITE_URL, // /carrito was a page, now the cart is a drawer (P2) — cart state persists in localStorage regardless
-  });
+  let session;
+  try {
+    session = await stripe.checkout.sessions.create({
+      mode: 'payment',
+      currency: 'mxn',
+      customer_email: email,
+      payment_method_types: ['card', 'oxxo'],
+      shipping_address_collection: { allowed_countries: ['MX'] },
+      line_items,
+      metadata: {
+        ...encodeItemsMetadata(items),
+        is_gift: String(is_gift),
+        gift_message: gift_message ?? '',
+      },
+      success_url: `${SITE_URL}/pedido/success?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: SITE_URL, // /carrito was a page, now the cart is a drawer (P2) — cart state persists in localStorage regardless
+    });
+  } catch (err) {
+    // Defense in depth: whatever the reason a Stripe API call can fail
+    // (this exact bug was a metadata size limit, but there are others —
+    // rate limits, network errors, etc.), never let it crash the function
+    // raw. Always return a real JSON error the frontend can show.
+    console.error('[stripe] session creation failed', err);
+    return sendError(res, 502, 'stripe_error', 'No pudimos iniciar el pago. Intenta de nuevo.');
+  }
 
   return res.status(200).json({ url: session.url });
 }
