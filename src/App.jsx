@@ -7,6 +7,7 @@ import ProductPanel from './components/ProductPanel.jsx';
 import SvgFilters from './components/SvgFilters.jsx';
 import SocialLinks from './components/SocialLinks.jsx';
 import Home from './pages/Home.jsx';
+import OrderSuccess from './pages/OrderSuccess.jsx';
 import Collections from './pages/Collections.jsx';
 import Collection from './pages/Collection.jsx';
 import Product from './pages/Product.jsx';
@@ -61,6 +62,9 @@ export default function App() {
         <Route path="/sobre" element={<About />} />
         <Route path="/envios" element={<Shipping />} />
         <Route path="/faq" element={<Faq />} />
+        {/* Must resolve before /pedido/:token below — Stripe's success_url
+            lands here with ?session_id=, not a magic-link token. */}
+        <Route path="/pedido/success" element={<OrderSuccess />} />
         <Route path="/pedido/:token" element={<OrderStatus />} />
         <Route path="/aviso-privacidad" element={<PrivacyNotice />} />
         <Route path="/terminos" element={<Terms />} />
