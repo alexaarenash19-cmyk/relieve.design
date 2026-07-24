@@ -172,6 +172,15 @@ export default function CartDrawer() {
                 placeholder="tu@correo.com"
                 className="w-full mt-6 border border-line rounded p-2 normal-case font-body text-sm"
               />
+              {/* The Pagar button below silently disables without this —
+                  confirmed live: after a page refresh (email is plain
+                  useState, not persisted) the button just sat there doing
+                  nothing with no indication why. */}
+              {!email && (
+                <p className="normal-case font-body text-xs text-graphite/60 mt-2">
+                  Ingresa tu correo para continuar al pago.
+                </p>
+              )}
               {checkoutError && (
                 <p className="normal-case font-body text-xs text-red-700 mt-2">{checkoutError}</p>
               )}
