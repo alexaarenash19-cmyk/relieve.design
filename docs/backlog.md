@@ -143,7 +143,7 @@ priorizar o secuenciar trabajo.
 - Depende: M6-2, M5-2.
 
 ### [M6-4] Flujos n8n (CFDI, guía, correos)  `area:automation` `P1` `L`
-- Sub: [ ] order-paid → CFDI (PAC) · [ ] guía (Envia/Skydropx) + `tracking` · [ ] correos (Resend): confirmación/producción/enviado · [ ] review-request · [ ] avisos por Telegram.
+- Sub: [ ] order-paid → CFDI (PAC) · [ ] guía (Envia/Skydropx) + `tracking` · [ ] correos (Resend): confirmación/producción/enviado · [ ] checkout-abandonado · [ ] review-incentive (reemplaza review-request/#35) · [ ] avisos por Telegram.
 - Aceptación: al recibir order-paid se emite CFDI (sandbox), se genera guía y sale el correo.
 - Depende: M6-3.
 
