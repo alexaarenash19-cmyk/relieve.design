@@ -227,11 +227,38 @@ async function getOrder(req, res) {
   return res.status(200).json({ ...rest, items });
 }
 
+// Bridges Stripe's success_url (?session_id=...) to the magic-link token —
+// the browser lands here right after payment, before the webhook is
+// guaranteed to have created the order yet, so 404 is an expected transient
+// state the frontend polls through, not an error condition on its own.
+async function getOrderBySession(req, res) {
+  if (req.method !== 'GET') {
+    res.setHeader('Allow', 'GET');
+    return sendError(res, 405, 'method_not_allowed', 'Use GET');
+  }
+
+  const { session_id } = req.query;
+  if (!session_id) {
+    return sendError(res, 400, 'invalid_request', 'session_id is required');
+  }
+
+  const { data: order, error } = await supabase
+    .from('orders')
+    .select('status_token')
+    .eq('stripe_session_id', session_id)
+    .maybeSingle();
+
+  if (error) return sendError(res, 500, 'db_error', error.message);
+  if (!order) return sendError(res, 404, 'not_found', 'Order not created yet');
+  return res.status(200).json({ status_token: order.status_token });
+}
+
 const RESOURCES = {
   places: getPlaces,
   pricing: postPricing,
   waitlist: postWaitlist,
   orders: getOrder,
+  orders_by_session: getOrderBySession,
 };
 
 export default async function handler(req, res) {
