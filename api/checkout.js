@@ -24,31 +24,31 @@ async function priceItem(item) {
     throw new PricingError('invalid_item', 'Each item needs place_slug or custom_place');
   }
 
-  let place = null;
-  if (place_slug) {
-    const { data } = await supabase
-      .from('places')
-      .select('id, name')
-      .eq('slug', place_slug)
-      .maybeSingle();
-    if (!data) throw new PricingError('invalid_place', `Unknown place_slug: ${place_slug}`);
-    place = data;
-  }
-
-  if (color_code) {
-    const { data: color } = await supabase
-      .from('colors')
-      .select('code')
-      .eq('code', color_code)
-      .maybeSingle();
-    if (!color) throw new PricingError('invalid_color', `Unknown color_code: ${color_code}`);
-  }
-
   const addons = [];
   if (capelo) addons.push('capelo');
   if (plate_text) addons.push('placa');
 
-  const unit_price_cents = await calcUnitPriceCents({ size_code, frame_code, addons });
+  // These three lookups are independent of each other — running them
+  // sequentially (as this used to) adds two extra network round-trips to
+  // Supabase per item for no reason; every millisecond here is on the
+  // critical path between the customer clicking "pagar" and reaching Stripe.
+  const [placeResult, colorResult, unit_price_cents] = await Promise.all([
+    place_slug
+      ? supabase.from('places').select('id, name').eq('slug', place_slug).maybeSingle()
+      : Promise.resolve({ data: null }),
+    color_code
+      ? supabase.from('colors').select('code').eq('code', color_code).maybeSingle()
+      : Promise.resolve({ data: null }),
+    calcUnitPriceCents({ size_code, frame_code, addons }),
+  ]);
+
+  if (place_slug && !placeResult.data) {
+    throw new PricingError('invalid_place', `Unknown place_slug: ${place_slug}`);
+  }
+  if (color_code && !colorResult.data) {
+    throw new PricingError('invalid_color', `Unknown color_code: ${color_code}`);
+  }
+  const place = placeResult.data;
   const name = `Relieve · ${place?.name ?? custom_place} · ${size_code} · ${frame_code}`;
 
   return {
@@ -84,20 +84,6 @@ export default async function handler(req, res) {
 
   const subtotal_cents = priced.reduce((sum, p) => sum + p.unit_price_cents * p.qty, 0);
 
-  // Best-effort checkout-attempt capture for the checkout-abandonado n8n
-  // workflow — never let a carts failure block or fail a real checkout.
-  let cartId = null;
-  try {
-    const { data: cart } = await supabase
-      .from('carts')
-      .insert({ email, items: priced, subtotal_cents })
-      .select('id')
-      .single();
-    cartId = cart?.id ?? null;
-  } catch (err) {
-    console.error('[carts] failed to record checkout attempt', err);
-  }
-
   const line_items = priced.map((p) => ({
     price_data: {
       currency: 'mxn',
@@ -123,17 +109,19 @@ export default async function handler(req, res) {
     cancel_url: SITE_URL, // /carrito was a page, now the cart is a drawer (P2) — cart state persists in localStorage regardless
   });
 
-  // Fire-and-forget: linking the session id isn't on the critical path to
-  // returning the checkout URL to the customer.
-  if (cartId) {
-    supabase
-      .from('carts')
-      .update({ stripe_session_id: session.id })
-      .eq('id', cartId)
-      .then(({ error }) => {
-        if (error) console.error('[carts] failed to link stripe_session_id', error);
-      });
-  }
+  // Best-effort checkout-attempt capture for the checkout-abandonado n8n
+  // workflow. Deliberately fire-and-forget (not awaited) — this used to be
+  // an awaited insert-then-update pair before the Stripe call, which put an
+  // extra Supabase round-trip on the critical path between "pagar" and
+  // reaching Stripe for no benefit to the customer. Now it's a single
+  // insert with the session id already known, kicked off after we already
+  // have everything the customer is waiting on.
+  supabase
+    .from('carts')
+    .insert({ email, items: priced, subtotal_cents, stripe_session_id: session.id })
+    .then(({ error }) => {
+      if (error) console.error('[carts] failed to record checkout attempt', error);
+    });
 
   return res.status(200).json({ url: session.url });
 }
