@@ -399,9 +399,9 @@ const PAGE_LABELS = [
 
 export default function About() {
   useDocumentHead({
-    title: 'Sobre Relieve — Mapas en relieve hechos a mano',
+    title: 'Sobre Relieve — Mapas en Relieve, Diseñados y Fabricados en México',
     description:
-      'Relieve transforma lugares en objetos que cuentan historias: mapas topográficos y urbanos en relieve, de datos geoespaciales reales a marco de nogal hecho a mano.',
+      'Relieve transforma información geográfica en objetos tridimensionales de diseño: mapas topográficos y urbanos en relieve, de datos geoespaciales reales a impresión 3D de alta precisión y acabado artesanal en nuestro estudio en México.',
     canonicalPath: '/sobre',
   });
 
