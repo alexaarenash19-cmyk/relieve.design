@@ -1,7 +1,8 @@
-// Copy for the "Sobre Relieve" passport redesign — approved by Ale, final
-// (no longer draft). Pulled into its own module because it's stable
-// regardless of the visual treatment, which is still blocked on reference
-// images (see docs/design-refs/passport/ — not yet provided, see About.jsx).
+// Copy for the "Sobre Relieve" passport redesign. Revised 2026-07-23 to
+// clarify product positioning, drop "hecho a mano" framing in favor of an
+// explicit fabrication chain, and align with the site's cartography/
+// architecture positioning (see PR for context). Still pulled into its own
+// module because it's stable regardless of the visual treatment.
 // All-Spanish per Ale's explicit call (first pass mirrored her brief's
 // English field labels literally; she wants Spanish throughout instead).
 export const PASSENGER_INFO = [
@@ -15,24 +16,22 @@ export const PASSENGER_INFO = [
   ['Estado', 'Listo para Partir'],
 ];
 
-export const ABOUT_COPY = `En Relieve transformamos lugares en objetos que cuentan historias.
+export const ABOUT_COPY = `Relieve es un estudio de diseño especializado en cartografía contemporánea.
 
-Diseñamos mapas topográficos y urbanos en relieve que convierten paisajes, ciudades y recuerdos en piezas para habitar. Cada obra nace de información geoespacial precisa y es reinterpretada mediante un proceso de diseño, fabricación digital y acabado artesanal para crear objetos con valor estético y emocional.
+Diseñamos objetos tridimensionales inspirados en ciudades, paisajes y territorios que han marcado la vida de las personas.
 
-Creemos que los espacios que nos marcan merecen permanecer presentes: la ciudad donde creciste, la montaña que conquistaste, el lugar donde comenzó una historia o el destino que cambió tu forma de ver el mundo.
+Cada pieza comienza con una investigación cartográfica, continúa con un proceso de reconstrucción digital y termina con una fabricación cuidadosamente controlada: impresión 3D de alta precisión y acabado artesanal en nuestro estudio en México.
 
-Nuestro trabajo combina cartografía, arquitectura y diseño de producto para crear piezas contemporáneas que invitan a explorar el territorio desde una nueva perspectiva.
+No buscamos reproducir un mapa. Buscamos representar la esencia de un lugar.
 
-Más que representar un lugar, buscamos preservar la conexión que las personas tienen con él.
-
-Cada relieve es una invitación a recordar, descubrir y volver a viajar, esta vez desde casa.`;
+Relieve transforma información geográfica en objetos de diseño.`;
 
 export const JOURNEY_STEPS = [
-  { label: 'Origen', detail: 'Datos Geográficos Reales' },
-  { label: 'Planeación de Ruta', detail: 'Modelado Digital' },
-  { label: 'Tránsito', detail: 'Impresión 3D' },
-  { label: 'Aduana', detail: 'Acabado Artesanal' },
-  { label: 'Llegada', detail: 'Tu Espacio' },
+  { label: 'Origen', detail: 'Investigación y Selección del Lugar' },
+  { label: 'Planeación de Ruta', detail: 'Reconstrucción y Modelado Digital' },
+  { label: 'Tránsito', detail: 'Impresión 3D de Alta Precisión' },
+  { label: 'Aduana', detail: 'Acabado, Ensamblaje y Enmarcado' },
+  { label: 'Llegada', detail: 'Empaque y Envío a Tu Espacio' },
 ];
 
 export const TRAVEL_ESSENTIALS = [
