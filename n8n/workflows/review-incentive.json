@@ -1,0 +1,107 @@
+{
+  "name": "review-incentive",
+  "nodes": [
+    {
+      "parameters": { "rule": { "interval": [{ "field": "days", "triggerAtHour": 9 }] } },
+      "name": "Daily 9am",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [0, 0]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT id, number, email FROM orders WHERE status = 'delivered' AND delivered_at <= now() - interval '7 days' AND review_coupon_sent_at IS NULL"
+      },
+      "name": "Find eligible orders",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [220, 0],
+      "credentials": { "postgres": { "name": "Supabase Postgres" } }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.stripe.com/v1/coupons",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBasicAuth",
+        "sendBody": true,
+        "contentType": "form-urlencoded",
+        "bodyParameters": {
+          "parameters": [
+            { "name": "percent_off", "value": "10" },
+            { "name": "duration", "value": "once" }
+          ]
+        }
+      },
+      "name": "Create Stripe Coupon",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [440, 0],
+      "credentials": { "httpBasicAuth": { "name": "Stripe Secret Key" } }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.stripe.com/v1/promotion_codes",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBasicAuth",
+        "sendBody": true,
+        "contentType": "form-urlencoded",
+        "bodyParameters": {
+          "parameters": [
+            { "name": "coupon", "value": "={{ $json.id }}" },
+            { "name": "max_redemptions", "value": "1" },
+            { "name": "expires_at", "value": "={{ Math.floor(Date.now()/1000) + 30*86400 }}" },
+            { "name": "customer_email", "value": "={{ $('Find eligible orders').item.json.email }}" }
+          ]
+        }
+      },
+      "name": "Create Promotion Code",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [660, 0],
+      "credentials": { "httpBasicAuth": { "name": "Stripe Secret Key" } }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.resend.com/emails",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            { "name": "from", "value": "Relieve <contacto@relieve.design>" },
+            { "name": "to", "value": "={{ $('Find eligible orders').item.json.email }}" },
+            { "name": "subject", "value": "Gracias por tu compra — 10% en tu próxima pieza" },
+            { "name": "html", "value": "={{ '<p>Tu código: ' + $json.code + ' (válido 30 días, un solo uso). Cuéntanos qué tal tu pieza dejando una reseña.</p>' }}" }
+          ]
+        }
+      },
+      "name": "Send coupon email (Resend)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [880, 0],
+      "credentials": { "httpHeaderAuth": { "name": "Resend API Key" } }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "UPDATE orders SET review_coupon_sent_at = now() WHERE id = {{ $('Find eligible orders').item.json.id }}"
+      },
+      "name": "Mark coupon sent",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [1100, 0],
+      "credentials": { "postgres": { "name": "Supabase Postgres" } }
+    }
+  ],
+  "connections": {
+    "Daily 9am": { "main": [[{ "node": "Find eligible orders", "type": "main", "index": 0 }]] },
+    "Find eligible orders": { "main": [[{ "node": "Create Stripe Coupon", "type": "main", "index": 0 }]] },
+    "Create Stripe Coupon": { "main": [[{ "node": "Create Promotion Code", "type": "main", "index": 0 }]] },
+    "Create Promotion Code": { "main": [[{ "node": "Send coupon email (Resend)", "type": "main", "index": 0 }]] },
+    "Send coupon email (Resend)": { "main": [[{ "node": "Mark coupon sent", "type": "main", "index": 0 }]] }
+  }
+}
