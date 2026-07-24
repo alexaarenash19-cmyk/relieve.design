@@ -9,7 +9,12 @@ import { calcUnitPriceCents } from '../../lib/pricing.js';
 
 export const config = { api: { bodyParser: false } };
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+// Same class of bug as api/checkout.js's guard (see its comment): with
+// STRIPE_SECRET_KEY unset, `new Stripe(undefined)` throws synchronously at
+// module load, which crashes this whole function on every invocation
+// (raw Vercel FUNCTION_INVOCATION_FAILED, no usable error). This file
+// never got the same fix when checkout.js did. Guard it here too.
+const stripe = process.env.STRIPE_SECRET_KEY ? new Stripe(process.env.STRIPE_SECRET_KEY) : null;
 
 function generateOrderNumber() {
   return `RLV-${new Date().getFullYear()}-${String(Date.now()).slice(-6)}`;
@@ -114,6 +119,12 @@ export default async function handler(req, res) {
     return res
       .status(405)
       .json({ error: { code: 'method_not_allowed', message: 'Use POST' } });
+  }
+
+  if (!stripe) {
+    return res.status(503).json({
+      error: { code: 'stripe_not_configured', message: 'Stripe webhook is not configured.' },
+    });
   }
 
   const signature = req.headers['stripe-signature'];
