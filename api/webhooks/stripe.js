@@ -9,10 +9,28 @@ import { calcUnitPriceCents } from '../../lib/pricing.js';
 
 export const config = { api: { bodyParser: false } };
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+// Same class of bug as api/checkout.js's guard (see its comment): with
+// STRIPE_SECRET_KEY unset, `new Stripe(undefined)` throws synchronously at
+// module load, which crashes this whole function on every invocation
+// (raw Vercel FUNCTION_INVOCATION_FAILED, no usable error). This file
+// never got the same fix when checkout.js did. Guard it here too.
+const stripe = process.env.STRIPE_SECRET_KEY ? new Stripe(process.env.STRIPE_SECRET_KEY) : null;
 
 function generateOrderNumber() {
   return `RLV-${new Date().getFullYear()}-${String(Date.now()).slice(-6)}`;
+}
+
+// Mirrors api/checkout.js's encodeItemsMetadata — Stripe caps each metadata
+// value at 500 chars, so items are split across items_0, items_1, ... there
+// instead of one `items` key. Falls back to the old single-key shape for
+// any session created before this fix (avoids silently losing items on
+// in-flight sessions at deploy time).
+function decodeItemsMetadata(metadata) {
+  const chunkCount = Number(metadata?.items_chunks ?? 0);
+  if (!chunkCount) return JSON.parse(metadata?.items ?? '[]');
+  let json = '';
+  for (let i = 0; i < chunkCount; i++) json += metadata[`items_${i}`] ?? '';
+  return JSON.parse(json);
 }
 
 async function createOrderFromSession(session) {
@@ -23,7 +41,7 @@ async function createOrderFromSession(session) {
     .maybeSingle();
   if (existing) return; // already processed this session
 
-  const items = JSON.parse(session.metadata?.items ?? '[]');
+  const items = decodeItemsMetadata(session.metadata);
   const is_gift = session.metadata?.is_gift === 'true';
   const gift_message = session.metadata?.gift_message || null;
 
@@ -114,6 +132,12 @@ export default async function handler(req, res) {
     return res
       .status(405)
       .json({ error: { code: 'method_not_allowed', message: 'Use POST' } });
+  }
+
+  if (!stripe) {
+    return res.status(503).json({
+      error: { code: 'stripe_not_configured', message: 'Stripe webhook is not configured.' },
+    });
   }
 
   const signature = req.headers['stripe-signature'];
