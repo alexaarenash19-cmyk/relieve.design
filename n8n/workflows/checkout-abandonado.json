@@ -1,0 +1,71 @@
+{
+  "name": "checkout-abandonado",
+  "nodes": [
+    {
+      "parameters": { "rule": { "interval": [{ "field": "hours" }] } },
+      "name": "Every hour",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [0, 0]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT id, email, items, subtotal_cents FROM carts WHERE purchase_completed = false AND abandoned_email_sent = false AND created_at BETWEEN now() - interval '90 minutes' AND now() - interval '60 minutes'"
+      },
+      "name": "Find abandoned checkouts",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [220, 0],
+      "credentials": { "postgres": { "name": "Supabase Postgres" } }
+    },
+    {
+      "parameters": {
+        "jsCode": "return items.map(cart => {\n  const rows = cart.json.items.map(i => `<tr><td>${i.place_slug ?? i.custom_place}</td><td>${i.size_code}</td><td>${(i.unit_price_cents/100).toFixed(2)} MXN</td></tr>`).join('');\n  const html = `<table>${rows}</table>`;\n  return { json: { ...cart.json, html } };\n});"
+      },
+      "name": "Build email HTML",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [440, 0]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.resend.com/emails",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            { "name": "from", "value": "Relieve <contacto@relieve.design>" },
+            { "name": "to", "value": "={{ $json.email }}" },
+            { "name": "subject", "value": "Dejaste algo en tu carrito" },
+            { "name": "html", "value": "={{ $json.html }}" }
+          ]
+        }
+      },
+      "name": "Send recovery email (Resend)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [660, 0],
+      "credentials": { "httpHeaderAuth": { "name": "Resend API Key" } }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "UPDATE carts SET abandoned_email_sent = true WHERE id = {{ $json.id }}"
+      },
+      "name": "Mark email sent",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [880, 0],
+      "credentials": { "postgres": { "name": "Supabase Postgres" } }
+    }
+  ],
+  "connections": {
+    "Every hour": { "main": [[{ "node": "Find abandoned checkouts", "type": "main", "index": 0 }]] },
+    "Find abandoned checkouts": { "main": [[{ "node": "Build email HTML", "type": "main", "index": 0 }]] },
+    "Build email HTML": { "main": [[{ "node": "Send recovery email (Resend)", "type": "main", "index": 0 }]] },
+    "Send recovery email (Resend)": { "main": [[{ "node": "Mark email sent", "type": "main", "index": 0 }]] }
+  }
+}

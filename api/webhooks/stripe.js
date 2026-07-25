@@ -109,6 +109,12 @@ async function createOrderFromSession(session) {
     }))
   );
 
+  const { error: cartError } = await supabase
+    .from('carts')
+    .update({ purchase_completed: true })
+    .eq('stripe_session_id', session.id);
+  if (cartError) console.error('[carts] failed to mark purchase_completed', cartError);
+
   if (process.env.N8N_WEBHOOK_URL) {
     await fetch(`${process.env.N8N_WEBHOOK_URL}/order-paid`, {
       method: 'POST',

@@ -103,6 +103,8 @@ export default async function handler(req, res) {
     return sendError(res, 500, 'db_error', err.message);
   }
 
+  const subtotal_cents = priced.reduce((sum, p) => sum + p.unit_price_cents * p.qty, 0);
+
   const line_items = priced.map((p) => ({
     price_data: {
       currency: 'mxn',
@@ -137,6 +139,20 @@ export default async function handler(req, res) {
     console.error('[stripe] session creation failed', err);
     return sendError(res, 502, 'stripe_error', 'No pudimos iniciar el pago. Intenta de nuevo.');
   }
+
+  // Best-effort checkout-attempt capture for the checkout-abandonado n8n
+  // workflow. Deliberately fire-and-forget (not awaited) — this used to be
+  // an awaited insert-then-update pair before the Stripe call, which put an
+  // extra Supabase round-trip on the critical path between "pagar" and
+  // reaching Stripe for no benefit to the customer. Now it's a single
+  // insert with the session id already known, kicked off after we already
+  // have everything the customer is waiting on.
+  supabase
+    .from('carts')
+    .insert({ email, items: priced, subtotal_cents, stripe_session_id: session.id })
+    .then(({ error }) => {
+      if (error) console.error('[carts] failed to record checkout attempt', error);
+    });
 
   return res.status(200).json({ url: session.url });
 }

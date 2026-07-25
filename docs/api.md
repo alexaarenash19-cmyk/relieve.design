@@ -59,7 +59,8 @@ Otros eventos: `payment_intent.payment_failed` → notificar; `checkout.session.
 ## n8n (operaciones)
 - **order-paid** → (a) **CFDI** vía PAC (Facturama/SW/Bind) usando datos fiscales si el cliente los pidió; (b) **guía de envío** (Envia.com/Skydropx) → guarda `tracking_number`, pasa a `in_production`; (c) **correos** (Resend): confirmación tipo boarding pass.
 - **order-shipped** (cuando marcas enviado) → email con rastreo, status `shipped`.
-- **review-request** (a los 2–3 días de `delivered`) → email pidiendo foto/reseña.
+- **checkout-abandonado** (1–1.5h después de un checkout iniciado sin pago) → email de recuperación (Resend). Reemplaza el concepto de "carrito abandonado" real — ver PRD; no trackea agregados al carrito, solo intentos de checkout.
+- **review-incentive** (7 días después de `delivered`) → cupón Stripe de un solo uso (10%, 30 días) + pedir reseña (Resend). Reemplaza el antiguo `review-request` de 2–3 días / issue #35.
 - Todo lo "difuso" (redactar correos, avisos por Telegram, excepciones) puede pasar por un **agente LLM**; el flujo de dinero/estado va determinista.
 
 ## Waitlist
