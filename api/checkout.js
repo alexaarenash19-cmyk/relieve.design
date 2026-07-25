@@ -6,6 +6,7 @@ import Stripe from 'stripe';
 import { supabase } from '../lib/supabase.js';
 import { sendError } from '../lib/errors.js';
 import { calcUnitPriceCents, PricingError } from '../lib/pricing.js';
+import { checkRateLimit } from '../lib/rateLimit.js';
 
 // new Stripe(undefined) throws synchronously at import time — same class
 // of bug as the earlier lib/supabase.js one, and confirmed live: checkout
@@ -89,6 +90,8 @@ export default async function handler(req, res) {
   if (!stripe) {
     return sendError(res, 503, 'checkout_not_configured', 'El checkout todavía no está configurado.');
   }
+
+  if (!(await checkRateLimit(req, res, { key: 'checkout', limit: 10, windowMs: 60_000 }))) return;
 
   const { items, is_gift = false, gift_message = null, email } = req.body ?? {};
   if (!Array.isArray(items) || items.length === 0 || !email) {

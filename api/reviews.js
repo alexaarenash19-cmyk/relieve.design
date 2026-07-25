@@ -6,6 +6,7 @@ import { IncomingForm } from 'formidable';
 import { supabase } from '../lib/supabase.js';
 import { sendError } from '../lib/errors.js';
 import { dummyReviewsFor } from '../lib/dummyCatalog.js';
+import { checkRateLimit } from '../lib/rateLimit.js';
 
 export const config = { api: { bodyParser: false } };
 
@@ -115,7 +116,10 @@ async function handlePost(req, res) {
 
 export default async function handler(req, res) {
   if (req.method === 'GET') return handleGet(req, res);
-  if (req.method === 'POST') return handlePost(req, res);
+  if (req.method === 'POST') {
+    if (!(await checkRateLimit(req, res, { key: 'reviews-post', limit: 5, windowMs: 60_000 }))) return;
+    return handlePost(req, res);
+  }
   res.setHeader('Allow', 'GET, POST');
   return sendError(res, 405, 'method_not_allowed', 'Use GET or POST');
 }
