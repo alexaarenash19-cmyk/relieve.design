@@ -9,7 +9,7 @@ const FAQS = [
   },
   {
     q: '¿De qué material es el marco?',
-    a: 'Nogal macizo. El relieve se imprime en 3D con acabado mate.',
+    a: 'Nogal, roble o negro, según elijas en la página de la pieza. El relieve se imprime en 3D con acabado mate.',
   },
   {
     q: '¿Puedo pedir factura?',
