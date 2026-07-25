@@ -264,3 +264,22 @@ body::before {
   }
 }
 
+/* Issue #84 — Accordion.jsx open/close. grid-template-rows 0fr→1fr handles
+   arbitrary content height without JS measuring the panel (a fixed
+   max-height either clips tall content or leaves a gap under short
+   content); the inner .min-h-0.overflow-hidden wrapper is required for the
+   fr-unit trick to actually clip during the transition. */
+.accordion-content {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 300ms cubic-bezier(0.2, 0.6, 0.2, 1);
+}
+.accordion-content[data-open="true"] {
+  grid-template-rows: 1fr;
+}
+@media (prefers-reduced-motion: reduce) {
+  .accordion-content {
+    transition: none;
+  }
+}
+
