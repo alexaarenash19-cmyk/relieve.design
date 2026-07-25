@@ -91,7 +91,7 @@ async function postPlace(req, res) {
 }
 
 export default async function handler(req, res) {
-  if (!requireAdmin(req, res)) return;
+  if (!(await requireAdmin(req, res))) return;
 
   const [resource, id] = req.query.path ?? [];
 
