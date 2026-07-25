@@ -111,11 +111,13 @@ export default function Product() {
   const selectedSize = SIZES.find((s) => s.code === sizeCode);
 
   const specs = [
-    [
-      'Tipo',
-      place.type === 'montana' ? 'Montaña' : 'Ciudad',
-      place.type === 'montana' ? 'text-walnut' : 'text-explorer-blue',
-    ],
+    // Issue #67 — text-explorer-blue on gallery-white measures ~1.5:1
+    // contrast (WCAG AA needs 4.5:1 for this text size), exactly the risk
+    // ui-ux.md's Accesibilidad section already flagged ("cuidar
+    // terracota/azul sobre claro"). text-walnut passes (~5.6:1) so it's not
+    // touched; dropping the per-type color instead of picking a new blue
+    // shade — the palette is a fixed set of 10, not mine to extend.
+    ['Tipo', place.type === 'montana' ? 'Montaña' : 'Ciudad', place.type === 'montana' ? 'text-walnut' : undefined],
     ['Medidas', selectedSize.dims],
     place.elevation_m ? ['Altitud', `${place.elevation_m} msnm`] : null,
     place.lat && place.lng ? ['Coordenadas', `${place.lat}, ${place.lng}`] : null,
