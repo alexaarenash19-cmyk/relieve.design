@@ -16,6 +16,7 @@ import { supabase } from '../lib/supabase.js';
 import { sendError } from '../lib/errors.js';
 import { calcUnitPriceCents, PricingError } from '../lib/pricing.js';
 import { DUMMY_PLACES, findDummyPlace } from '../lib/dummyCatalog.js';
+import { checkRateLimit } from '../lib/rateLimit.js';
 
 // Issue #23/#24: GET /api/places?q=&type= and GET /api/places/:slug
 // `type` doubles as the category (src/lib/categories.js) — the collections
@@ -156,6 +157,8 @@ async function postWaitlist(req, res) {
     res.setHeader('Allow', 'POST');
     return sendError(res, 405, 'method_not_allowed', 'Use POST');
   }
+
+  if (!(await checkRateLimit(req, res, { key: 'waitlist', limit: 5, windowMs: 60_000 }))) return;
 
   const { place_slug, size_code, email } = req.body ?? {};
   if (!place_slug || !email) {
