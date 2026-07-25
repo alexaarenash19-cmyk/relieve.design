@@ -59,7 +59,8 @@ Otros eventos: `payment_intent.payment_failed` → notificar; `checkout.session.
 ## n8n (operaciones)
 - **order-paid** → (a) **CFDI** vía Facturama (decidido en `decisions.md` #3), emitido "público en general" por defecto (no hay captura de datos fiscales en el checkout hoy); (b) **guía de envío** vía Envia.com → guarda `tracking_number`, pasa a `in_production`; (c) **correos** (Resend): confirmación tipo boarding pass. **No implementado aún** — ver plan detallado en `docs/superpowers/plans/2026-07-24-order-paid-cfdi-shipping-plan.md`, que documenta dos gaps reales de esquema (dimensiones/peso por `size_code`, dirección de origen del estudio) que bloquean el paso de envío independientemente de los detalles exactos de las APIs de Facturama/Envia.com.
 - **order-shipped** (cron cada 20 min sobre `orders` con `status='shipped'` y sin `shipped_tracking_email_sent_at`) → email con rastreo. Implementado: `n8n/workflows/order-shipped.json`.
-- **review-request** (a los 2–3 días de `delivered`) → email pidiendo foto/reseña.
+- **checkout-abandonado** (1–1.5h después de un checkout iniciado sin pago) → email de recuperación (Resend). Reemplaza el concepto de "carrito abandonado" real — ver PRD; no trackea agregados al carrito, solo intentos de checkout.
+- **review-incentive** (7 días después de `delivered`) → cupón Stripe de un solo uso (10%, 30 días) + pedir reseña (Resend). Reemplaza el antiguo `review-request` de 2–3 días / issue #35.
 - Todo lo "difuso" (redactar correos, avisos por Telegram, excepciones) puede pasar por un **agente LLM**; el flujo de dinero/estado va determinista.
 
 ## Waitlist
