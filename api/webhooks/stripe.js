@@ -6,6 +6,7 @@ import crypto from 'node:crypto';
 import Stripe from 'stripe';
 import { supabase } from '../../lib/supabase.js';
 import { calcUnitPriceCents } from '../../lib/pricing.js';
+import { sendAlert } from '../../lib/alerts.js';
 
 export const config = { api: { bodyParser: false } };
 
@@ -120,7 +121,10 @@ async function createOrderFromSession(session) {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ order_id: order.id, number: order.number }),
-    }).catch((err) => console.error('[n8n] order-paid webhook failed', err));
+    }).catch((err) => {
+      console.error('[n8n] order-paid webhook failed', err);
+      sendAlert(`n8n order-paid failed for ${order.number}`, err.stack ?? err.message);
+    });
   }
 }
 
@@ -162,6 +166,7 @@ export default async function handler(req, res) {
     // forged requests — issue #59 needs this in logs, not just in the
     // response body Stripe's dashboard shows but nobody here is watching.
     console.error('[stripe] webhook signature verification failed', err.message);
+    sendAlert('Stripe webhook signature verification failed', err.message);
     return res
       .status(400)
       .json({ error: { code: 'invalid_signature', message: err.message } });
@@ -173,6 +178,7 @@ export default async function handler(req, res) {
         await createOrderFromSession(event.data.object);
       } catch (err) {
         console.error('[stripe] checkout.session.completed order creation failed', err);
+        sendAlert(`Order creation failed for session ${event.data.object.id}`, err.stack ?? err.message);
         return res.status(500).json({ error: { code: 'order_creation_failed', message: err.message } });
       }
       break;
