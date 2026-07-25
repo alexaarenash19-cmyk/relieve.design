@@ -1,0 +1,61 @@
+{
+  "name": "order-shipped",
+  "nodes": [
+    {
+      "parameters": { "rule": { "interval": [{ "field": "minutes", "minutesInterval": 20 }] } },
+      "name": "Every 20 minutes",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [0, 0]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT id, number, email, tracking_number, status_token FROM orders WHERE status = 'shipped' AND tracking_number IS NOT NULL AND shipped_tracking_email_sent_at IS NULL"
+      },
+      "name": "Find newly-shipped orders",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [220, 0],
+      "credentials": { "postgres": { "name": "Supabase Postgres" } }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.resend.com/emails",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            { "name": "from", "value": "Relieve <contacto@relieve.design>" },
+            { "name": "to", "value": "={{ $json.email }}" },
+            { "name": "subject", "value": "={{ 'Tu pieza va en camino — pedido ' + $json.number }}" },
+            { "name": "html", "value": "={{ '<p>Tu pedido ' + $json.number + ' ya salió. Número de rastreo: ' + $json.tracking_number + '</p><p>Consulta el estado completo: https://relieve.design/pedido/' + $json.status_token + '</p>' }}" }
+          ]
+        }
+      },
+      "name": "Send tracking email (Resend)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [440, 0],
+      "credentials": { "httpHeaderAuth": { "name": "Resend API Key" } }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "UPDATE orders SET shipped_tracking_email_sent_at = now() WHERE id = {{ $('Find newly-shipped orders').item.json.id }}"
+      },
+      "name": "Mark tracking email sent",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [660, 0],
+      "credentials": { "postgres": { "name": "Supabase Postgres" } }
+    }
+  ],
+  "connections": {
+    "Every 20 minutes": { "main": [[{ "node": "Find newly-shipped orders", "type": "main", "index": 0 }]] },
+    "Find newly-shipped orders": { "main": [[{ "node": "Send tracking email (Resend)", "type": "main", "index": 0 }]] },
+    "Send tracking email (Resend)": { "main": [[{ "node": "Mark tracking email sent", "type": "main", "index": 0 }]] }
+  }
+}
