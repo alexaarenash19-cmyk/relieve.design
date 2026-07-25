@@ -157,6 +157,11 @@ export default async function handler(req, res) {
       process.env.STRIPE_WEBHOOK_SECRET
     );
   } catch (err) {
+    // A wrong/rotated STRIPE_WEBHOOK_SECRET makes every single Stripe event
+    // 400 here forever, silently, with nothing to distinguish it from actual
+    // forged requests — issue #59 needs this in logs, not just in the
+    // response body Stripe's dashboard shows but nobody here is watching.
+    console.error('[stripe] webhook signature verification failed', err.message);
     return res
       .status(400)
       .json({ error: { code: 'invalid_signature', message: err.message } });
