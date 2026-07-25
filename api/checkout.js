@@ -102,7 +102,13 @@ export default async function handler(req, res) {
   try {
     priced = await Promise.all(items.map(priceItem));
   } catch (err) {
+    // PricingError is expected client-input rejection (bad size/frame/place) —
+    // not logged, the 400 body already tells the caller what's wrong. An error
+    // reaching here that ISN'T a PricingError means pricing itself broke
+    // (Supabase down, bad addon config, etc.) — issue #59 needs that visible
+    // in logs, since the 500 body alone gives no way to diagnose it after the fact.
     if (err instanceof PricingError) return sendError(res, 400, err.code, err.message);
+    console.error('[checkout] pricing failed', err);
     return sendError(res, 500, 'db_error', err.message);
   }
 
