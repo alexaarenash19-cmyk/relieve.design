@@ -4,7 +4,7 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { useCart } from '../context/CartContext.jsx';
-import { SIZES, FRAMES, COLORS, PRODUCTION_DAYS, SHIPPING_DAYS } from '../lib/catalog.js';
+import { SIZES, FRAMES, COLORS, PRODUCTION_DAYS, SHIPPING_DAYS, HOW_IT_ARRIVES_STEPS } from '../lib/catalog.js';
 import { useDocumentHead } from '../lib/useDocumentHead.js';
 import RollingPrice from '../components/RollingPrice.jsx';
 import WaitlistDialog from '../components/WaitlistDialog.jsx';
@@ -13,6 +13,8 @@ import Stamp from '../components/Stamp.jsx';
 import BaggageTag from '../components/BaggageTag.jsx';
 import TopoLines from '../components/TopoLines.jsx';
 import Reviews from '../components/Reviews.jsx';
+import HowItArrives from '../components/HowItArrives.jsx';
+import Accordion from '../components/Accordion.jsx';
 import { pieceMainPhoto, pieceDetailPhoto } from '../lib/photography.js';
 import { fetchJson } from '../lib/fetchJsonArray.js';
 
@@ -119,6 +121,39 @@ export default function Product() {
     place.lat && place.lng ? ['Coordenadas', `${place.lat}, ${place.lng}`] : null,
     ['SKU', `RLV-${place.slug.toUpperCase()}-${sizeCode.slice(0, 3).toUpperCase()}`],
   ].filter(Boolean);
+
+  // Issue #83 — separate, fuller spec sheet (Shupatto style) further down
+  // the page, distinct from the compact `specs` strip above (which is
+  // about the PLACE — msnm/coordenadas/SKU). This one is about the OBJECT
+  // itself and reflects the current personalization, so it updates live as
+  // size/frame/color change. No peso/dimensiones de paquete row — that data
+  // doesn't exist in the schema yet (issue #99), not something to guess.
+  const fullSpecs = [
+    ['Material', 'Impresión 3D de alta precisión, acabado mate'],
+    ['Marco', selectedFrame.label],
+    ['Color', selectedColor.label],
+    ['Tamaño', `${selectedSize.label} · ${selectedSize.dims}`],
+    ['Producción', `${PRODUCTION_DAYS} días hábiles`],
+    ['Envío', `${SHIPPING_DAYS} días`],
+    ['Origen', 'Hecho en México'],
+  ];
+
+  const detailsAccordion = [
+    {
+      title: 'Material y acabado',
+      content:
+        'El relieve se imprime en 3D de alta precisión y se enmarca a mano en nogal, roble o negro. Acabado mate en toda la pieza.',
+    },
+    {
+      title: 'Cambios y devoluciones',
+      content:
+        'Por ser piezas personalizadas de fabricación bajo pedido, no aplican cambios ni devoluciones salvo defecto de fabricación.',
+    },
+    {
+      title: 'Factura',
+      content: 'Puedes solicitarla dentro del mismo mes de tu compra con tus datos fiscales.',
+    },
+  ];
 
   function handleAddToCart() {
     addItem({
@@ -322,6 +357,37 @@ export default function Product() {
         ) : (
           <Button onClick={handleAddToCart}>Agregar al carrito</Button>
         )}
+
+        <div className="mt-10">
+          <h2 className="font-label uppercase tracking-wide text-xs mb-2">
+            Especificaciones
+          </h2>
+          <dl className="border-t border-line">
+            {fullSpecs.map(([label, value]) => (
+              <div
+                key={label}
+                className="grid grid-cols-2 border-b border-line py-2 font-label uppercase tracking-wide text-xs"
+              >
+                <dt className="text-graphite/60">{label}</dt>
+                <dd>{value}</dd>
+              </div>
+            ))}
+          </dl>
+        </div>
+
+        <div className="mt-10">
+          <h2 className="font-label uppercase tracking-wide text-xs mb-3">
+            Cómo llega
+          </h2>
+          <HowItArrives steps={HOW_IT_ARRIVES_STEPS} />
+        </div>
+
+        <div className="mt-10">
+          <h2 className="font-label uppercase tracking-wide text-xs mb-2">
+            Detalles
+          </h2>
+          <Accordion items={detailsAccordion} />
+        </div>
 
         <Reviews slug={place.slug} />
       </div>
