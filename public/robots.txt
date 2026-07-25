@@ -3,4 +3,4 @@ Allow: /
 Disallow: /api/
 Disallow: /pedido/
 
-Sitemap: https://relieve-web.vercel.app/sitemap.xml
+Sitemap: https://relieve.design/sitemap.xml
