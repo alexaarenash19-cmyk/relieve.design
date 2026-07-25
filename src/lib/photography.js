@@ -20,9 +20,24 @@ const pieceDetails = import.meta.glob(
     import: 'default',
   },
 );
+// Issue #83 — "cómo llega" 3-step section, shared across every piece (not
+// per-slug like pieces/ above). Empty glob match (no files yet) resolves to
+// {} same as an empty pieces/ folder would, not an error — HowItArrives.jsx
+// falls back to a TopoLines placeholder per step until real photos land.
+const howItArrivesSteps = import.meta.glob(
+  '../assets/photography/how-it-arrives/step-*.{jpg,jpeg,png,webp}',
+  {
+    eager: true,
+    import: 'default',
+  },
+);
 
 function slugFromPath(path) {
   return path.match(/pieces\/([^/]+)\//)?.[1];
+}
+
+function stepNumberFromPath(path) {
+  return path.match(/step-(\d+)/)?.[1];
 }
 
 const mainBySlug = Object.fromEntries(
@@ -30,6 +45,9 @@ const mainBySlug = Object.fromEntries(
 );
 const detailBySlug = Object.fromEntries(
   Object.entries(pieceDetails).map(([path, url]) => [slugFromPath(path), url]),
+);
+const howItArrivesByStep = Object.fromEntries(
+  Object.entries(howItArrivesSteps).map(([path, url]) => [stepNumberFromPath(path), url]),
 );
 
 export const HERO_AERIAL_CITY = heroAerialCity;
@@ -42,6 +60,10 @@ export function pieceMainPhoto(slug) {
 
 export function pieceDetailPhoto(slug) {
   return detailBySlug[slug] ?? null;
+}
+
+export function howItArrivesPhoto(stepNumber) {
+  return howItArrivesByStep[String(stepNumber)] ?? null;
 }
 
 // Canvas tiles render photos at ~180px (90px on mobile), but thumb_url from

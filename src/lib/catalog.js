@@ -30,3 +30,14 @@ export const COLORS = [
   { code: 'grafito', label: 'Grafito', hex: '#232323' }, // --graphite
   { code: 'terracota', label: 'Terracota', hex: '#C1440E' }, // real terracotta-paint swatch, no brand token for it
 ];
+
+// Issue #83 — "Cómo llega / cómo se cuelga" en 3 pasos (ui-ux.md, página de
+// producto). PLACEHOLDER — Ale to confirm/rewrite the real packing/hanging
+// process; wording kept deliberately general, no claimed hardware/materials
+// this codebase has no source for (same spirit as the SIZES/PRODUCTION_DAYS
+// placeholders above).
+export const HOW_IT_ARRIVES_STEPS = [
+  { label: 'Empaque', detail: 'Sale de nuestro estudio embalada para viajar, lista para colgar al abrir la caja.' },
+  { label: 'Instalación', detail: 'Se cuelga como cualquier cuadro — sin herrajes especiales.' },
+  { label: 'Cuidado', detail: 'Acabado mate: se limpia con un paño seco, sin productos abrasivos.' },
+];
