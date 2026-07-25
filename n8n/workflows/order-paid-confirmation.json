@@ -1,0 +1,65 @@
+{
+  "name": "order-paid-confirmation",
+  "nodes": [
+    {
+      "parameters": {
+        "path": "order-paid",
+        "httpMethod": "POST",
+        "responseMode": "onReceived",
+        "options": {}
+      },
+      "name": "order-paid webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [0, 0],
+      "webhookId": "order-paid"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT o.number, o.email, o.subtotal_cents, o.shipping_cents, o.total_cents, o.is_gift, o.status_token, json_agg(json_build_object('place_name', coalesce(p.name, oi.custom_place), 'size_code', oi.size_code, 'frame_code', oi.frame_code, 'qty', oi.qty, 'unit_price_cents', oi.unit_price_cents) order by oi.id) as items FROM orders o JOIN order_items oi ON oi.order_id = o.id LEFT JOIN places p ON p.id = oi.place_id WHERE o.id = {{ $json.body.order_id }} GROUP BY o.id"
+      },
+      "name": "Load order + items",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [220, 0],
+      "credentials": { "postgres": { "name": "Supabase Postgres" } }
+    },
+    {
+      "parameters": {
+        "jsCode": "const o = items[0].json;\nconst money = (c) => '$' + (c / 100).toFixed(2) + ' MXN';\nconst rows = o.items.map(i => `\n  <tr>\n    <td style=\"padding:8px 0;border-bottom:1px dashed #C8C3BC;\">${i.place_name} · ${i.size_code} · ${i.frame_code}${i.qty > 1 ? ' ×' + i.qty : ''}</td>\n    <td style=\"padding:8px 0;border-bottom:1px dashed #C8C3BC;text-align:right;font-family:'Courier New',monospace;\">${money(i.unit_price_cents * i.qty)}</td>\n  </tr>`).join('');\nconst html = `\n<div style=\"max-width:520px;margin:0 auto;font-family:Georgia,serif;color:#232323;background:#F6F3ED;padding:32px 28px;border:1px solid #DCD5C8;\">\n  <p style=\"font-family:'Courier New',monospace;font-size:11px;letter-spacing:0.14em;text-transform:uppercase;color:#7A5A43;margin:0 0 6px;\">Pase de abordar · Pedido confirmado</p>\n  <h1 style=\"font-weight:300;font-size:28px;margin:0 0 20px;\">relieve</h1>\n  <table style=\"width:100%;border-collapse:collapse;font-family:Arial,sans-serif;font-size:14px;margin-bottom:16px;\">${rows}</table>\n  <table style=\"width:100%;font-family:'Courier New',monospace;font-size:12px;margin-bottom:24px;\">\n    <tr><td>Subtotal</td><td style=\"text-align:right;\">${money(o.subtotal_cents)}</td></tr>\n    <tr><td>Envío</td><td style=\"text-align:right;\">${money(o.shipping_cents)}</td></tr>\n    <tr><td style=\"font-weight:bold;padding-top:6px;\">Total</td><td style=\"text-align:right;font-weight:bold;padding-top:6px;\">${money(o.total_cents)}</td></tr>\n  </table>\n  <p style=\"font-family:Arial,sans-serif;font-size:14px;\">Pedido <b>${o.number}</b> confirmado. Empieza el proceso de fabricación — te avisamos por correo en cuanto salga de nuestro estudio.</p>\n  <p style=\"margin-top:24px;\"><a href=\"https://relieve.design/pedido/${o.status_token}\" style=\"font-family:'Courier New',monospace;font-size:12px;letter-spacing:0.06em;text-transform:uppercase;color:#22405C;\">Ver estado del pedido →</a></p>\n</div>`;\nreturn [{ json: { ...o, html } }];"
+      },
+      "name": "Build boarding-pass HTML",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [440, 0]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.resend.com/emails",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            { "name": "from", "value": "Relieve <contacto@relieve.design>" },
+            { "name": "to", "value": "={{ $json.email }}" },
+            { "name": "subject", "value": "={{ 'Pedido confirmado — ' + $json.number }}" },
+            { "name": "html", "value": "={{ $json.html }}" }
+          ]
+        }
+      },
+      "name": "Send confirmation email (Resend)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [660, 0],
+      "credentials": { "httpHeaderAuth": { "name": "Resend API Key" } }
+    }
+  ],
+  "connections": {
+    "order-paid webhook": { "main": [[{ "node": "Load order + items", "type": "main", "index": 0 }]] },
+    "Load order + items": { "main": [[{ "node": "Build boarding-pass HTML", "type": "main", "index": 0 }]] },
+    "Build boarding-pass HTML": { "main": [[{ "node": "Send confirmation email (Resend)", "type": "main", "index": 0 }]] }
+  }
+}
