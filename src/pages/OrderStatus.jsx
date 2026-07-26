@@ -9,6 +9,31 @@ const STAGES = [
   { code: 'delivered', label: 'Entregado' },
 ];
 
+// Sección 6 + 10 del brief Rayo X (jul 2026) — copy narrativo por estado,
+// no solo un tablero de estado técnico. 'paid' (recién recibido) lleva el
+// tratamiento completo (cuerpo + línea de tiempo + cierre); los estados
+// siguientes son solo una línea, ya con contexto suficiente. Sin entrada
+// para 'delivered' — el brief no da copy para ese estado, no se inventa.
+const STATE_COPY = {
+  paid: {
+    headline: 'Tu pieza empieza a existir ahora.',
+    body: 'Esto es lo que va a pasar en las próximas semanas: encargamos y preparamos tu marco, tallamos tu lugar con precisión cartográfica, lo montamos y lo empacamos como parte de la pieza — no como contenedor. Te avisamos en cada paso.',
+    closing: 'Gracias por confiar en un objeto que no existía hasta que lo pediste.',
+  },
+  in_production: {
+    headline: 'Estamos tallando tu lugar ahora mismo.',
+  },
+  shipped: {
+    headline: 'Tu pieza va en camino — como toda pieza de encargo, no hay otra igual.',
+  },
+};
+
+const CONFIRMATION_TIMELINE = [
+  'Preparamos tu marco',
+  'Tallamos tu lugar con precisión cartográfica',
+  'Montamos y empacamos tu pieza',
+];
+
 export default function OrderStatus() {
   const { token } = useParams();
   const [order, setOrder] = useState(null);
@@ -47,12 +72,31 @@ export default function OrderStatus() {
   }
 
   const currentIndex = STAGES.findIndex((s) => s.code === order.status);
+  const stateCopy = STATE_COPY[order.status];
 
   return (
     <main className="max-w-2xl mx-auto p-8">
-      <h1 className="font-label uppercase tracking-wide text-lg mb-8">
+      <p className="font-label uppercase tracking-wide text-xs text-graphite/60 mb-2">
         Pedido {order.number}
-      </h1>
+      </p>
+
+      {stateCopy && (
+        <h1 className="font-display font-light text-2xl md:text-3xl mb-4">
+          {stateCopy.headline}
+        </h1>
+      )}
+
+      {stateCopy?.body && (
+        <>
+          <p className="text-graphite/80 mb-4">{stateCopy.body}</p>
+          <ol className="mb-6 pl-5 list-decimal text-sm text-graphite/70 space-y-1">
+            {CONFIRMATION_TIMELINE.map((step) => (
+              <li key={step}>{step}</li>
+            ))}
+          </ol>
+          <p className="text-graphite/80 mb-8 italic">{stateCopy.closing}</p>
+        </>
+      )}
 
       <ol className="flex justify-between">
         {STAGES.map((stage, i) => (
