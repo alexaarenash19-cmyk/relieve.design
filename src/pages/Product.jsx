@@ -175,15 +175,16 @@ export default function Product() {
     <main className="grid md:grid-cols-2 gap-8 p-8 max-w-5xl mx-auto">
       <div>
         {/* No per-variant photography exists (a made-to-order piece can't
-            be pre-shot in every size/color/frame combination) — the frame
-            border and background color respond to the actual selection
-            instead, a real visual preview rather than a static photo. */}
+            be pre-shot in every size/color/frame combination) — background
+            color responds to the actual selection instead, as a rough
+            preview. No frame-colored border: the real photo already shows
+            the actual frame, so an extra colored border around it was just
+            visual clutter. */}
         <div
           key={place.slug + activePhoto}
-          className="warp-reveal warm-photo relative aspect-square rounded-[9px] overflow-hidden flex items-center justify-center transition-[border-color] duration-300"
+          className="warp-reveal warm-photo relative aspect-square rounded-[9px] overflow-hidden flex items-center justify-center"
           style={{
             backgroundColor: selectedColor?.hex ?? '#C8C3BC',
-            border: `10px solid ${selectedFrame?.hex ?? '#7A5A43'}`,
           }}
         >
           {activePhoto ? (
@@ -193,10 +194,7 @@ export default function Product() {
               className="w-full h-full object-cover"
             />
           ) : (
-            <span
-              className="font-label uppercase tracking-wide text-xs px-3 py-1 rounded"
-              style={{ border: `4px solid ${selectedFrame?.hex ?? 'transparent'}` }}
-            >
+            <span className="font-label uppercase tracking-wide text-xs px-3 py-1 rounded">
               {place.name}
             </span>
           )}
