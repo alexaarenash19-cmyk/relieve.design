@@ -405,7 +405,7 @@ function BottomControlBar({
   // position in the infinite canvas, per Ale's feedback (was sticky, which
   // stopped tracking once you scrolled past its containing section).
   return (
-    <div className="fixed bottom-5 inset-x-0 z-30 flex justify-center">
+    <div className="fixed bottom-5 left-0 right-52 z-30 flex justify-center">
       <div className="relative flex flex-wrap items-center justify-center gap-2 px-4">
         <button
           onClick={toggleMenu}
