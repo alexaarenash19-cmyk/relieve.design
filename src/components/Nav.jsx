@@ -84,6 +84,12 @@ export default function Nav() {
         >
           Buscar
         </Link>
+        <Link
+          to="/regalar"
+          className="hover:text-passport-ink transition-colors"
+        >
+          Regalar
+        </Link>
         <button
           onClick={toggleCart}
           className="font-label uppercase tracking-wide hover:text-passport-ink transition-colors"
