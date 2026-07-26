@@ -21,6 +21,11 @@
   --font-display: "Fraunces", serif;
   --font-label: "Courier Prime", monospace;
   --font-body: "Inter", sans-serif;
+  /* Nav wordmark only (2026-07-25, Ale's call) — geometric bold sans to
+     match a reference ("Palmer") she pointed to, deliberately NOT the same
+     token as --font-display. Scoped to Nav.jsx; the rest of the site's
+     type system (Fraunces/Courier Prime/Inter) is untouched. */
+  --font-wordmark: "Poppins", sans-serif;
 
   /* Pinned to its literal pixel value, overriding Tailwind's default
      dynamic spacing scale (where mt-96 would otherwise compute to
