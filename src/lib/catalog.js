@@ -3,14 +3,15 @@
 // to list four small static tables. If admin ever edits these live, add a
 // GET /api/catalog and fetch instead.
 //
-// PLACEHOLDER labels — Ale will confirm/rename these; only `label` needs to
-// change (`code` stays stable, it's what cart/pricing/orders key on), and
-// changing it here updates every piece at once, nothing hardcoded per SKU.
+// Public labels per Rayo X brief (jul 2026), sección 2 — reframe de eje de
+// decisión de tamaño físico a contexto emocional/social de uso. `code`
+// stays stable (DB/Stripe/CFDI/n8n key on it), only `label`/`tagline` are
+// customer-facing.
 export const SIZES = [
-  { code: 'chico', label: 'Mini', dims: '20x25 cm' },
-  { code: 'mediano', label: 'Mediano', dims: '30x40 cm', featured: true },
-  { code: 'grande', label: 'Grande', dims: '40x50 cm' },
-  { code: 'especial', label: 'King', dims: '50x70 cm' },
+  { code: 'chico', label: 'Para ti', dims: '20x25 cm', tagline: 'La pieza para tu propio espacio — donde solo tú la ves cada día.' },
+  { code: 'mediano', label: 'El que se cuenta', dims: '30x40 cm', featured: true, tagline: 'El tamaño que la gente ve primero al entrar a la sala — el más elegido para regalar.' },
+  { code: 'grande', label: 'Pieza de casa', dims: '40x50 cm', tagline: 'Presencia real de pared — la que ancla un espacio.' },
+  { code: 'especial', label: 'La pieza ancla', dims: '50x70 cm', tagline: 'El statement — para el lugar que lo cambió todo.' },
 ];
 
 // PLACEHOLDER — Ale to confirm real production/shipping timelines. One
