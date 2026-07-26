@@ -10,12 +10,17 @@
 // cropped to its own bounding box so it isn't mostly empty canvas) composed
 // with real DOM text instead — an <img> of baked-in text would render in a
 // generic fallback serif (images don't inherit the page's @font-face), so
-// "RELIEVE"/"DESIGN" are actual text in the site's own Fraunces/Courier
-// Prime, which also makes future wordmark copy changes a text edit instead
-// of a re-export. Icon recolored to `#B9CCD8` (blue`, ui-ux.md's palette —
-// Ale's call, the one reserved for details/accents, not primary text) — at
-// nav size (~28px) that reads intentionally subtle against the cream bg,
-// not a mistake; the wordmark stays in passport-ink so it's actually legible.
+// "RELIEVE"/"DESIGN" are actual text, which also makes future wordmark copy
+// changes a text edit instead of a re-export. Icon recolored to `#B9CCD8`
+// (blue, ui-ux.md's palette — Ale's call, the one reserved for
+// details/accents, not primary text) — at nav size (~28px) that reads
+// intentionally subtle against the cream bg, not a mistake; the wordmark
+// stays in passport-ink so it's actually legible.
+// Wordmark typeface (2026-07-25, same day): Ale didn't like Fraunces/Courier
+// Prime here, wants this one spot to match a reference ("Palmer") — bold
+// geometric sans. Uses `font-wordmark` (Poppins, index.css's @theme), a
+// token scoped to exactly this lockup — not `font-display`, so this doesn't
+// touch Fraunces anywhere else on the site.
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useCart } from '../context/CartContext.jsx';
@@ -63,10 +68,10 @@ export default function Nav() {
       <Link to="/" className="flex items-center gap-2">
         <img src={markIcon} alt="" className="h-7 w-auto" />
         <span className="flex flex-col leading-none">
-          <span className="font-display font-light text-lg tracking-tight text-passport-ink">
+          <span className="font-wordmark font-bold text-lg tracking-tight text-passport-ink">
             RELIEVE
           </span>
-          <span className="font-label text-[9px] tracking-[0.3em] text-passport-ink/70 mt-0.5">
+          <span className="font-wordmark font-semibold text-[9px] tracking-[0.15em] text-passport-ink/70 mt-0.5">
             DESIGN
           </span>
         </span>
