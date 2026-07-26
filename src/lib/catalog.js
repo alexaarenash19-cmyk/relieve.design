@@ -43,3 +43,10 @@ export const HOW_IT_ARRIVES_STEPS = [
   { label: 'Instalación', detail: 'Se cuelga como cualquier cuadro — sin herrajes especiales.' },
   { label: 'Cuidado', detail: 'Acabado mate: se limpia con un paño seco, sin productos abrasivos.' },
 ];
+
+// Sección 1 + 8 del brief Rayo X (jul 2026) — bloque de prueba social en el
+// hero, oculto hasta que existan 3-5 reseñas reales de las piezas
+// fundadoras. Flag a nivel de código (no hay infraestructura de config en
+// vivo en este repo todavía) — cambiar a `true` y hacer deploy en cuanto
+// lleguen las primeras reseñas.
+export const SHOW_SOCIAL_PROOF = false;

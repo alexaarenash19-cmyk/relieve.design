@@ -6,9 +6,11 @@
 // (stage 4, the print goes white) that's what shows through.
 import HeroScene from './HeroScene.jsx';
 import TopoLines from './TopoLines.jsx';
+import Button from './Button.jsx';
 import { useHeroScroll } from '../context/HeroScrollContext.jsx';
 import { stageProgress } from '../lib/heroStages.js';
 import { HERO_AERIAL_CITY } from '../lib/photography.js';
+import { SHOW_SOCIAL_PROOF } from '../lib/catalog.js';
 
 export default function HeroSection() {
   const { progress } = useHeroScroll();
@@ -42,16 +44,33 @@ export default function HeroSection() {
           className="font-display font-light text-[clamp(2rem,3.2vw+1rem,3.75rem)] leading-[1.05] tracking-[-0.02em] text-dark-fg"
           style={{ textShadow: '0 2px 24px rgba(26,27,25,0.55)' }}
         >
-          Arquitectura de Autor, a Escala de Mano
+          No recuerdas un lugar. Recuerdas quién eras ahí.
         </h1>
         <h2
           className="mt-3 font-light text-[clamp(0.9rem,1vw+0.6rem,1.15rem)] leading-snug text-dark-fg/90"
           style={{ textShadow: '0 2px 16px rgba(26,27,25,0.5)' }}
         >
-          Impresión 3D de precisión arquitectónica, enmarcada a mano en maderas nobles mexicanas — piezas de autor y regalos de diseño coleccionables, hechos en México.
+          Relieve talla ese lugar en relieve topográfico, montado en madera, con calidad de galería — hecho por encargo, una pieza a la vez.
         </h2>
+        <Button as="a" href="/colecciones" className="mt-5">
+          Encargar mi pieza
+        </Button>
         <p
-          className="mt-4 text-[clamp(0.75rem,0.6vw+0.55rem,0.9rem)] leading-snug text-dark-fg/70 max-w-md"
+          className="mt-2 text-[clamp(0.7rem,0.55vw+0.5rem,0.85rem)] leading-snug text-dark-fg/70"
+          style={{ textShadow: '0 2px 12px rgba(26,27,25,0.45)' }}
+        >
+          Hecho a mano en México · Sin inventario · Cada pieza es única
+        </p>
+        {SHOW_SOCIAL_PROOF && (
+          <p
+            className="mt-2 text-[clamp(0.7rem,0.55vw+0.5rem,0.85rem)] leading-snug text-dark-fg/70 underline"
+            style={{ textShadow: '0 2px 12px rgba(26,27,25,0.45)' }}
+          >
+            Las primeras piezas ya están en paredes reales — mira dónde.
+          </p>
+        )}
+        <p
+          className="mt-4 text-[clamp(0.7rem,0.5vw+0.5rem,0.82rem)] leading-snug text-dark-fg/60 max-w-md"
           style={{ textShadow: '0 2px 12px rgba(26,27,25,0.45)' }}
         >
           Relieve Design es un estudio mexicano que crea mapas en relieve impresos en 3D con marco de madera noble mexicana, diseñados por arquitectos y hechos a mano en México.
