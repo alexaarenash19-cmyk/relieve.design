@@ -248,21 +248,30 @@ export default function Product() {
         )}
 
         <fieldset className="mb-4">
-          <legend className="font-label uppercase tracking-wide text-xs mb-2">Tamaño</legend>
+          <legend className="font-label uppercase tracking-wide text-xs mb-2">
+            ¿Para quién es esta pieza — para ti, o para presumirla?
+          </legend>
           <div className="flex flex-wrap gap-2">
             {SIZES.map((s) => (
               <button
                 key={s.code}
                 onClick={() => setSizeCode(s.code)}
                 className={`px-3 py-1 rounded-full border text-sm ${
-                  sizeCode === s.code ? 'bg-sello-navy text-dark-bg border-sello-navy' : 'border-line'
+                  sizeCode === s.code
+                    ? 'bg-sello-navy text-dark-bg border-sello-navy'
+                    : s.featured
+                      ? 'border-sello-navy border-2'
+                      : 'border-line'
                 }`}
               >
                 {s.label}
-                {s.featured && <span className="ml-1 text-xs opacity-70">· el más elegido</span>}
+                {s.featured && <span className="ml-1 text-xs opacity-70">· el más elegido para regalar</span>}
               </button>
             ))}
           </div>
+          {selectedSize?.tagline && (
+            <p className="mt-2 text-xs text-graphite/70">{selectedSize.tagline}</p>
+          )}
         </fieldset>
 
         <fieldset className="mb-4">
