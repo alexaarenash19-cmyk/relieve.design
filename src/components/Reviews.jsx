@@ -61,15 +61,20 @@ export default function Reviews({ slug }) {
     };
   }, [slug]);
 
-  if (reviews.length === 0) return null;
+  // Sección 8 del brief Rayo X (jul 2026) — formato obligatorio: nombre,
+  // ciudad y foto de la pieza instalada. Nunca solo estrellas + texto
+  // genérico sin foto, aunque algún registro viejo/manual no las tenga.
+  const displayable = reviews.filter((r) => r.photo_url && r.customer && r.city);
+
+  if (displayable.length === 0) return null;
 
   return (
     <section className="mt-8 pt-6 border-t border-line">
       <h2 className="font-label uppercase tracking-wide text-xs text-graphite/60 mb-4">
-        Reseñas ({reviews.length})
+        Reseñas ({displayable.length})
       </h2>
       <ul className="flex flex-col gap-3">
-        {reviews.map((r, i) => (
+        {displayable.map((r, i) => (
           <ReviewCard key={r.customer + i} review={r} />
         ))}
       </ul>
