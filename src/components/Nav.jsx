@@ -5,10 +5,21 @@
 // gallery's floating menu/filter buttons), same as `(pointer: fine)` hides
 // the native cursor for a hover-driven pill elsewhere. Coarse pointers
 // (touch) have no hover concept, so the bar just stays visible there.
+// New logo (2026-07-25): the old lockup (mountain icon + "RELIEVE MÉXICO")
+// was a single flattened PNG. Replaced with the new topographic mark (SVG,
+// cropped to its own bounding box so it isn't mostly empty canvas) composed
+// with real DOM text instead — an <img> of baked-in text would render in a
+// generic fallback serif (images don't inherit the page's @font-face), so
+// "RELIEVE"/"DESIGN" are actual text in the site's own Fraunces/Courier
+// Prime, which also makes future wordmark copy changes a text edit instead
+// of a re-export. Icon recolored to `#B9CCD8` (blue`, ui-ux.md's palette —
+// Ale's call, the one reserved for details/accents, not primary text) — at
+// nav size (~28px) that reads intentionally subtle against the cream bg,
+// not a mistake; the wordmark stays in passport-ink so it's actually legible.
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useCart } from '../context/CartContext.jsx';
-import logoHorizontal from '../assets/brand/logo-horizontal.png';
+import markIcon from '../assets/brand/mark.svg';
 
 const REVEAL_ZONE_PX = 72;
 
@@ -49,8 +60,16 @@ export default function Nav() {
           : 'bg-transparent'
       } ${visible ? 'translate-y-0 opacity-100' : '-translate-y-full opacity-0 pointer-events-none'}`}
     >
-      <Link to="/" className="flex items-center">
-        <img src={logoHorizontal} alt="Relieve México" className="h-6 w-auto" />
+      <Link to="/" className="flex items-center gap-2">
+        <img src={markIcon} alt="" className="h-7 w-auto" />
+        <span className="flex flex-col leading-none">
+          <span className="font-display font-light text-lg tracking-tight text-passport-ink">
+            RELIEVE
+          </span>
+          <span className="font-label text-[9px] tracking-[0.3em] text-passport-ink/70 mt-0.5">
+            DESIGN
+          </span>
+        </span>
       </Link>
       <div className="flex items-center gap-6 font-label uppercase tracking-wide text-xs">
         <Link
