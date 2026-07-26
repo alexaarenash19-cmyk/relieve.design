@@ -19,7 +19,7 @@ export const PRODUCTION_DAYS = '10–15';
 export const SHIPPING_DAYS = '3–5';
 
 export const FRAMES = [
-  { code: 'nogal', label: 'Nogal', hex: '#7A5A43' }, // --walnut — ui-ux.md "marco de nogal"
+  { code: 'parota', label: 'Parota Nacional', hex: '#8A6844' }, // real product frame wood — replaces 'nogal' (never a real option; kept in DB only for existing order_items FK integrity)
   { code: 'roble', label: 'Roble', hex: '#B08D57' }, // real oak swatch, no brand token for it
   { code: 'negro', label: 'Negro', hex: '#232323' }, // --graphite (no pure black — ui-ux.md)
 ];
@@ -29,6 +29,7 @@ export const COLORS = [
   { code: 'arena', label: 'Arena', hex: '#C2B280' }, // real sand-paint swatch, no brand token for it
   { code: 'grafito', label: 'Grafito', hex: '#232323' }, // --graphite
   { code: 'terracota', label: 'Terracota', hex: '#C1440E' }, // real terracotta-paint swatch, no brand token for it
+  { code: 'negromate', label: 'Negro mate', hex: '#1C1C1C' }, // real matte-black color option
 ];
 
 // Issue #83 — "Cómo llega / cómo se cuelga" en 3 pasos (ui-ux.md, página de
