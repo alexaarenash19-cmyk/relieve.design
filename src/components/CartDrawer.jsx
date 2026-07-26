@@ -154,12 +154,17 @@ export default function CartDrawer() {
             Es un regalo
           </label>
           {isGift && (
-            <textarea
-              className="w-full mt-2 border border-line rounded p-2 normal-case font-body text-sm"
-              placeholder="Mensaje de regalo"
-              value={giftMessage}
-              onChange={(e) => setGiftMessage(e.target.value)}
-            />
+            <>
+              <textarea
+                className="w-full mt-2 border border-line rounded p-2 normal-case font-body text-sm"
+                placeholder="Mensaje de regalo"
+                value={giftMessage}
+                onChange={(e) => setGiftMessage(e.target.value)}
+              />
+              <p className="normal-case font-body text-xs text-graphite/60 mt-2">
+                ¿Se envía directo al destinatario? Escribe su dirección en el envío al pagar — no tiene que coincidir con la tuya.
+              </p>
+            </>
           )}
 
           {items.length > 0 && (

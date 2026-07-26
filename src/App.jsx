@@ -20,6 +20,7 @@ import SocialLinks from './components/SocialLinks.jsx';
 const Home = lazy(() => import('./pages/Home.jsx'));
 const OrderSuccess = lazy(() => import('./pages/OrderSuccess.jsx'));
 const Collections = lazy(() => import('./pages/Collections.jsx'));
+const Gift = lazy(() => import('./pages/Gift.jsx'));
 const Collection = lazy(() => import('./pages/Collection.jsx'));
 const Product = lazy(() => import('./pages/Product.jsx'));
 const Personalize = lazy(() => import('./pages/Personalize.jsx'));
@@ -75,6 +76,7 @@ export default function App() {
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/colecciones" element={<Collections />} />
+          <Route path="/regalar" element={<Gift />} />
           <Route path="/coleccion/:slug" element={<Collection />} />
           <Route path="/pieza/:slug" element={<Product />} />
           <Route path="/personaliza" element={<Personalize />} />
