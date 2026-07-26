@@ -26,3 +26,7 @@ on conflict (code) do nothing;
 insert into colors (code, label, hex, sort) values
   ('negromate', 'Negro mate', '#1C1C1C', 5)
 on conflict (code) do nothing;
+
+-- Correction: the real product frames are Parota Nacional, not Nogal —
+-- 'nogal' was never a real option and is removed here.
+delete from frames where code = 'nogal';
