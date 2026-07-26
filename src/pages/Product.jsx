@@ -148,7 +148,7 @@ export default function Product() {
     {
       title: 'Cambios y devoluciones',
       content:
-        'Por ser piezas personalizadas de fabricación bajo pedido, no aplican cambios ni devoluciones salvo defecto de fabricación.',
+        'Por ser piezas hechas por encargo, de fabricación bajo pedido, no aplican cambios ni devoluciones salvo defecto de fabricación.',
     },
     {
       title: 'Factura',

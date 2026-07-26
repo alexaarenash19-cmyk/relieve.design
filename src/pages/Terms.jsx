@@ -31,7 +31,7 @@ export default function Terms() {
         Cancelaciones y devoluciones
       </h2>
       <p className="mb-4">
-        Por ser piezas personalizadas de fabricación bajo pedido, no
+        Por ser piezas hechas por encargo, de fabricación bajo pedido, no
         aplican cambios ni devoluciones salvo defecto de fabricación.
         Escríbenos a{' '}
         <a className="text-passport-ink underline" href="mailto:hola@relieve.mx">

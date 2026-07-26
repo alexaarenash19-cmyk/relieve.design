@@ -44,7 +44,7 @@ export const TRAVEL_ESSENTIALS = [
 
 export const LUGGAGE_STICKERS = [
   { title: 'Hecho en México', body: 'Diseñado y fabricado localmente.' },
-  { title: 'Destino Personalizado', body: 'Creamos mapas personalizados de lugares significativos.' },
+  { title: 'Destino de Encargo', body: 'Creamos mapas hechos por encargo de lugares significativos.' },
   { title: 'Producción Limitada', body: 'Fabricamos bajo pedido para garantizar la calidad.' },
   { title: 'Diseño Topográfico', body: 'Inspirado en la cartografía y la arquitectura.' },
   { title: 'Recuerdos de Viaje', body: 'Cada pieza conserva la memoria de un lugar.' },
@@ -56,7 +56,7 @@ export const AUTHORIZED_DESTINATIONS = [
   'Parques Nacionales',
   'Costas',
   'Islas',
-  'Coordenadas Personalizadas',
+  'Coordenadas de Encargo',
 ];
 
 // Shape/tone/rotate per stamp so the visa page reads as 8 distinct stamps,
