@@ -9,7 +9,7 @@ export default function Shipping() {
       </p>
 
       <ul className="mb-4 list-disc pl-6 space-y-2">
-        <li>Envío sin costo en pedidos mayores a $2,500 MXN.</li>
+        <li>Envío incluido en pedidos mayores a $2,500 MXN.</li>
         <li>Producción: cada pieza se fabrica bajo pedido, ver tiempo estimado en el checkout.</li>
         <li>Empaque protegido para piezas enmarcadas.</li>
         <li>Recibirás número de rastreo y notificaciones por correo.</li>
