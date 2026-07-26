@@ -75,7 +75,16 @@ async function handlePost(req, res) {
   if (!Number.isInteger(rating) || rating < 1 || rating > 5) {
     return sendError(res, 400, 'invalid_rating', 'rating must be an integer from 1 to 5');
   }
-  if (photo && !ALLOWED_PHOTO_MIME.has(photo.mimetype)) {
+  // Brief Rayo X (jul 2026) sección 8 — formato de reseña obligatorio:
+  // nombre real (o nombre + inicial), ciudad, y foto de la pieza instalada.
+  // Nunca solo estrellas + texto genérico.
+  if (!customer || !city) {
+    return sendError(res, 400, 'invalid_request', 'customer and city are required');
+  }
+  if (!photo) {
+    return sendError(res, 400, 'invalid_request', 'photo is required — no se aceptan reseñas sin foto de la pieza instalada');
+  }
+  if (!ALLOWED_PHOTO_MIME.has(photo.mimetype)) {
     return sendError(res, 400, 'invalid_photo', 'photo must be JPEG, PNG, WEBP, or GIF');
   }
 
