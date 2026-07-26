@@ -166,7 +166,7 @@ export default function ProductPanel() {
                 onClick={closeProduct}
                 className="w-full"
               >
-                Personalizar
+                Encargar
               </Button>
             </>
           )}

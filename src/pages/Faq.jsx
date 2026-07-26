@@ -1,7 +1,7 @@
 const FAQS = [
   {
     q: '¿Cómo elijo el lugar de mi pieza?',
-    a: 'Puedes buscar entre nuestro catálogo de ciudades y montañas, o pedir una ubicación personalizada en /personaliza si el lugar que quieres no está en el catálogo.',
+    a: 'Puedes buscar entre nuestro catálogo de ciudades y montañas, o encargar un lugar que no esté en el catálogo desde /personaliza.',
   },
   {
     q: '¿Cuánto tarda en llegar?',
@@ -17,7 +17,7 @@ const FAQS = [
   },
   {
     q: '¿Aceptan devoluciones?',
-    a: 'Por ser piezas personalizadas de fabricación bajo pedido, no aplican cambios ni devoluciones salvo defecto de fabricación.',
+    a: 'Por ser piezas hechas por encargo, de fabricación bajo pedido, no aplican cambios ni devoluciones salvo defecto de fabricación.',
   },
   {
     q: '¿Qué pasa si mi lugar está agotado?',
