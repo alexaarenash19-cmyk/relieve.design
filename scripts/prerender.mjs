@@ -37,7 +37,7 @@ const STATIC_ROUTES = ['/', '/personaliza', '/buscar', '/sobre', '/envios', '/fa
 const STATIC_PAGES = {
   '/sobre': {
     title: 'Sobre Relieve — Mapas en relieve hechos a mano',
-    description: 'Cómo hacemos cada pieza: datos de elevación reales, impresión 3D, marco de nogal armado a mano. Sin coordenadas inventadas.',
+    description: 'Cómo hacemos cada pieza: datos de elevación reales, impresión 3D, marco de parota armado a mano. Sin coordenadas inventadas.',
   },
   '/buscar': {
     title: 'Buscar un lugar — Relieve',

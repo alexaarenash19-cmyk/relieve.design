@@ -14,9 +14,17 @@ function Step({ progress, caption, showPhoto }) {
         {showPhoto && (
           <>
             <img src={HERO_AERIAL_CITY} alt="" className="warm-photo absolute inset-0 w-full h-full object-cover" />
-            <h1 className="absolute top-8 left-8 font-display font-light text-[clamp(3.5rem,4vw+2rem,6rem)] leading-[1.05] tracking-[-0.02em] text-dark-fg" style={{ textShadow: '0 2px 24px rgba(26,27,25,0.55)' }}>
-              Relieve
-            </h1>
+            <div className="absolute top-8 left-8 right-8 md:right-auto md:max-w-xl">
+              <h1 className="font-display font-light text-[clamp(2rem,3.2vw+1rem,3.75rem)] leading-[1.05] tracking-[-0.02em] text-dark-fg" style={{ textShadow: '0 2px 24px rgba(26,27,25,0.55)' }}>
+                Arquitectura de Autor, a Escala de Mano
+              </h1>
+              <h2 className="mt-3 font-light text-[clamp(0.9rem,1vw+0.6rem,1.15rem)] leading-snug text-dark-fg/90" style={{ textShadow: '0 2px 16px rgba(26,27,25,0.5)' }}>
+                Impresión 3D de precisión arquitectónica, enmarcada a mano en maderas nobles mexicanas — piezas de autor y regalos de diseño coleccionables, hechos en México.
+              </h2>
+              <p className="mt-4 text-[clamp(0.75rem,0.6vw+0.55rem,0.9rem)] leading-snug text-dark-fg/70 max-w-md" style={{ textShadow: '0 2px 12px rgba(26,27,25,0.45)' }}>
+                Relieve Design es un estudio mexicano que crea mapas en relieve impresos en 3D con marco de madera noble mexicana, diseñados por arquitectos y hechos a mano en México.
+              </p>
+            </div>
           </>
         )}
         <HeroScene progress={progress} />
