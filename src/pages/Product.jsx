@@ -11,7 +11,6 @@ import WaitlistDialog from '../components/WaitlistDialog.jsx';
 import Button from '../components/Button.jsx';
 import Stamp from '../components/Stamp.jsx';
 import BaggageTag from '../components/BaggageTag.jsx';
-import TopoLines from '../components/TopoLines.jsx';
 import Reviews from '../components/Reviews.jsx';
 import HowItArrives from '../components/HowItArrives.jsx';
 import Accordion from '../components/Accordion.jsx';
@@ -200,9 +199,6 @@ export default function Product() {
             >
               {place.name}
             </span>
-          )}
-          {activePhoto && (
-            <TopoLines className="absolute inset-0 w-full h-full text-dark-fg mix-blend-screen opacity-70 pointer-events-none" />
           )}
         </div>
         {(place.thumb_url || place.detail_url) && (

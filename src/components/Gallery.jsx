@@ -9,7 +9,6 @@ import { CATEGORIES } from '../lib/categories.js';
 import { SIZES } from '../lib/catalog.js';
 import { useProductPanel } from '../context/ProductPanelContext.jsx';
 import Stamp from './Stamp.jsx';
-import TopoLines from './TopoLines.jsx';
 
 // Grid-aligned, hand-placed cells — straight, never overlapping, varied
 // sizes (1x1 / 2x2) but locked to a 4-col grid, not free/random positions.
@@ -114,8 +113,6 @@ export function GalleryCard({ place, variant = 'grid', slot }) {
             {place.name}
           </span>
         )}
-        {/* Route/contour overlay drawn ON the photo, not floating alone. */}
-        <TopoLines className="absolute inset-0 w-full h-full text-dark-fg mix-blend-screen opacity-70 pointer-events-none" />
         {variant !== 'scattered' && (
           <Stamp
             label="Ver pieza"
