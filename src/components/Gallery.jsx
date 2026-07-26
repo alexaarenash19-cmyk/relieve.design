@@ -405,8 +405,8 @@ function BottomControlBar({
   // position in the infinite canvas, per Ale's feedback (was sticky, which
   // stopped tracking once you scrolled past its containing section).
   return (
-    <div className="fixed bottom-5 left-0 right-52 z-30 flex justify-center">
-      <div className="relative flex flex-wrap items-center justify-center gap-2 px-4">
+    <div className="fixed bottom-5 inset-x-0 z-30 flex justify-center pointer-events-none">
+      <div className="relative flex flex-wrap items-center justify-center gap-2 px-4 max-w-[calc(100vw-28rem)] pointer-events-auto">
         <button
           onClick={toggleMenu}
           className={menuOpen ? DARK_PILL : GHOST_PILL}
@@ -524,8 +524,8 @@ function BottomControlBar({
 // small type, not sharing the centered row.
 function DragHintAndZoom({ setZoom, showHint }) {
   return (
-    <div className="sticky bottom-5 z-30 flex justify-end pr-6">
-      <div className="flex items-center gap-2">
+    <div className="sticky bottom-5 z-30 flex justify-end pr-6 pointer-events-none">
+      <div className="flex items-center gap-2 pointer-events-auto">
         {showHint && (
           <span className="font-label uppercase tracking-wide text-[9px] text-graphite/50">
             drag to explore
