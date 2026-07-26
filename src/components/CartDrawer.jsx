@@ -140,10 +140,10 @@ export default function CartDrawer() {
 
           {remaining > 0 ? (
             <p className="normal-case font-body text-xs mt-2 text-graphite/70">
-              Te faltan {money(remaining)} para envío gratis.
+              Agrega {money(remaining)} más y tu envío queda incluido, como en el resto de la colección.
             </p>
           ) : (
-            <p className="normal-case font-body text-xs mt-2 text-sage">Envío gratis desbloqueado.</p>
+            <p className="normal-case font-body text-xs mt-2 text-sage">Envío incluido en piezas de colección.</p>
           )}
           <div className="h-1 bg-line rounded-full mt-2 overflow-hidden">
             <div className="h-full bg-sello-navy" style={{ width: `${progress}%` }} />
