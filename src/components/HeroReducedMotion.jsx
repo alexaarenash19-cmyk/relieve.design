@@ -30,7 +30,7 @@ export default function HeroReducedMotion() {
   return (
     <div className="flex flex-col gap-16">
       <Step progress={0.05} showPhoto />
-      <Step progress={0.55} caption="Se imprime en relieve y se enmarca en nogal." />
+      <Step progress={0.55} caption="Se imprime en relieve y se enmarca en parota." />
       <Step progress={0.8} caption="Cada pieza, un lugar real." />
     </div>
   );

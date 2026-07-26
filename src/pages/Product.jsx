@@ -77,7 +77,7 @@ export default function Product() {
   useDocumentHead({
     title: place ? `${place.name} — Mapa en relieve | Relieve` : undefined,
     description: place
-      ? (place.story?.slice(0, 155) ?? `Mapa en relieve de ${place.name}, enmarcado en nogal.`)
+      ? (place.story?.slice(0, 155) ?? `Mapa en relieve de ${place.name}, enmarcado en parota.`)
       : undefined,
     image: place?.thumb_url,
     canonicalPath: `/pieza/${slug}`,
@@ -143,7 +143,7 @@ export default function Product() {
     {
       title: 'Material y acabado',
       content:
-        'El relieve se imprime en 3D de alta precisión y se enmarca a mano en nogal, roble o negro. Acabado mate en toda la pieza.',
+        'El relieve se imprime en 3D de alta precisión y se enmarca a mano en parota, roble o negro. Acabado mate en toda la pieza.',
     },
     {
       title: 'Cambios y devoluciones',
@@ -279,8 +279,8 @@ export default function Product() {
                 }`}
               >
                 <span
-                  className={`w-3 h-3 rounded-full ${f.code === 'nogal' ? 'bg-walnut' : ''}`}
-                  style={f.code === 'nogal' ? undefined : { backgroundColor: f.hex }}
+                  className="w-3 h-3 rounded-full"
+                  style={{ backgroundColor: f.hex }}
                 />
                 {f.label}
               </button>

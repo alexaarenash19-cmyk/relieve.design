@@ -312,7 +312,7 @@ function JourneyPageBody() {
         <div className="relative aspect-square rounded-[6px] overflow-hidden">
           <img
             src={ABOUT_PROCESO}
-            alt="Ensamblado a mano del marco de nogal"
+            alt="Ensamblado a mano del marco de parota"
             className="warm-photo absolute inset-0 w-full h-full object-cover"
           />
         </div>
