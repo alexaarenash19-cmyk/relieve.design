@@ -29,6 +29,7 @@ export default function Product() {
   const [orientation, setOrientation] = useState('horizontal');
   const [plateText, setPlateText] = useState('');
   const [capelo, setCapelo] = useState(false);
+  const [memoryNote, setMemoryNote] = useState('');
   const [unitPriceCents, setUnitPriceCents] = useState(null);
   const [activePhoto, setActivePhoto] = useState(null);
 
@@ -168,6 +169,7 @@ export default function Product() {
       orientation,
       plate_text: plateText || null,
       capelo,
+      memory_note: memoryNote || null,
     });
   }
 
@@ -328,6 +330,23 @@ export default function Product() {
             ))}
           </div>
         </fieldset>
+
+        <div className="mb-4">
+          <label htmlFor="memoryNote" className="font-label uppercase tracking-wide text-xs block mb-1">
+            En una frase, ¿por qué este lugar?
+          </label>
+          <input
+            id="memoryNote"
+            value={memoryNote}
+            onChange={(e) => setMemoryNote(e.target.value)}
+            maxLength={140}
+            placeholder="Aquí aprendí a vivir sola."
+            className="w-full border border-line rounded px-3 py-2"
+          />
+          <p className="text-xs text-graphite/60 mt-1">
+            Opcional — si la compartes, la imprimimos en una tarjeta dentro de tu pieza.
+          </p>
+        </div>
 
         <div className="mb-4 flex items-center gap-2">
           <input id="capelo" type="checkbox" checked={capelo} onChange={(e) => setCapelo(e.target.checked)} />

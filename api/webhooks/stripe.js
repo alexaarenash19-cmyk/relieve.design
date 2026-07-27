@@ -104,6 +104,7 @@ async function createOrderFromSession(session) {
       color_code: item.color_code ?? null,
       orientation: item.orientation ?? 'horizontal',
       plate_text: item.plate_text ?? null,
+      memory_note: item.memory_note ?? null,
       capelo: !!item.capelo,
       unit_price_cents: item.unit_price_cents,
       qty: item.qty || 1,
