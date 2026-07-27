@@ -2,6 +2,7 @@
 // Two view modes: scattered infinite canvas (default) and a plain grid
 // ("Card Surface").
 import { useEffect, useRef, useState } from 'react';
+import gsap from 'gsap';
 import { placeAlt } from '../lib/altText.js';
 import { pieceMainPhoto, thumbUrlForWidth } from '../lib/photography.js';
 import { fetchJsonArray } from '../lib/fetchJsonArray.js';
@@ -343,16 +344,6 @@ const COLOR_OPTIONS = [
   { value: 'negro', label: 'Negro mate' },
 ];
 
-function MenuIcon() {
-  return (
-    <svg viewBox="0 0 14 10" width="12" height="9" aria-hidden="true">
-      <line x1="0" y1="1" x2="14" y2="1" stroke="currentColor" />
-      <line x1="0" y1="5" x2="14" y2="5" stroke="currentColor" />
-      <line x1="0" y1="9" x2="14" y2="9" stroke="currentColor" />
-    </svg>
-  );
-}
-
 function FilterIcon() {
   return (
     <svg viewBox="0 0 14 10" width="12" height="9" aria-hidden="true">
@@ -378,6 +369,151 @@ function FilterChip({ label, active, onClick }) {
     <button onClick={onClick} className={DARK_PILL} aria-expanded={active}>
       {label} <span className="text-[10px]">+</span>
     </button>
+  );
+}
+
+function reduceMotion() {
+  return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+}
+
+// Menu toggle icon: square -> circle, three lines -> an X, label slides
+// away — a one-shot GSAP timeline (played/reversed on click), ported
+// verbatim from the artifact's menuIconTl. This is a discrete,
+// user-triggered timeline, not tied to the page-load scroll ticker, so it
+// doesn't carry the shared-ticker risk noted for the old tile-entrance
+// GSAP attempt.
+function MenuButton({ open, onToggle }) {
+  const btnRef = useRef(null);
+  const boxRef = useRef(null);
+  const lineTopRef = useRef(null);
+  const lineMidRef = useRef(null);
+  const lineBotRef = useRef(null);
+  const labelRef = useRef(null);
+  const tlRef = useRef(null);
+
+  useEffect(() => {
+    const tl = gsap.timeline({ paused: true })
+      .to(boxRef.current, { borderRadius: '3em', duration: 0.8, ease: 'power2.out' }, 0)
+      .to(lineMidRef.current, { scaleX: 0, duration: 0.6, ease: 'back.out(1.7)' }, 0)
+      .to(lineTopRef.current, { rotate: 45, marginTop: 0, duration: 0.7, ease: 'back.out(1.7)' }, 0)
+      .to(lineBotRef.current, { rotate: -45, marginTop: 0, duration: 0.7, ease: 'back.out(1.7)' }, 0)
+      .to(labelRef.current, { yPercent: 200, opacity: 0, duration: 0.6, ease: 'back.out(1.7)' }, 0);
+    if (window.innerWidth < MOBILE_BREAKPOINT) {
+      tl.to(btnRef.current, { x: '2.5em', duration: 0.7, ease: 'back.out(1.7)' }, 0);
+    }
+    if (reduceMotion()) tl.duration(0.01);
+    tlRef.current = tl;
+    return () => tl.kill();
+  }, []);
+
+  useEffect(() => {
+    tlRef.current?.[open ? 'play' : 'reverse']();
+  }, [open]);
+
+  function onEnter() {
+    if (open) {
+      gsap.to(lineTopRef.current, { rotate: 35, duration: 0.3, ease: 'power2.out' });
+      gsap.to(lineBotRef.current, { rotate: -35, duration: 0.3, ease: 'power2.out' });
+    } else {
+      gsap.to(lineMidRef.current, { scaleX: 0.4, duration: 0.3, ease: 'power2.out' });
+    }
+  }
+  function onLeave() {
+    if (open) {
+      gsap.to(lineTopRef.current, { rotate: 45, duration: 0.3, ease: 'power2.out' });
+      gsap.to(lineBotRef.current, { rotate: -45, duration: 0.3, ease: 'power2.out' });
+    } else {
+      gsap.to(lineMidRef.current, { scaleX: 1, duration: 0.3, ease: 'power2.out' });
+    }
+  }
+
+  return (
+    <button
+      ref={btnRef}
+      onClick={onToggle}
+      onMouseEnter={onEnter}
+      onMouseLeave={onLeave}
+      className="rounded-full border border-graphite bg-transparent text-graphite pl-[10px] pr-4 py-2 font-label uppercase tracking-wide text-xs inline-flex items-center gap-2 overflow-hidden"
+    >
+      <span ref={boxRef} className="explorar-menu-icon-box">
+        <span ref={lineTopRef} className="explorar-menu-line explorar-line-top" />
+        <span ref={lineMidRef} className="explorar-menu-line" />
+        <span ref={lineBotRef} className="explorar-menu-line explorar-line-bot" />
+      </span>
+      <span className="explorar-menu-label-clip">
+        <span ref={labelRef} className="explorar-menu-label">menu</span>
+      </span>
+    </button>
+  );
+}
+
+function liftOnHover(e) {
+  gsap.to(e.currentTarget, { y: -4, duration: 0.3, ease: 'power2.out' });
+}
+function liftOffHover(e) {
+  gsap.to(e.currentTarget, { y: 0, duration: 0.3, ease: 'power2.out' });
+}
+
+// Shared by the menu-links row and the filter-chips row: the panel sits
+// inline in the bottom bar and grows the row's width open (not a floating
+// dropdown — that's the separate absolutely-positioned chip-value lists
+// below), matching the artifact's .inline-panel + openMenuPanel/
+// closeMenuPanel technique exactly, generalized to take any children.
+function InlinePanel({ open, children }) {
+  const panelRef = useRef(null);
+  const didMountRef = useRef(false);
+
+  useEffect(() => {
+    const el = panelRef.current;
+    if (!el) return;
+    const reduced = reduceMotion();
+    const kids = [...el.children];
+    if (!didMountRef.current) {
+      didMountRef.current = true;
+      el.style.width = '0px';
+      el.style.display = 'none';
+      gsap.set(kids, { yPercent: 800, opacity: 0 });
+      return;
+    }
+    if (open) {
+      el.style.display = 'flex';
+      el.style.width = 'auto';
+      const targetW = el.offsetWidth;
+      gsap.fromTo(
+        el,
+        { width: 0 },
+        {
+          width: targetW,
+          duration: reduced ? 0.01 : 0.6,
+          ease: 'power2.out',
+          onComplete: () => { el.style.width = 'auto'; },
+        },
+      );
+      gsap.fromTo(
+        kids,
+        { yPercent: 800, opacity: 0 },
+        { yPercent: 0, opacity: 1, duration: reduced ? 0.01 : 0.6, ease: 'back.out(1.7)', stagger: 0.08, delay: 0.05 },
+      );
+    } else {
+      gsap.to(kids, { yPercent: 800, opacity: 0, duration: reduced ? 0.01 : 0.4, ease: 'back.in(1.7)', stagger: 0.05 });
+      gsap.to(el, {
+        width: 0,
+        duration: reduced ? 0.01 : 0.5,
+        ease: 'power2.out',
+        delay: 0.05,
+        onComplete: () => { el.style.display = 'none'; },
+      });
+    }
+  }, [open]);
+
+  return (
+    <div
+      ref={panelRef}
+      className="flex gap-2 overflow-hidden whitespace-nowrap items-center"
+      style={{ display: 'none', width: 0 }}
+    >
+      {children}
+    </div>
   );
 }
 
@@ -421,31 +557,28 @@ function BottomControlBar({
   return (
     <div className="fixed bottom-5 inset-x-0 z-30 flex justify-center pointer-events-none">
       <div className="relative flex flex-wrap items-center justify-center gap-2 px-4 max-w-[calc(100vw-28rem)] pointer-events-auto">
-        <button
-          onClick={toggleMenu}
-          className={menuOpen ? DARK_PILL : GHOST_PILL}
-        >
-          {menuOpen ? <CloseIcon /> : <MenuIcon />}
-          {menuOpen ? 'cerrar' : 'menu'}
-        </button>
-        {menuOpen && (
-          <>
-            <a href="/colecciones" className={DARK_PILL}>
-              colecciones
-            </a>
-            <a href="/sobre" className={DARK_PILL}>
-              sobre
-            </a>
-            {/* Points at the reviews section on the collections index page.
-              No "contacto" pill: there's no real destination for it yet (no
-              contact page, and a mailto: link launches the visitor's mail
-              app, which read as a broken/unexpected interaction) — removed
-              rather than fake it. */}
-            <a href="/colecciones#resenas" className={DARK_PILL}>
-              reseñas
-            </a>
-          </>
-        )}
+        <MenuButton open={menuOpen} onToggle={toggleMenu} />
+        <InlinePanel open={menuOpen}>
+          <a href="/colecciones" className={DARK_PILL} onMouseEnter={liftOnHover} onMouseLeave={liftOffHover}>
+            colecciones
+          </a>
+          <a href="/sobre" className={DARK_PILL} onMouseEnter={liftOnHover} onMouseLeave={liftOffHover}>
+            sobre
+          </a>
+          {/* Points at the reviews section on the collections index page.
+            No "contacto" pill: there's no real destination for it yet (no
+            contact page, and a mailto: link launches the visitor's mail
+            app, which read as a broken/unexpected interaction) — removed
+            rather than fake it. */}
+          <a
+            href="/colecciones#resenas"
+            className={DARK_PILL}
+            onMouseEnter={liftOnHover}
+            onMouseLeave={liftOffHover}
+          >
+            reseñas
+          </a>
+        </InlinePanel>
 
         <button
           onClick={toggleFilter}
@@ -454,28 +587,29 @@ function BottomControlBar({
           {filterOpen ? <CloseIcon /> : <FilterIcon />}
           {filterOpen ? 'cerrar' : 'filtrar'}
         </button>
-        {filterOpen && (
-          <>
-            <FilterChip
-              label="color"
-              active={activeChip === 'color'}
-              onClick={() => toggleChip('color')}
-            />
-            <FilterChip
-              label="tipo"
-              active={activeChip === 'tipo'}
-              onClick={() => toggleChip('tipo')}
-            />
-            <FilterChip
-              label="⌀ tamaño"
-              active={activeChip === 'tamano'}
-              onClick={() => toggleChip('tamano')}
-            />
-            <button onClick={handleReset} className={GHOST_PILL}>
-              reset
-            </button>
-          </>
-        )}
+        <InlinePanel open={filterOpen}>
+          <FilterChip
+            label="color"
+            active={activeChip === 'color'}
+            onClick={() => toggleChip('color')}
+          />
+          <FilterChip
+            label="tipo"
+            active={activeChip === 'tipo'}
+            onClick={() => toggleChip('tipo')}
+          />
+          <FilterChip
+            label="⌀ tamaño"
+            active={activeChip === 'tamano'}
+            onClick={() => toggleChip('tamano')}
+          />
+          <button onClick={handleReset} className={`${GHOST_PILL} group`}>
+            <span className="inline-block transition-transform duration-1000 ease-[cubic-bezier(0.2,0.6,0.2,1)] group-hover:rotate-[360deg]">
+              ↻
+            </span>{' '}
+            reset
+          </button>
+        </InlinePanel>
 
         {activeChip === 'tipo' && (
           <div className="absolute bottom-12 left-1/2 -translate-x-1/2 bg-gallery-white border border-line rounded-[9px] p-2 flex gap-1.5">

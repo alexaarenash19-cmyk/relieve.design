@@ -341,3 +341,43 @@ body::before {
   }
 }
 
+/* Explorar bottom-bar menu toggle — icon geometry ported verbatim
+   (dimensions, offsets) from the artifact's .menu-toggle/.menu-icon-box/
+   .menu-line rules; the animation itself (icon morph, panel width, link
+   stagger) is driven by a one-shot GSAP timeline in Gallery.jsx triggered
+   only on click/hover — not a persistent scroll-tied ticker, so it
+   doesn't have the shared-ticker risk noted on .tile-pop above.
+   .explorar- prefixed so it can't collide with any other .pill/.menu-*
+   class elsewhere in the codebase. */
+.explorar-menu-icon-box {
+  position: relative;
+  width: 18px;
+  height: 18px;
+  flex: none;
+  border: 1.4px solid currentColor;
+  border-radius: 0.25em;
+}
+.explorar-menu-line {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  height: 1.4px;
+  width: 10px;
+  background: currentColor;
+  transform: translate(-50%, -50%);
+}
+.explorar-line-top {
+  margin-top: -4.5px;
+}
+.explorar-line-bot {
+  margin-top: 4.5px;
+}
+.explorar-menu-label-clip {
+  overflow: hidden;
+  display: inline-block;
+  line-height: 1;
+}
+.explorar-menu-label {
+  display: inline-block;
+}
+
