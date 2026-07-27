@@ -288,3 +288,29 @@ body::before {
   }
 }
 
+/* Explorar canvas — tile entrance pop (scale 0 -> 1 + fade), per-tile
+   random stagger via an inline animation-delay (same technique as
+   .flap-row above), not GSAP: a GSAP tween here shares the app's one
+   global ticker with Home's scroll-tied hero animation, and that ticker
+   can go quiet once you scroll past the hero, leaving every tile frozen
+   mid-animation (found live on the preview deploy, 2026-07-27). Plain CSS
+   has no shared ticker to depend on. */
+.tile-pop {
+  animation: tile-pop-anim 500ms cubic-bezier(0.2, 0.6, 0.2, 1) both;
+}
+@keyframes tile-pop-anim {
+  0% {
+    opacity: 0;
+    transform: scale(0);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .tile-pop {
+    animation: none;
+  }
+}
+

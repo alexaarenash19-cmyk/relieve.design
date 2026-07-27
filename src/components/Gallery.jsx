@@ -2,7 +2,6 @@
 // Two view modes: scattered infinite canvas (default) and a plain grid
 // ("Card Surface").
 import { useEffect, useRef, useState } from 'react';
-import gsap from 'gsap';
 import { placeAlt } from '../lib/altText.js';
 import { pieceMainPhoto, thumbUrlForWidth } from '../lib/photography.js';
 import { fetchJsonArray } from '../lib/fetchJsonArray.js';
@@ -35,27 +34,16 @@ export function GalleryCard({ place, variant = 'grid', slot }) {
   );
   const cursorLabel = variant === 'scattered' ? `+ ${place.name}` : undefined;
   const [loaded, setLoaded] = useState(false);
-  const rootRef = useRef(null);
-
   // Entrance pop (scale 0 -> 1 + fade, small random stagger) for canvas
   // tiles only — matches the "Explorar (preview)" artifact Ale approved.
-  // Runs on mount, so a tile replays it each time it scrolls back into
-  // the visible window, not just once ever (the artifact's plain-DOM
-  // version reused elements and never remounted them, so it only played
-  // once per element) — a reasonable approximation given React
-  // mounts/unmounts a tile's DOM node each time visibility toggles here.
-  useEffect(() => {
-    if (variant !== 'scattered' || !rootRef.current) return;
-    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    gsap.set(rootRef.current, { scale: 0, opacity: 0 });
-    gsap.to(rootRef.current, {
-      scale: 1,
-      opacity: 1,
-      duration: reduced ? 0.01 : 0.5,
-      ease: 'power1.inOut',
-      delay: reduced ? 0 : Math.random() * 0.4,
-    });
-  }, [variant]);
+  // .tile-pop is plain CSS (see index.css) — a tile replays it each time
+  // it scrolls back into the visible window, not just once ever (the
+  // artifact's plain-DOM version reused elements and never remounted
+  // them, so it only played once per element) — a reasonable
+  // approximation given React mounts/unmounts a tile's DOM node each time
+  // visibility toggles here. The delay is generated once per mount via
+  // useState's lazy initializer, not recomputed on every re-render.
+  const [entranceDelay] = useState(() => Math.random() * 0.4);
 
   const tileStyle =
     variant === 'scattered'
@@ -65,6 +53,7 @@ export function GalleryCard({ place, variant = 'grid', slot }) {
           left: slot.left,
           width: slot.size,
           height: slot.size,
+          animationDelay: `${entranceDelay}s`,
         }
       : undefined;
 
@@ -81,13 +70,12 @@ export function GalleryCard({ place, variant = 'grid', slot }) {
 
   return (
     <a
-      ref={rootRef}
       href={`/pieza/${place.slug}`}
       onClick={handleClick}
       data-cursor-label={cursorLabel}
       className={
         variant === 'scattered'
-          ? 'group block select-none'
+          ? 'group block select-none tile-pop'
           : 'group block border border-line rounded-[9px] bg-gallery-white overflow-hidden select-none'
       }
       style={tileStyle}
