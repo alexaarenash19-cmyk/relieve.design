@@ -468,8 +468,8 @@ function BottomBar({ view, setView, zoom, setZoom, type, setType, dragHintVisibl
   );
 }
 
-export default function ExplorarCanvas() {
-  const [places, setPlaces] = useState([]);
+export default function ExplorarCanvas({ initialPlaces = [] }) {
+  const [places, setPlaces] = useState(initialPlaces);
   const [view, setView] = useState('scattered');
   const [zoom, setZoom] = useState(1);
   const [type, setType] = useState('');
@@ -478,10 +478,20 @@ export default function ExplorarCanvas() {
   const [centerVisible, setCenterVisible] = useState(false);
   const [dragHintVisible, setDragHintVisible] = useState(true);
 
+  // No type filter: use the parent's already-fetched list (Collections.jsx
+  // fetches once and passes it down as initialPlaces) instead of firing a
+  // second concurrent /api/places request on mount — two simultaneous
+  // requests to the same endpoint was enough to make one of them fail on a
+  // cold-started preview deployment, silently emptying the canvas since
+  // fetchJsonArray swallows non-ok responses into []. Only filtering by a
+  // specific type needs its own request.
   useEffect(() => {
-    const query = type ? `?type=${type}` : '';
-    fetchJsonArray(`/api/places${query}`).then(setPlaces);
-  }, [type]);
+    if (!type) {
+      setPlaces(initialPlaces);
+      return;
+    }
+    fetchJsonArray(`/api/places?type=${type}`).then(setPlaces);
+  }, [type, initialPlaces]);
 
   useEffect(() => {
     const t1 = setTimeout(() => setCenterVisible(true), 350);
