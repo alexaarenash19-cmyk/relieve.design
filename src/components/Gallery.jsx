@@ -44,6 +44,15 @@ export function GalleryCard({ place, variant = 'grid', slot }) {
   // visibility toggles here. The delay is generated once per mount via
   // useState's lazy initializer, not recomputed on every re-render.
   const [entranceDelay] = useState(() => Math.random() * 0.4);
+  // .tile-pop is removed once its animation finishes so it stops
+  // permanently declaring `animation` on the element — otherwise it would
+  // keep fighting .canvas-tile:hover's own animation/transition and the
+  // hover-revert wouldn't smoothly transition the way it does in the
+  // artifact (see index.css comment on .canvas-tile for the full reason).
+  const [entering, setEntering] = useState(variant === 'scattered');
+  function handleAnimationEnd(e) {
+    if (e.animationName === 'tile-pop-anim') setEntering(false);
+  }
 
   const tileStyle =
     variant === 'scattered'
@@ -72,10 +81,11 @@ export function GalleryCard({ place, variant = 'grid', slot }) {
     <a
       href={`/pieza/${place.slug}`}
       onClick={handleClick}
+      onAnimationEnd={handleAnimationEnd}
       data-cursor-label={cursorLabel}
       className={
         variant === 'scattered'
-          ? 'group block select-none tile-pop'
+          ? `group block select-none canvas-tile${entering ? ' tile-pop' : ''}`
           : 'group block border border-line rounded-[9px] bg-gallery-white overflow-hidden select-none'
       }
       style={tileStyle}
@@ -92,9 +102,19 @@ export function GalleryCard({ place, variant = 'grid', slot }) {
             src={photo}
             alt={placeAlt(place)}
             onLoad={() => setLoaded(true)}
-            className={`w-full h-full object-cover transition-[transform,opacity] duration-300 group-hover:scale-105 ${
-              loaded ? 'opacity-100' : 'opacity-0'
-            }`}
+            className={
+              variant === 'scattered'
+                // Canvas tiles: the outer .canvas-tile handles scale/lift/
+                // rotate on hover (see index.css) — the image itself only
+                // gets the artifact's own drop-shadow deepen, not a second
+                // independent scale (that would compound with the tile's).
+                ? `w-full h-full object-cover transition-[filter,opacity] duration-300 drop-shadow-[0_1px_1px_rgba(35,35,35,0.06)] group-hover:drop-shadow-[0_16px_22px_rgba(35,35,35,0.2)] ${
+                    loaded ? 'opacity-100' : 'opacity-0'
+                  }`
+                : `w-full h-full object-cover transition-[transform,opacity] duration-300 group-hover:scale-105 ${
+                    loaded ? 'opacity-100' : 'opacity-0'
+                  }`
+            }
             draggable={false}
             loading="eager"
             decoding="async"

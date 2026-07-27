@@ -27,27 +27,33 @@ import PhotoCarousel from '../components/PhotoCarousel.jsx';
 import { piecePhotos } from '../lib/photography.js';
 import { fetchJson } from '../lib/fetchJsonArray.js';
 
-// Full-bleed color backdrop behind the title/photo/spec area, matching the
-// "Explorar (preview)" artifact's per-piece colored product page. Places
-// don't have their own color field in the schema (no invented spec here —
-// see feedback-no-inventing-product-specs) so the accent is a deterministic
-// hash of the slug into the site's own verified brand palette
-// (src/index.css @theme), same technique the artifact's mock data used,
-// just backed by real tokens instead of made-up hex values. Every literal
-// class has to appear here (not built via `bg-${accent}`) or Tailwind's
-// build-time scan won't generate it.
+// Full-bleed color backdrop behind the title/photo/spec area — exact
+// per-piece mapping from the "Explorar (preview)" artifact's mock PIECES
+// data (Ale approved these specific pairings, not an arbitrary scheme):
+// shanghai->passport-ink, ciudad-de-mexico->walnut, paris->sello-navy,
+// londres->explorer-blue, barcelona->sage, nevado-de-toluca->stone. These
+// six slugs are exactly the current real catalog (see
+// relieve-project-overview memory), so the table is complete, not a
+// fallback. Every literal class has to appear here (not built via
+// `bg-${accent}`) or Tailwind's build-time scan won't generate it.
 const ACCENT_CLASSES = {
   walnut: { bg: 'bg-walnut', text: 'text-gallery-white', dark: true },
   sage: { bg: 'bg-sage', text: 'text-graphite', dark: false },
   'explorer-blue': { bg: 'bg-explorer-blue', text: 'text-graphite', dark: false },
   'passport-ink': { bg: 'bg-passport-ink', text: 'text-gallery-white', dark: true },
   'sello-navy': { bg: 'bg-sello-navy', text: 'text-gallery-white', dark: true },
+  stone: { bg: 'bg-stone', text: 'text-graphite', dark: false },
 };
-const ACCENT_KEYS = Object.keys(ACCENT_CLASSES);
+const ACCENT_BY_SLUG = {
+  shanghai: 'passport-ink',
+  'ciudad-de-mexico': 'walnut',
+  paris: 'sello-navy',
+  londres: 'explorer-blue',
+  barcelona: 'sage',
+  'nevado-de-toluca': 'stone',
+};
 function accentFor(slug) {
-  let h = 0;
-  for (let i = 0; i < slug.length; i++) h = (h * 31 + slug.charCodeAt(i)) >>> 0;
-  return ACCENT_CLASSES[ACCENT_KEYS[h % ACCENT_KEYS.length]];
+  return ACCENT_CLASSES[ACCENT_BY_SLUG[slug] ?? 'stone'];
 }
 
 export default function Product() {

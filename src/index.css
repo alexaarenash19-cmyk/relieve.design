@@ -288,15 +288,38 @@ body::before {
   }
 }
 
-/* Explorar canvas — tile entrance pop (scale 0 -> 1 + fade), per-tile
-   random stagger via an inline animation-delay (same technique as
-   .flap-row above), not GSAP: a GSAP tween here shares the app's one
-   global ticker with Home's scroll-tied hero animation, and that ticker
-   can go quiet once you scroll past the hero, leaving every tile frozen
-   mid-animation (found live on the preview deploy, 2026-07-27). Plain CSS
-   has no shared ticker to depend on. */
+/* Explorar canvas tiles. Base resting state + hover come from the
+   artifact's .tile / .tile:hover exactly (minus the translate(-50%,-50%)
+   centering trick, since these tiles are positioned by top-left, not by
+   center) — scale/rotate/lift on hover, a plain transition to revert.
+   The entrance pop is a SEPARATE, transient class (.tile-pop, removed by
+   Gallery.jsx once its animationend fires) so it doesn't leave a
+   permanent `animation` declaration fighting the hover keyframe or
+   blocking .canvas-tile's own `transition` from handling the hover
+   revert — exactly how the artifact's GSAP-driven (one-shot, then inert)
+   entrance left `.tile`'s CSS `transition` free to run the hover-revert
+   on its own. Per-tile random stagger via an inline animation-delay (same
+   technique as .flap-row above), not GSAP: a GSAP tween here shares the
+   app's one global ticker with Home's scroll-tied hero animation, and
+   that ticker can go quiet once you scroll past the hero, leaving every
+   tile frozen mid-animation (found live on the preview deploy,
+   2026-07-27). Plain CSS has no shared ticker to depend on. */
+.canvas-tile {
+  transform: scale(1) translateY(0) rotate(0deg);
+  transition: transform 0.3s cubic-bezier(0.2, 0.6, 0.2, 1);
+}
+.canvas-tile:hover {
+  animation: tile-hover-pop 0.55s cubic-bezier(0.2, 0.6, 0.2, 1) forwards;
+  z-index: 2;
+}
+@keyframes tile-hover-pop {
+  0% { transform: scale(1) translateY(0) rotate(0deg); }
+  35% { transform: scale(1.1) translateY(-12px) rotate(-1.5deg); }
+  60% { transform: scale(1.04) translateY(-2px) rotate(1deg); }
+  100% { transform: scale(1.065) translateY(-6px) rotate(0deg); }
+}
 .tile-pop {
-  animation: tile-pop-anim 500ms cubic-bezier(0.2, 0.6, 0.2, 1) both;
+  animation: tile-pop-anim 500ms cubic-bezier(0.2, 0.6, 0.2, 1) forwards;
 }
 @keyframes tile-pop-anim {
   0% {
@@ -311,6 +334,10 @@ body::before {
 @media (prefers-reduced-motion: reduce) {
   .tile-pop {
     animation: none;
+  }
+  .canvas-tile:hover {
+    animation: none;
+    transform: scale(1.04);
   }
 }
 
