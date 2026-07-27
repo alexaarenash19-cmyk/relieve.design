@@ -8,6 +8,7 @@ import { fetchJsonArray } from '../lib/fetchJsonArray.js';
 import { useDocumentHead } from '../lib/useDocumentHead.js';
 
 export default function Collections() {
+  const [places, setPlaces] = useState([]);
   const [reviews, setReviews] = useState([]);
 
   useDocumentHead({
@@ -16,10 +17,19 @@ export default function Collections() {
     canonicalPath: '/colecciones',
   });
 
+  // Single fetch, shared with ExplorarCanvas via `initialPlaces` — the
+  // canvas used to run its own independent /api/places fetch on mount too,
+  // which meant two concurrent requests to the same endpoint on first
+  // load; that duplicate load was enough to make one of them fail on a
+  // cold-started preview deployment (Supabase connection contention),
+  // silently emptying the canvas since fetchJsonArray swallows non-ok
+  // responses into []. One shared fetch removes the race entirely.
   useEffect(() => {
     let cancelled = false;
-    fetchJsonArray('/api/places').then((places) => {
-      Promise.all(places.map((p) => fetchJsonArray(`/api/reviews?place=${p.slug}`))).then((lists) => {
+    fetchJsonArray('/api/places').then((data) => {
+      if (cancelled) return;
+      setPlaces(data);
+      Promise.all(data.map((p) => fetchJsonArray(`/api/reviews?place=${p.slug}`))).then((lists) => {
         if (!cancelled) setReviews(lists.flat());
       });
     });
@@ -30,7 +40,7 @@ export default function Collections() {
 
   return (
     <main>
-      <ExplorarCanvas />
+      <ExplorarCanvas initialPlaces={places} />
 
       {reviews.length > 0 && (
         <section id="resenas" className="p-8 max-w-2xl mx-auto">
