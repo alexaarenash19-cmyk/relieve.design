@@ -111,13 +111,6 @@ export default function ProductPanel() {
       );
     }
     tlRef.current = tl;
-    // TEMP DEBUG — 2026-07-27, verifying effect #3 without relying on
-    // rAF/tab-visibility (automated tabs report document.hidden=true,
-    // which pauses GSAP's ticker and makes screenshot verification
-    // useless). window.__panelTL.progress(n) renders the timeline at any
-    // point synchronously, independent of the ticker. Remove after
-    // verification.
-    window.__panelTL = tl;
     return () => tl.kill();
     // eslint-disable-next-line react-hooks/exhaustive-deps -- refs are stable;
     // deliberately NOT depending on mainPhoto/activePhoto, or clicking a
