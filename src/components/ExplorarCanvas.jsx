@@ -147,7 +147,15 @@ function ScatteredField({ places, zoom, onOpen }) {
     const el = containerRef.current;
     if (!el) return;
     const rect = el.getBoundingClientRect();
-    if (rect.width && rect.height) setSize({ w: rect.width, h: rect.height });
+    // Falls back to the viewport itself (not 0) when the container's own
+    // box hasn't settled yet at this exact synchronous point — the
+    // container is styled full-viewport (100vh/w-full) anyway, so this is
+    // an accurate stand-in, not a guess, and ResizeObserver corrects it the
+    // moment a real resize/observation fires.
+    setSize({
+      w: rect.width || window.innerWidth,
+      h: rect.height || window.innerHeight,
+    });
   }, []);
 
   useEffect(() => {
