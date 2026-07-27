@@ -5,7 +5,7 @@
 // drag/zoom/tile-repeat math, but extracting a shared engine would risk a
 // regression on the live Home page with no way to test it short of a full
 // Vercel-preview round-trip. See the design doc's architecture-pivot note.
-import { useEffect, useRef, useState, useCallback } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState, useCallback } from 'react';
 import { fetchJsonArray } from '../lib/fetchJsonArray.js';
 import { CATEGORIES, categoryLabel } from '../lib/categories.js';
 import { explorerCutout } from '../lib/photography.js';
@@ -135,6 +135,20 @@ function ScatteredField({ places, zoom, onOpen }) {
   const lastPosRef = useRef({ x: 0, y: 0, t: 0 });
   const velocityRef = useRef({ x: 0, y: 0 });
   const inertiaFrameRef = useRef(null);
+
+  // Read the initial size synchronously (getBoundingClientRect, before
+  // paint) rather than waiting on ResizeObserver's first async callback —
+  // layout itself is computed immediately even when the tab is backgrounded
+  // (unlike observer callback delivery, which browsers can defer for a
+  // hidden/unfocused tab), so this also avoids a same-frame flash of zero
+  // tiles on a normal, focused first load. ResizeObserver still owns
+  // updates for any actual resize after mount.
+  useLayoutEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    const rect = el.getBoundingClientRect();
+    if (rect.width && rect.height) setSize({ w: rect.width, h: rect.height });
+  }, []);
 
   useEffect(() => {
     const el = containerRef.current;
@@ -267,9 +281,6 @@ function ScatteredField({ places, zoom, onOpen }) {
       }
     }
   }
-  // TEMP DEBUG — remove before merge.
-  console.log(`[ExplorarDebug] sizeW=${size.w} sizeH=${size.h} placesLen=${places.length} zoom=${zoom} offsetX=${offset.x} offsetY=${offset.y} tilesComputed=${tiles.length}`);
-
   return (
     <div
       ref={containerRef}
