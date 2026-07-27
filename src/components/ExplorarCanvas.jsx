@@ -238,6 +238,8 @@ function ScatteredField({ places, zoom, onOpen }) {
   const centerY = size.h / 2;
 
   const tiles = [];
+  // TEMP DEBUG — remove before merge.
+  console.log('[ExplorarDebug]', { sizeW: size.w, sizeH: size.h, placesLen: places.length, zoom, offsetX: offset.x, offsetY: offset.y });
   if (size.w && size.h && places.length) {
     for (const j of REPEAT) {
       for (const i of REPEAT) {
