@@ -42,25 +42,32 @@ export function GalleryCard({ place, variant = 'grid', slot }) {
   );
   const cursorLabel = variant === 'scattered' ? `+ ${place.name}` : undefined;
   const [loaded, setLoaded] = useState(false);
-  // Entrance pop (scale 0 -> 1 + fade, small random stagger) for canvas
-  // tiles only — matches the "Explorar (preview)" artifact Ale approved.
-  // .tile-pop is plain CSS (see index.css) — a tile replays it each time
-  // it scrolls back into the visible window, not just once ever (the
-  // artifact's plain-DOM version reused elements and never remounted
-  // them, so it only played once per element) — a reasonable
-  // approximation given React mounts/unmounts a tile's DOM node each time
-  // visibility toggles here. The delay is generated once per mount via
-  // useState's lazy initializer, not recomputed on every re-render.
-  const [entranceDelay] = useState(() => Math.random() * 0.4);
-  // .tile-pop is removed once its animation finishes so it stops
-  // permanently declaring `animation` on the element — otherwise it would
-  // keep fighting .canvas-tile:hover's own animation/transition and the
-  // hover-revert wouldn't smoothly transition the way it does in the
-  // artifact (see index.css comment on .canvas-tile for the full reason).
-  const [entering, setEntering] = useState(variant === 'scattered');
-  function handleAnimationEnd(e) {
-    if (e.animationName === 'tile-pop-anim') setEntering(false);
-  }
+  const rootRef = useRef(null);
+
+  // Entrance pop, confirmed 2026-07-27 against the artifact's actual JS
+  // (gsap.set/gsap.to on tile creation) — GSAP, not a CSS keyframe, exact
+  // values: duration 0.5s / ease power1.inOut / delay Math.random()*0.4,
+  // 0.01s duration under prefers-reduced-motion. No rotation or 3D
+  // perspective — confirmed absent from the artifact, not invented here.
+  // Runs once per mount (React mounts/unmounts a tile's DOM node each time
+  // it scrolls in/out of the visible window, unlike the artifact's
+  // plain-DOM version which reused elements and only played this once
+  // ever per element — a reasonable approximation given that difference).
+  // GSAP tweens the inline style directly and then stops touching the
+  // element, so .canvas-tile:hover's own animation/transition (already
+  // ported, untouched here) has nothing to fight afterward.
+  useEffect(() => {
+    if (variant !== 'scattered' || !rootRef.current) return;
+    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    gsap.set(rootRef.current, { scale: 0, opacity: 0 });
+    gsap.to(rootRef.current, {
+      scale: 1,
+      opacity: 1,
+      duration: reduced ? 0.01 : 0.5,
+      ease: 'power1.inOut',
+      delay: reduced ? 0 : Math.random() * 0.4,
+    });
+  }, [variant]);
 
   const tileStyle =
     variant === 'scattered'
@@ -70,7 +77,6 @@ export function GalleryCard({ place, variant = 'grid', slot }) {
           left: slot.left,
           width: slot.size,
           height: slot.size,
-          animationDelay: `${entranceDelay}s`,
         }
       : undefined;
 
@@ -87,13 +93,13 @@ export function GalleryCard({ place, variant = 'grid', slot }) {
 
   return (
     <a
+      ref={rootRef}
       href={`/pieza/${place.slug}`}
       onClick={handleClick}
-      onAnimationEnd={handleAnimationEnd}
       data-cursor-label={cursorLabel}
       className={
         variant === 'scattered'
-          ? `group block select-none canvas-tile${entering ? ' tile-pop' : ''}`
+          ? 'group block select-none canvas-tile'
           : variant === 'explorarGrid'
             // "vista cuadrícula" toggle only (this file) — the artifact's
             // .grid-card is a flat, borderless tile; the hairline seams
