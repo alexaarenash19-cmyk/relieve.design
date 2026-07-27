@@ -11,11 +11,6 @@ import { SIZES } from '../lib/catalog.js';
 import { useProductPanel } from '../context/ProductPanelContext.jsx';
 import Stamp from './Stamp.jsx';
 
-// TEMP DEBUG — 2026-07-27, verifying effect #1 (tile pop-in) deterministically
-// via gsap.getTweensOf(tile).progress(n), same rAF/tab-visibility-independent
-// method used for ProductPanel's effect #3. Remove after verification.
-if (typeof window !== 'undefined') window.__gsap = gsap;
-
 // Uniform-cell brick grid — Ale's 2026-07-27 spec, measured directly off
 // the live site: every cell is the same fixed 175x175 footprint at a
 // 255px pitch (175 cell + 80 gap). The "one big, one small" look comes
