@@ -25,6 +25,7 @@ import HowItArrives from '../components/HowItArrives.jsx';
 import Accordion from '../components/Accordion.jsx';
 import PhotoCarousel from '../components/PhotoCarousel.jsx';
 import { piecePhotos } from '../lib/photography.js';
+import { piecePaletteFor } from '../lib/piecePalette.js';
 import { fetchJson } from '../lib/fetchJsonArray.js';
 
 export default function Product() {
@@ -190,222 +191,239 @@ export default function Product() {
     });
   }
 
+  // Explorar spec §8 — solid thematic background per real piece, entering
+  // from the canvas's product-focus overlay. Scoped to just the 6 mapped
+  // pieces (piecePaletteFor returns null for anything else, including any
+  // future catalog addition) — everything else keeps the plain cream page
+  // untouched. Deliberately light-touch: only heading/label text swaps to
+  // --color-dark-fg for contrast on the darker tokens; the existing form
+  // controls, borders and buttons are left as-is on top of the color,
+  // not restyled per palette (that's full-page contrast redesign, out of
+  // scope here).
+  const palette = piecePaletteFor(place.slug);
+  const headingTextClass = palette?.dark ? 'text-dark-fg' : '';
+
   return (
-    <main className="grid md:grid-cols-2 gap-8 p-8 max-w-5xl mx-auto">
-      <div key={place.slug} className="warp-reveal">
-        <PhotoCarousel
-          photos={photos}
-          alt={`Mapa en relieve de ${place.name}${!isPuzzle ? `, enmarcado en ${selectedFrame?.label.toLowerCase()}` : ''}`}
-          placeholderLabel={place.name}
-        />
-      </div>
-
-      {/* min-w-0: without it, a CSS Grid item defaults to a min-width of
-          its content's min-content size, so a long unbreakable value here
-          (coordenadas, SKU) could force this whole column past the
-          viewport instead of wrapping — the "right column overflows and
-          cuts off the CTA" symptom reported in QA. break-words on the
-          dl values below is the other half of the same fix. */}
-      <div className="min-w-0">
-        <h1 className="font-display font-light text-3xl mb-4">{place.name}</h1>
-
-        <div className="flex flex-wrap gap-3 mb-6">
-          <BaggageTag label="Ubicación" value={place.name} />
-          <BaggageTag label="Tamaño" value={selectedSize.label} />
-          {!isPuzzle && <BaggageTag label="Marco" value={selectedFrame.label} />}
-        </div>
-
-        <dl className="border-t border-line mb-6">
-          {specs.map(([label, value, valueClassName]) => (
-            <div
-              key={label}
-              className="grid grid-cols-2 border-b border-line py-2 font-label uppercase tracking-wide text-xs"
-            >
-              <dt className="text-graphite/60">{label}</dt>
-              <dd className={`break-words ${valueClassName ?? ''}`}>{value}</dd>
-            </div>
-          ))}
-        </dl>
-        {place.story && <p className="mb-6 leading-relaxed">{place.story}</p>}
-
-        {place.status === 'preorder' && (
-          <span className="inline-block mb-4 px-4 py-1 rounded-full border border-sello-navy text-sello-navy font-label uppercase tracking-wide text-xs animate-pulse">
-            Pre-order
-          </span>
-        )}
-
-        <fieldset className="mb-4">
-          <legend className="font-label uppercase tracking-wide text-xs mb-2">
-            ¿Para quién es esta pieza — para ti, o para presumirla?
-          </legend>
-          <div className="flex flex-wrap gap-2">
-            {availableSizes.map((s) => (
-              <button
-                key={s.code}
-                onClick={() => setSizeCode(s.code)}
-                className={`px-3 py-1 rounded-full border text-sm ${
-                  sizeCode === s.code
-                    ? 'bg-sello-navy text-dark-bg border-sello-navy'
-                    : s.featured
-                      ? 'border-sello-navy border-2'
-                      : 'border-line'
-                }`}
-              >
-                {s.label}
-                {s.featured && <span className="ml-1 text-xs opacity-70">· el más elegido para regalar</span>}
-              </button>
-            ))}
-          </div>
-          {selectedSize?.tagline && (
-            <p className="mt-2 text-xs text-graphite/70">{selectedSize.tagline}</p>
-          )}
-        </fieldset>
-
-        {!isPuzzle && (
-          <>
-            <fieldset className="mb-4">
-              <legend className="font-label uppercase tracking-wide text-xs mb-2">Marco</legend>
-              <div className="flex flex-wrap gap-2">
-                {FRAMES.map((f) => (
-                  <button
-                    key={f.code}
-                    onClick={() => setFrameCode(f.code)}
-                    className={`flex items-center gap-2 px-3 py-1 rounded-full border text-sm ${
-                      frameCode === f.code ? 'bg-sello-navy text-dark-bg border-sello-navy' : 'border-line'
-                    }`}
-                  >
-                    <span
-                      className="w-3 h-3 rounded-full"
-                      style={{ backgroundColor: f.hex }}
-                    />
-                    {f.label}
-                  </button>
-                ))}
-              </div>
-            </fieldset>
-
-            <fieldset className="mb-4">
-              <legend className="font-label uppercase tracking-wide text-xs mb-2">Color</legend>
-              <div className="flex gap-2">
-                {COLORS.map((c) => (
-                  <button
-                    key={c.code}
-                    onClick={() => setColorCode(c.code)}
-                    aria-label={c.label}
-                    className={`w-7 h-7 rounded-full border-2 ${
-                      colorCode === c.code ? 'border-sello-navy' : 'border-line'
-                    }`}
-                    style={{ backgroundColor: c.hex }}
-                  />
-                ))}
-              </div>
-            </fieldset>
-
-            <fieldset className="mb-4">
-              <legend className="font-label uppercase tracking-wide text-xs mb-2">Orientación</legend>
-              <div className="flex gap-2">
-                {['horizontal', 'vertical'].map((o) => (
-                  <button
-                    key={o}
-                    onClick={() => setOrientation(o)}
-                    className={`px-3 py-1 rounded-full border text-sm capitalize ${
-                      orientation === o ? 'bg-sello-navy text-dark-bg border-sello-navy' : 'border-line'
-                    }`}
-                  >
-                    {o}
-                  </button>
-                ))}
-              </div>
-            </fieldset>
-          </>
-        )}
-
-        <div className="mb-4">
-          <label htmlFor="memoryNote" className="font-label uppercase tracking-wide text-xs block mb-1">
-            En una frase, ¿por qué este lugar?
-          </label>
-          <input
-            id="memoryNote"
-            value={memoryNote}
-            onChange={(e) => setMemoryNote(e.target.value)}
-            maxLength={140}
-            placeholder="Aquí aprendí a vivir sola."
-            className="w-full border border-line rounded px-3 py-2"
-          />
-          <p className="text-xs text-graphite/60 mt-1">
-            Opcional — si la compartes, la imprimimos en una tarjeta dentro de tu pieza.
-          </p>
-        </div>
-
-        {!isPuzzle && (
-          <div className="mb-4 flex items-center gap-2">
-            <input id="capelo" type="checkbox" checked={capelo} onChange={(e) => setCapelo(e.target.checked)} />
-            <label htmlFor="capelo" className="text-sm">Agregar capelo de vidrio</label>
-          </div>
-        )}
-
-        <div className="mb-6">
-          <label className="font-label uppercase tracking-wide text-xs block mb-1">
-            Placa grabada (opcional)
-          </label>
-          <input
-            value={plateText}
-            onChange={(e) => setPlateText(e.target.value)}
-            maxLength={40}
-            placeholder="Texto a grabar"
-            className="w-full border border-line rounded px-3 py-2"
+    <div
+      className={palette ? 'min-h-screen' : undefined}
+      style={palette ? { backgroundColor: `var(--color-${palette.token})` } : undefined}
+    >
+      <main className="grid md:grid-cols-2 gap-8 p-8 max-w-5xl mx-auto">
+        <div key={place.slug} className="warp-reveal">
+          <PhotoCarousel
+            photos={photos}
+            alt={`Mapa en relieve de ${place.name}${!isPuzzle ? `, enmarcado en ${selectedFrame?.label.toLowerCase()}` : ''}`}
+            placeholderLabel={place.name}
           />
         </div>
 
-        <RollingPrice
-          cents={unitPriceCents ?? place.base_price}
-          className="font-label text-2xl font-bold block mb-2"
-        />
+        {/* min-w-0: without it, a CSS Grid item defaults to a min-width of
+            its content's min-content size, so a long unbreakable value here
+            (coordenadas, SKU) could force this whole column past the
+            viewport instead of wrapping — the "right column overflows and
+            cuts off the CTA" symptom reported in QA. break-words on the
+            dl values below is the other half of the same fix. */}
+        <div className="min-w-0">
+          <h1 className={`font-display font-light text-3xl mb-4 ${headingTextClass}`}>{place.name}</h1>
 
-        {/* Made-to-order, no inventory — every piece needs this. */}
-        <p className="font-label uppercase tracking-wide text-[11px] text-graphite/60 mb-6">
-          Se fabrica en {PRODUCTION_DAYS} días hábiles · llega {SHIPPING_DAYS} días después
-        </p>
+          <div className="flex flex-wrap gap-3 mb-6">
+            <BaggageTag label="Ubicación" value={place.name} />
+            <BaggageTag label="Tamaño" value={selectedSize.label} />
+            {!isPuzzle && <BaggageTag label="Marco" value={selectedFrame.label} />}
+          </div>
 
-        {place.status === 'soldout' ? (
-          <WaitlistDialog placeSlug={place.slug} />
-        ) : (
-          <Button onClick={handleAddToCart}>Agregar al carrito</Button>
-        )}
-
-        <div className="mt-10">
-          <h2 className="font-label uppercase tracking-wide text-xs mb-2">
-            Especificaciones
-          </h2>
-          <dl className="border-t border-line">
-            {fullSpecs.map(([label, value]) => (
+          <dl className="border-t border-line mb-6">
+            {specs.map(([label, value, valueClassName]) => (
               <div
                 key={label}
-                className="grid grid-cols-2 border-b border-line py-2 font-label uppercase tracking-wide text-xs"
+                className={`grid grid-cols-2 border-b border-line py-2 font-label uppercase tracking-wide text-xs ${headingTextClass}`}
               >
-                <dt className="text-graphite/60">{label}</dt>
-                <dd className="break-words">{value}</dd>
+                <dt className={palette?.dark ? 'text-dark-fg/60' : 'text-graphite/60'}>{label}</dt>
+                <dd className={`break-words ${valueClassName ?? ''}`}>{value}</dd>
               </div>
             ))}
           </dl>
-        </div>
+          {place.story && <p className={`mb-6 leading-relaxed ${headingTextClass}`}>{place.story}</p>}
 
-        <div className="mt-10">
-          <h2 className="font-label uppercase tracking-wide text-xs mb-3">
-            Cómo llega
-          </h2>
-          <HowItArrives steps={isPuzzle ? PUZZLE_HOW_IT_ARRIVES_STEPS : HOW_IT_ARRIVES_STEPS} />
-        </div>
+          {place.status === 'preorder' && (
+            <span className="inline-block mb-4 px-4 py-1 rounded-full border border-sello-navy text-sello-navy font-label uppercase tracking-wide text-xs animate-pulse">
+              Pre-order
+            </span>
+          )}
 
-        <div className="mt-10">
-          <h2 className="font-label uppercase tracking-wide text-xs mb-2">
-            Detalles
-          </h2>
-          <Accordion items={detailsAccordion} />
-        </div>
+          <fieldset className="mb-4">
+            <legend className={`font-label uppercase tracking-wide text-xs mb-2 ${headingTextClass}`}>
+              ¿Para quién es esta pieza — para ti, o para presumirla?
+            </legend>
+            <div className="flex flex-wrap gap-2">
+              {availableSizes.map((s) => (
+                <button
+                  key={s.code}
+                  onClick={() => setSizeCode(s.code)}
+                  className={`px-3 py-1 rounded-full border text-sm ${
+                    sizeCode === s.code
+                      ? 'bg-sello-navy text-dark-bg border-sello-navy'
+                      : s.featured
+                        ? 'border-sello-navy border-2'
+                        : 'border-line'
+                  }`}
+                >
+                  {s.label}
+                  {s.featured && <span className="ml-1 text-xs opacity-70">· el más elegido para regalar</span>}
+                </button>
+              ))}
+            </div>
+            {selectedSize?.tagline && (
+              <p className={`mt-2 text-xs ${palette?.dark ? 'text-dark-fg/70' : 'text-graphite/70'}`}>{selectedSize.tagline}</p>
+            )}
+          </fieldset>
 
-        <Reviews slug={place.slug} />
-      </div>
-    </main>
+          {!isPuzzle && (
+            <>
+              <fieldset className="mb-4">
+                <legend className={`font-label uppercase tracking-wide text-xs mb-2 ${headingTextClass}`}>Marco</legend>
+                <div className="flex flex-wrap gap-2">
+                  {FRAMES.map((f) => (
+                    <button
+                      key={f.code}
+                      onClick={() => setFrameCode(f.code)}
+                      className={`flex items-center gap-2 px-3 py-1 rounded-full border text-sm ${
+                        frameCode === f.code ? 'bg-sello-navy text-dark-bg border-sello-navy' : 'border-line'
+                      }`}
+                    >
+                      <span
+                        className="w-3 h-3 rounded-full"
+                        style={{ backgroundColor: f.hex }}
+                      />
+                      {f.label}
+                    </button>
+                  ))}
+                </div>
+              </fieldset>
+
+              <fieldset className="mb-4">
+                <legend className={`font-label uppercase tracking-wide text-xs mb-2 ${headingTextClass}`}>Color</legend>
+                <div className="flex gap-2">
+                  {COLORS.map((c) => (
+                    <button
+                      key={c.code}
+                      onClick={() => setColorCode(c.code)}
+                      aria-label={c.label}
+                      className={`w-7 h-7 rounded-full border-2 ${
+                        colorCode === c.code ? 'border-sello-navy' : 'border-line'
+                      }`}
+                      style={{ backgroundColor: c.hex }}
+                    />
+                  ))}
+                </div>
+              </fieldset>
+
+              <fieldset className="mb-4">
+                <legend className={`font-label uppercase tracking-wide text-xs mb-2 ${headingTextClass}`}>Orientación</legend>
+                <div className="flex gap-2">
+                  {['horizontal', 'vertical'].map((o) => (
+                    <button
+                      key={o}
+                      onClick={() => setOrientation(o)}
+                      className={`px-3 py-1 rounded-full border text-sm capitalize ${
+                        orientation === o ? 'bg-sello-navy text-dark-bg border-sello-navy' : 'border-line'
+                      }`}
+                    >
+                      {o}
+                    </button>
+                  ))}
+                </div>
+              </fieldset>
+            </>
+          )}
+
+          <div className="mb-4">
+            <label htmlFor="memoryNote" className={`font-label uppercase tracking-wide text-xs block mb-1 ${headingTextClass}`}>
+              En una frase, ¿por qué este lugar?
+            </label>
+            <input
+              id="memoryNote"
+              value={memoryNote}
+              onChange={(e) => setMemoryNote(e.target.value)}
+              maxLength={140}
+              placeholder="Aquí aprendí a vivir sola."
+              className="w-full border border-line rounded px-3 py-2"
+            />
+            <p className={`text-xs mt-1 ${palette?.dark ? 'text-dark-fg/70' : 'text-graphite/60'}`}>
+              Opcional — si la compartes, la imprimimos en una tarjeta dentro de tu pieza.
+            </p>
+          </div>
+
+          {!isPuzzle && (
+            <div className="mb-4 flex items-center gap-2">
+              <input id="capelo" type="checkbox" checked={capelo} onChange={(e) => setCapelo(e.target.checked)} />
+              <label htmlFor="capelo" className={`text-sm ${headingTextClass}`}>Agregar capelo de vidrio</label>
+            </div>
+          )}
+
+          <div className="mb-6">
+            <label className={`font-label uppercase tracking-wide text-xs block mb-1 ${headingTextClass}`}>
+              Placa grabada (opcional)
+            </label>
+            <input
+              value={plateText}
+              onChange={(e) => setPlateText(e.target.value)}
+              maxLength={40}
+              placeholder="Texto a grabar"
+              className="w-full border border-line rounded px-3 py-2"
+            />
+          </div>
+
+          <RollingPrice
+            cents={unitPriceCents ?? place.base_price}
+            className={`font-label text-2xl font-bold block mb-2 ${headingTextClass}`}
+          />
+
+          {/* Made-to-order, no inventory — every piece needs this. */}
+          <p className={`font-label uppercase tracking-wide text-[11px] mb-6 ${palette?.dark ? 'text-dark-fg/70' : 'text-graphite/60'}`}>
+            Se fabrica en {PRODUCTION_DAYS} días hábiles · llega {SHIPPING_DAYS} días después
+          </p>
+
+          {place.status === 'soldout' ? (
+            <WaitlistDialog placeSlug={place.slug} />
+          ) : (
+            <Button onClick={handleAddToCart}>Agregar al carrito</Button>
+          )}
+
+          <div className="mt-10">
+            <h2 className={`font-label uppercase tracking-wide text-xs mb-2 ${headingTextClass}`}>
+              Especificaciones
+            </h2>
+            <dl className="border-t border-line">
+              {fullSpecs.map(([label, value]) => (
+                <div
+                  key={label}
+                  className={`grid grid-cols-2 border-b border-line py-2 font-label uppercase tracking-wide text-xs ${headingTextClass}`}
+                >
+                  <dt className={palette?.dark ? 'text-dark-fg/60' : 'text-graphite/60'}>{label}</dt>
+                  <dd className="break-words">{value}</dd>
+                </div>
+              ))}
+            </dl>
+          </div>
+
+          <div className="mt-10">
+            <h2 className={`font-label uppercase tracking-wide text-xs mb-3 ${headingTextClass}`}>
+              Cómo llega
+            </h2>
+            <HowItArrives steps={isPuzzle ? PUZZLE_HOW_IT_ARRIVES_STEPS : HOW_IT_ARRIVES_STEPS} />
+          </div>
+
+          <div className="mt-10">
+            <h2 className={`font-label uppercase tracking-wide text-xs mb-2 ${headingTextClass}`}>
+              Detalles
+            </h2>
+            <Accordion items={detailsAccordion} />
+          </div>
+
+          <Reviews slug={place.slug} />
+        </div>
+      </main>
+    </div>
   );
 }

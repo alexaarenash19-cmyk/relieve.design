@@ -1,37 +1,35 @@
-// "Colecciones" index — two views: a flat alphabetical list of every piece,
-// and the same pieces grouped by category (src/lib/categories.js, the same
-// taxonomy the experience view's "tipo" filter and /buscar use — no
-// separate collections taxonomy). Reviews aggregated across all places live
-// at the bottom, since there's no longer a single catch-all collection to
-// hang them off of.
+// "Colecciones" — the Explorar free-drag canvas (see docs/superpowers/specs/
+// 2026-07-26-explorar-colecciones-design.md). Reviews stay aggregated at
+// the bottom under the same #resenas anchor Gallery.jsx's menu already
+// links to (/colecciones#resenas) — don't rename that id.
 import { useEffect, useState } from 'react';
-import { GalleryCard } from '../components/Gallery.jsx';
+import ExplorarCanvas from '../components/ExplorarCanvas.jsx';
 import { fetchJsonArray } from '../lib/fetchJsonArray.js';
-import { CATEGORIES } from '../lib/categories.js';
 import { useDocumentHead } from '../lib/useDocumentHead.js';
-
-function byName(a, b) {
-  return a.name.localeCompare(b.name, 'es');
-}
 
 export default function Collections() {
   const [places, setPlaces] = useState([]);
   const [reviews, setReviews] = useState([]);
-  const [view, setView] = useState('todos'); // 'todos' | 'categoria'
 
   useDocumentHead({
     title: 'Colecciones — Relieve',
-    description: 'Todos los mapas en relieve de Relieve, o explóralos por categoría: ciudades, montañas, estadios y circuitos de México.',
+    description: 'Explora todos los mapas en relieve de Relieve en un lienzo interactivo, o cámbialo a vista de cuadrícula.',
     canonicalPath: '/colecciones',
   });
 
+  // Single fetch, shared with ExplorarCanvas via `initialPlaces` — the
+  // canvas used to run its own independent /api/places fetch on mount too,
+  // which meant two concurrent requests to the same endpoint on first
+  // load; that duplicate load was enough to make one of them fail on a
+  // cold-started preview deployment (Supabase connection contention),
+  // silently emptying the canvas since fetchJsonArray swallows non-ok
+  // responses into []. One shared fetch removes the race entirely.
   useEffect(() => {
     let cancelled = false;
     fetchJsonArray('/api/places').then((data) => {
       if (cancelled) return;
-      const sorted = [...data].sort(byName);
-      setPlaces(sorted);
-      Promise.all(sorted.map((p) => fetchJsonArray(`/api/reviews?place=${p.slug}`))).then((lists) => {
+      setPlaces(data);
+      Promise.all(data.map((p) => fetchJsonArray(`/api/reviews?place=${p.slug}`))).then((lists) => {
         if (!cancelled) setReviews(lists.flat());
       });
     });
@@ -40,62 +38,12 @@ export default function Collections() {
     };
   }, []);
 
-  const byCategory = CATEGORIES.map((cat) => ({
-    ...cat,
-    places: places.filter((p) => p.type === cat.value).sort(byName),
-  })).filter((cat) => cat.places.length > 0);
-
   return (
-    <main className="p-8">
-      <h1 className="font-display font-light text-3xl mb-6">Colecciones</h1>
-
-      <div className="flex gap-2 mb-8 font-label uppercase tracking-wide text-xs">
-        <button
-          onClick={() => setView('todos')}
-          className={`rounded-full px-4 py-2 border ${
-            view === 'todos' ? 'bg-graphite text-gallery-white border-graphite' : 'border-line text-graphite'
-          }`}
-        >
-          Todos los mapas
-        </button>
-        <button
-          onClick={() => setView('categoria')}
-          className={`rounded-full px-4 py-2 border ${
-            view === 'categoria' ? 'bg-graphite text-gallery-white border-graphite' : 'border-line text-graphite'
-          }`}
-        >
-          Por categoría
-        </button>
-      </div>
-
-      {view === 'todos' ? (
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-px bg-line">
-          {places.map((place) => (
-            <GalleryCard key={place.slug} place={place} />
-          ))}
-        </div>
-      ) : (
-        <div className="flex flex-col gap-10">
-          {byCategory.map((cat) => (
-            <section key={cat.value}>
-              <a
-                href={`/coleccion/${cat.value}`}
-                className="block font-label uppercase tracking-wide text-sm mb-3 border-b border-line pb-2 hover:text-passport-ink"
-              >
-                {cat.label}
-              </a>
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-px bg-line">
-                {cat.places.map((place) => (
-                  <GalleryCard key={place.slug} place={place} />
-                ))}
-              </div>
-            </section>
-          ))}
-        </div>
-      )}
+    <main>
+      <ExplorarCanvas initialPlaces={places} />
 
       {reviews.length > 0 && (
-        <section id="resenas" className="mt-12 max-w-2xl">
+        <section id="resenas" className="p-8 max-w-2xl mx-auto">
           <h2 className="font-label uppercase tracking-wide text-sm mb-4">Reseñas</h2>
           <ul className="space-y-2">
             {reviews.map((r, i) => (
