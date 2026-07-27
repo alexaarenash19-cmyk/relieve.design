@@ -1,20 +1,24 @@
-// PRD "Relieve: Fix de carga + paridad de efectos con Palmer", sección 4 —
-// split-screen product view opened from a canvas/grid pin. Literal
-// transcription of the "Explorar (preview)" artifact's #focus-overlay
-// (2026-07-27 approved version) — every size/color/gap value below is
-// copied from that artifact's CSS, not reinterpreted through a shared
-// component. A single hairline divides the screen exactly in half, a
-// SQUARE close × sits centered on that line (not circular — the
-// artifact's .focus-close has no border-radius at all), and the other
-// half keeps showing whatever was already on screen (the canvas, still
-// live and undimmed) instead of a modal scrim. Full personalization
-// (size/frame/color/etc.) stays on /pieza/:slug.
-import { useEffect, useState } from 'react';
+// PRD-animaciones-relieve.md, efecto #3 — split-screen product view
+// opened from a canvas/grid pin. Literal transcription of the "Explorar
+// (preview)" artifact's #focus-overlay: a single hairline divides the
+// screen exactly in half, a SQUARE close × sits centered on that line
+// (not circular — the artifact's .focus-close has no border-radius at
+// all), and the other half keeps showing whatever was already on screen
+// (the canvas, still live and undimmed, never paused/reloaded) instead of
+// a modal scrim. Full personalization (size/frame/color/etc.) stays on
+// /pieza/:slug.
+import { useEffect, useRef, useState } from 'react';
+import gsap from 'gsap';
+import { CustomEase } from 'gsap/CustomEase';
 import { useProductPanel } from '../context/ProductPanelContext.jsx';
 import { fetchJson } from '../lib/fetchJsonArray.js';
 import { piecePhotos } from '../lib/photography.js';
 import { categoryLabel } from '../lib/categories.js';
-import LetterReveal from './LetterReveal.jsx';
+
+gsap.registerPlugin(CustomEase);
+// The artifact's --ease (cubic-bezier(0.2,0.6,0.2,1)) as a reusable named
+// ease — GSAP has no bare "cubic-bezier(...)" string ease without this.
+CustomEase.create('relieveEase', '0.2, 0.6, 0.2, 1');
 
 function usePlace(slug) {
   const [place, setPlace] = useState(null);
@@ -43,6 +47,12 @@ export default function ProductPanel() {
   const { place, error } = usePlace(slug);
   const [activePhoto, setActivePhoto] = useState(0);
 
+  const titleRef = useRef(null);
+  const photoRef = useRef(null);
+  const metaRef = useRef(null);
+  const ctaRef = useRef(null);
+  const tlRef = useRef(null);
+
   useEffect(() => {
     setActivePhoto(0);
   }, [slug]);
@@ -58,6 +68,56 @@ export default function ProductPanel() {
   const photos = place ? piecePhotos(place.slug) : [];
   const mainPhoto = photos[activePhoto];
 
+  // Effect #3 per PRD table: one gsap.timeline(), four .fromTo() calls at
+  // exact durations/delays/eases. The panel container itself has NO
+  // transition (see className below — display/visibility toggles
+  // instantly via the `invisible` class); only this content animates in.
+  useEffect(() => {
+    if (!isOpen || !place || !titleRef.current) return;
+    tlRef.current?.kill();
+    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const d = (s) => (reduced ? 0.01 : s);
+    const letters = [...titleRef.current.children];
+
+    const tl = gsap.timeline();
+    tl.fromTo(
+      letters,
+      { opacity: 0, y: 8 },
+      { opacity: 1, y: 0, duration: d(0.5), ease: 'power2.out', stagger: reduced ? 0 : 0.03 },
+      0,
+    );
+    if (photoRef.current) {
+      tl.fromTo(
+        photoRef.current,
+        { opacity: 0 },
+        { opacity: 1, duration: d(0.5), ease: 'relieveEase' },
+        reduced ? 0 : 0.15,
+      );
+    }
+    if (metaRef.current) {
+      tl.fromTo(
+        metaRef.current,
+        { opacity: 0 },
+        { opacity: 1, duration: d(0.4), ease: 'relieveEase' },
+        reduced ? 0 : 0.5,
+      );
+    }
+    if (ctaRef.current) {
+      tl.fromTo(
+        ctaRef.current,
+        { opacity: 0 },
+        { opacity: 1, duration: d(0.4), ease: 'relieveEase' },
+        reduced ? 0 : 0.65,
+      );
+    }
+    tlRef.current = tl;
+    return () => tl.kill();
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- refs are stable;
+    // deliberately NOT depending on mainPhoto/activePhoto, or clicking a
+    // thumbnail inside an already-open panel would replay the whole
+    // entrance instead of just swapping the photo.
+  }, [isOpen, place]);
+
   return (
     <div
       role="dialog"
@@ -66,12 +126,10 @@ export default function ProductPanel() {
       className={`fixed inset-0 z-50 flex ${isOpen ? '' : 'invisible'}`}
     >
       {/* .focus-left: flex:1 1 50%, max-width:50%, bg gallery-white,
-          flex-col centered, gap:16px, padding: 0 5vw */}
-      <div
-        className={`relative flex-1 max-w-full md:max-w-[50%] min-h-0 bg-gallery-white overflow-hidden flex flex-col justify-center gap-4 px-[7vw] md:px-[5vw] transition-opacity duration-300 ${
-          isOpen ? 'opacity-100' : 'opacity-0'
-        }`}
-      >
+          flex-col centered, gap:16px, padding: 0 5vw. No opacity
+          transition here — the artifact's panel shows instantly
+          (display:none -> block); only the content inside animates. */}
+      <div className="relative flex-1 max-w-full md:max-w-[50%] min-h-0 bg-gallery-white overflow-hidden flex flex-col justify-center gap-4 px-[7vw] md:px-[5vw]">
         {/* mobile-only close — the artifact hides the divider/gap below
             720px and moves the × to a plain top-right corner instead */}
         <button
@@ -86,13 +144,22 @@ export default function ProductPanel() {
 
         {!error && place && (
           <>
-            {/* .focus-name: Fraunces 300, clamp(1.9rem,2.8vw+1rem,3.25rem), line-height 1.05 */}
-            <LetterReveal
-              key={place.slug}
-              text={place.name}
-              as="h2"
+            {/* .focus-name: Fraunces 300, clamp(1.9rem,2.8vw+1rem,3.25rem),
+                line-height 1.05. Per-letter spans driven by the timeline
+                above (opacity 0->1, y 8px->0, 0.5s, stagger 0.03s,
+                power2.out) instead of the shared LetterReveal component,
+                which runs its own separate CSS timing not on this
+                timeline. */}
+            <h2
+              ref={titleRef}
               className="font-display font-light text-[clamp(1.9rem,2.8vw+1rem,3.25rem)] leading-[1.05] m-0"
-            />
+            >
+              {[...place.name].map((c, i) => (
+                <span key={i} className="inline-block">
+                  {c === ' ' ? ' ' : c}
+                </span>
+              ))}
+            </h2>
 
             {/* .focus-photo-row: flex row, gap 14px */}
             <div className="flex items-center gap-[14px] min-h-0">
@@ -116,8 +183,12 @@ export default function ProductPanel() {
                 </div>
               )}
               {/* .focus-right: flex:1, max-height:40vh, aspect-ratio:1,
-                  border-radius:4px, bg-stone */}
-              <div className="flex-1 min-w-0 max-h-[40vh] aspect-square rounded-[4px] overflow-hidden bg-stone">
+                  border-radius:4px, bg-stone. Photo fade-in: opacity 0->1,
+                  0.5s, delay 0.15s, relieveEase (== cubic-bezier(0.2,0.6,0.2,1)) */}
+              <div
+                ref={photoRef}
+                className="flex-1 min-w-0 max-h-[40vh] aspect-square rounded-[4px] overflow-hidden bg-stone"
+              >
                 <div className="w-full h-full flex items-center justify-center">
                   {mainPhoto ? (
                     <img
@@ -138,15 +209,21 @@ export default function ProductPanel() {
                 rgba(35,35,35,.65) — the artifact's version reads
                 "TIPO — TAMAÑO", a mock field places don't have; using the
                 one real, equivalent field (tipo, + altitud when present)
-                instead of inventing a size here. */}
-            <p className="font-label uppercase tracking-wide text-[0.78rem] text-graphite/65 m-0">
+                instead of inventing a size here. Fade-in: opacity 0->1,
+                0.4s, delay 0.5s, relieveEase. */}
+            <p
+              ref={metaRef}
+              className="font-label uppercase tracking-wide text-[0.78rem] text-graphite/65 m-0"
+            >
               {categoryLabel(place.type)}
               {place.elevation_m ? ` — ${place.elevation_m} msnm` : ''}
             </p>
 
             {/* .focus-cta: padding 10px 18px, font-size 0.82rem, no hover
-                background change — only the arrow rotates -45deg on hover */}
+                background change — only the arrow rotates -45deg on
+                hover. Fade-in: opacity 0->1, 0.4s, delay 0.65s, relieveEase. */}
             <a
+              ref={ctaRef}
               href={`/pieza/${place.slug}`}
               onClick={closeProduct}
               className="group self-start inline-flex items-center gap-2 rounded-full bg-graphite text-gallery-white px-[18px] py-[10px] font-body font-medium text-[0.82rem]"
@@ -162,7 +239,8 @@ export default function ProductPanel() {
 
       {/* .focus-divider: 1px hairline, graphite @ 25% opacity. .focus-close:
           46x46, SQUARE (no border-radius in the artifact), centered on the
-          line, font-size 1.2rem — hidden below 720px along with the gap */}
+          line, font-size 1.2rem, no entrance animation — only a 0.2s
+          color transition on hover — hidden below 720px along with the gap */}
       <div className="hidden md:block relative w-px bg-graphite/25 shrink-0">
         <button
           onClick={closeProduct}
@@ -173,9 +251,9 @@ export default function ProductPanel() {
         </button>
       </div>
 
-      {/* .focus-canvas-gap: transparent, pointer-events:none — whatever was
-          already on screen (the live, still-interactive canvas) stays
-          fully visible. No dark scrim: this is a split view, not a modal. */}
+      {/* .focus-canvas-gap: transparent, pointer-events:none — the canvas
+          behind keeps rendering live, uninterrupted, never paused or
+          reloaded. No dark scrim: this is a split view, not a modal. */}
       <div className="hidden md:block flex-1 max-w-[50%] pointer-events-none" />
     </div>
   );
