@@ -6,7 +6,7 @@ import gsap from 'gsap';
 import { placeAlt } from '../lib/altText.js';
 import { pieceMainPhoto, thumbUrlForWidth } from '../lib/photography.js';
 import { fetchJsonArray } from '../lib/fetchJsonArray.js';
-import { CATEGORIES } from '../lib/categories.js';
+import { CATEGORIES, categoryLabel } from '../lib/categories.js';
 import { SIZES } from '../lib/catalog.js';
 import { useProductPanel } from '../context/ProductPanelContext.jsx';
 import Stamp from './Stamp.jsx';
@@ -26,6 +26,13 @@ const GRID_COLS = 3;
 const GRID_ROWS = 3;
 const MOBILE_BREAKPOINT = 640;
 const MOBILE_SCALE = 0.62;
+
+// Matches the artifact's priceLabel() exactly — used by the "vista
+// cuadrícula" toggle's card meta (name + tipo + price), which the plain
+// shared 'grid' variant (used by /buscar, /colecciones) doesn't show.
+function priceLabel(cents) {
+  return '$' + (cents / 100).toLocaleString('es-MX', { minimumFractionDigits: 0 }) + ' MXN';
+}
 
 export function GalleryCard({ place, variant = 'grid', slot }) {
   const { openProduct } = useProductPanel();
@@ -87,7 +94,15 @@ export function GalleryCard({ place, variant = 'grid', slot }) {
       className={
         variant === 'scattered'
           ? `group block select-none canvas-tile${entering ? ' tile-pop' : ''}`
-          : 'group block border border-line rounded-[9px] bg-gallery-white overflow-hidden select-none'
+          : variant === 'explorarGrid'
+            // "vista cuadrícula" toggle only (this file) — the artifact's
+            // .grid-card is a flat, borderless tile; the hairline seams
+            // between cards come from the wrap's own gap-px/bg-line, not a
+            // per-card border. Deliberately a separate variant, not a
+            // change to the shared 'grid' below (used by /buscar and
+            // /colecciones — those keep their own bordered-card look).
+            ? 'group block bg-gallery-white overflow-hidden select-none'
+            : 'group block border border-line rounded-[9px] bg-gallery-white overflow-hidden select-none'
       }
       style={tileStyle}
     >
@@ -125,14 +140,23 @@ export function GalleryCard({ place, variant = 'grid', slot }) {
             {place.name}
           </span>
         )}
-        {variant !== 'scattered' && (
+        {variant === 'grid' && (
           <Stamp
             label="Ver pieza"
             className="absolute inset-0 m-auto w-fit h-fit opacity-0 scale-90 group-hover:opacity-100 group-hover:scale-100 transition-all duration-200 bg-gallery-white/90"
           />
         )}
       </div>
-      {variant !== 'scattered' && (
+      {variant === 'explorarGrid' && (
+        <div className="pt-[14px] px-1 pb-[22px]">
+          <p className="font-display font-normal text-base m-0 mb-1">{place.name}</p>
+          <p className="font-label uppercase tracking-wide text-[11px] text-graphite/55 flex gap-2 m-0">
+            <span>{categoryLabel(place.type)}</span>
+            <span className="font-bold text-graphite">{priceLabel(place.base_price)}</span>
+          </p>
+        </div>
+      )}
+      {variant === 'grid' && (
         <p className="font-display text-sm px-3 py-2">{place.name}</p>
       )}
     </a>
@@ -763,15 +787,21 @@ export default function Gallery({ zoomIn = false }) {
             <div style={{ height: '25vh' }} aria-hidden="true" />
           </>
         ) : (
-          <div
-            className="grid gap-px bg-line p-px"
-            style={{
-              gridTemplateColumns: `repeat(${Math.round(3 * zoom)}, minmax(0, 1fr))`,
-            }}
-          >
-            {places.map((place) => (
-              <GalleryCard key={place.slug} place={place} variant="grid" />
-            ))}
+          // Artifact's #grid-view/.grid-wrap exactly: responsive auto-fill
+          // columns (not tied to the canvas zoom stepper — the artifact's
+          // grid view doesn't respond to zoom at all, it's a separate
+          // fixed layout), max-width 1100px centered, top/bottom page
+          // padding matching a full-page scrollable view rather than the
+          // canvas's fixed 100vh.
+          <div className="pt-[110px] px-6 pb-[140px]">
+            <div
+              className="grid gap-px bg-line max-w-[1100px] mx-auto"
+              style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))' }}
+            >
+              {places.map((place) => (
+                <GalleryCard key={place.slug} place={place} variant="explorarGrid" />
+              ))}
+            </div>
           </div>
         )}
       </div>
