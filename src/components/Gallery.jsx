@@ -2,6 +2,7 @@
 // Two view modes: scattered infinite canvas (default) and a plain grid
 // ("Card Surface").
 import { useEffect, useRef, useState } from 'react';
+import gsap from 'gsap';
 import { placeAlt } from '../lib/altText.js';
 import { pieceMainPhoto, thumbUrlForWidth } from '../lib/photography.js';
 import { fetchJsonArray } from '../lib/fetchJsonArray.js';
@@ -34,6 +35,27 @@ export function GalleryCard({ place, variant = 'grid', slot }) {
   );
   const cursorLabel = variant === 'scattered' ? `+ ${place.name}` : undefined;
   const [loaded, setLoaded] = useState(false);
+  const rootRef = useRef(null);
+
+  // Entrance pop (scale 0 -> 1 + fade, small random stagger) for canvas
+  // tiles only — matches the "Explorar (preview)" artifact Ale approved.
+  // Runs on mount, so a tile replays it each time it scrolls back into
+  // the visible window, not just once ever (the artifact's plain-DOM
+  // version reused elements and never remounted them, so it only played
+  // once per element) — a reasonable approximation given React
+  // mounts/unmounts a tile's DOM node each time visibility toggles here.
+  useEffect(() => {
+    if (variant !== 'scattered' || !rootRef.current) return;
+    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    gsap.set(rootRef.current, { scale: 0, opacity: 0 });
+    gsap.to(rootRef.current, {
+      scale: 1,
+      opacity: 1,
+      duration: reduced ? 0.01 : 0.5,
+      ease: 'power1.inOut',
+      delay: reduced ? 0 : Math.random() * 0.4,
+    });
+  }, [variant]);
 
   const tileStyle =
     variant === 'scattered'
@@ -59,6 +81,7 @@ export function GalleryCard({ place, variant = 'grid', slot }) {
 
   return (
     <a
+      ref={rootRef}
       href={`/pieza/${place.slug}`}
       onClick={handleClick}
       data-cursor-label={cursorLabel}
@@ -278,7 +301,7 @@ function ExperienceToggle({ view, onChange }) {
             )),
           )}
         </svg>
-        experience view
+        {view === 'scattered' ? 'vista cuadrícula' : 'vista lienzo'}
       </button>
     </div>
   );
@@ -421,7 +444,7 @@ function BottomControlBar({
           className={filterOpen ? DARK_PILL : GHOST_PILL}
         >
           {filterOpen ? <CloseIcon /> : <FilterIcon />}
-          {filterOpen ? 'cerrar' : 'filter'}
+          {filterOpen ? 'cerrar' : 'filtrar'}
         </button>
         {filterOpen && (
           <>
@@ -511,7 +534,7 @@ function DragHintAndZoom({ setZoom, showHint }) {
       <div className="flex items-center gap-2 pointer-events-auto">
         {showHint && (
           <span className="font-label uppercase tracking-wide text-[9px] text-graphite/50">
-            drag to explore
+            arrastra para explorar
           </span>
         )}
         <button

@@ -12,8 +12,6 @@ import { useProductPanel } from '../context/ProductPanelContext.jsx';
 import { fetchJson } from '../lib/fetchJsonArray.js';
 import { piecePhotos } from '../lib/photography.js';
 import { categoryLabel } from '../lib/categories.js';
-import RollingPrice from './RollingPrice.jsx';
-import Button from './Button.jsx';
 import TopoLines from './TopoLines.jsx';
 import LetterReveal from './LetterReveal.jsx';
 import PhotoCarousel from './PhotoCarousel.jsx';
@@ -111,19 +109,20 @@ export default function ProductPanel() {
               )}
             </dl>
 
-            <RollingPrice
-              cents={place.base_price}
-              className="font-label text-xl font-bold block"
-            />
-
-            <Button
-              as="a"
+            {/* Black pill, matching the "Explorar (preview)" artifact
+                exactly — deliberately not the shared <Button> (that one's
+                sello-navy, the site's selection-accent color elsewhere,
+                e.g. Product.jsx's size/frame pickers; this quick-view CTA
+                is a different, artifact-specified black). Price lives on
+                the full page, not repeated here — matches the artifact's
+                quick-view, which also only showed name/photo/tipo. */}
+            <a
               href={`/pieza/${place.slug}`}
               onClick={closeProduct}
-              className="self-start !px-5 !py-2.5 !text-sm"
+              className="self-start inline-flex items-center gap-2 rounded-full bg-graphite text-gallery-white px-5 py-2.5 font-body font-medium text-sm hover:bg-graphite/85 transition-colors"
             >
-              Encargar
-            </Button>
+              Ver pieza completa <span aria-hidden="true">→</span>
+            </a>
           </>
         )}
       </div>
