@@ -13,8 +13,13 @@ const pieceMains = import.meta.glob(
     import: 'default',
   },
 );
-const pieceDetails = import.meta.glob(
-  '../assets/photography/pieces/*/detail-1.{jpg,jpeg,png,webp}',
+// Every photo in a piece's folder, not just main/detail-1 — several pieces
+// (barcelona, ciudad-de-mexico, paris, shanghai) already have extra shots
+// committed (king.jpg, vista.jpg, top-view-2.jpg, en-contexto.jpg, etc.)
+// that main/detail-1-only globs were leaving on disk unused. The product
+// page carousel wants all of them.
+const piecePhotosGlob = import.meta.glob(
+  '../assets/photography/pieces/*/*.{jpg,jpeg,png,webp}',
   {
     eager: true,
     import: 'default',
@@ -36,6 +41,10 @@ function slugFromPath(path) {
   return path.match(/pieces\/([^/]+)\//)?.[1];
 }
 
+function fileNameFromPath(path) {
+  return path.match(/\/([^/]+)\.[^./]+$/)?.[1] ?? '';
+}
+
 function stepNumberFromPath(path) {
   return path.match(/step-(\d+)/)?.[1];
 }
@@ -43,9 +52,24 @@ function stepNumberFromPath(path) {
 const mainBySlug = Object.fromEntries(
   Object.entries(pieceMains).map(([path, url]) => [slugFromPath(path), url]),
 );
-const detailBySlug = Object.fromEntries(
-  Object.entries(pieceDetails).map(([path, url]) => [slugFromPath(path), url]),
-);
+
+// Groups every matched file by slug, `main` first (matching mainBySlug
+// above) then the rest alphabetically by filename — a stable, predictable
+// order for the carousel regardless of glob/filesystem ordering.
+const photosBySlug = {};
+for (const [path, url] of Object.entries(piecePhotosGlob)) {
+  const slug = slugFromPath(path);
+  if (!slug) continue;
+  (photosBySlug[slug] ??= []).push({ file: fileNameFromPath(path), url });
+}
+for (const slug of Object.keys(photosBySlug)) {
+  photosBySlug[slug].sort((a, b) => {
+    if (a.file === 'main') return -1;
+    if (b.file === 'main') return 1;
+    return a.file.localeCompare(b.file);
+  });
+}
+
 const howItArrivesByStep = Object.fromEntries(
   Object.entries(howItArrivesSteps).map(([path, url]) => [stepNumberFromPath(path), url]),
 );
@@ -58,8 +82,11 @@ export function pieceMainPhoto(slug) {
   return mainBySlug[slug] ?? null;
 }
 
-export function pieceDetailPhoto(slug) {
-  return detailBySlug[slug] ?? null;
+// All bundled photos for a piece, main first — [] (not null) when the
+// piece has none yet, so callers can map over it directly without a
+// separate null check.
+export function piecePhotos(slug) {
+  return (photosBySlug[slug] ?? []).map((p) => p.url);
 }
 
 export function howItArrivesPhoto(stepNumber) {

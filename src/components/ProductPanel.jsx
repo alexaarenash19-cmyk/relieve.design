@@ -8,13 +8,13 @@
 import { useEffect, useState } from 'react';
 import { useProductPanel } from '../context/ProductPanelContext.jsx';
 import { fetchJson } from '../lib/fetchJsonArray.js';
-import { pieceMainPhoto, pieceDetailPhoto } from '../lib/photography.js';
+import { piecePhotos } from '../lib/photography.js';
 import { categoryLabel } from '../lib/categories.js';
 import RollingPrice from './RollingPrice.jsx';
 import Button from './Button.jsx';
 import TopoLines from './TopoLines.jsx';
 import LetterReveal from './LetterReveal.jsx';
-import Lightbox from './Lightbox.jsx';
+import PhotoCarousel from './PhotoCarousel.jsx';
 
 function usePlace(slug) {
   const [place, setPlace] = useState(null);
@@ -38,59 +38,6 @@ function usePlace(slug) {
   return { place, error };
 }
 
-function PhotoCarousel({ place }) {
-  const photos = [
-    pieceMainPhoto(place.slug) ?? place.thumb_url,
-    pieceDetailPhoto(place.slug),
-  ].filter(Boolean);
-  const [active, setActive] = useState(0);
-  const [lightboxOpen, setLightboxOpen] = useState(false);
-  const photo = photos[active];
-
-  return (
-    <div>
-      <button
-        type="button"
-        onClick={() => setLightboxOpen(true)}
-        data-cursor="view"
-        className="warm-photo relative w-full aspect-square rounded-[9px] overflow-hidden bg-stone block"
-      >
-        {photo && (
-          <img src={photo} alt="" className="w-full h-full object-cover" />
-        )}
-        <TopoLines className="absolute inset-0 w-full h-full text-dark-fg mix-blend-screen opacity-70 pointer-events-none" />
-      </button>
-      {photos.length > 1 && (
-        <div className="flex gap-2 mt-3">
-          {photos.map((url, i) => (
-            <button
-              key={url}
-              onClick={() => setActive(i)}
-              className={`w-14 h-14 rounded-[6px] overflow-hidden border-2 ${
-                active === i ? 'border-sello-navy' : 'border-line'
-              }`}
-            >
-              <img
-                src={url}
-                alt=""
-                className="warm-photo w-full h-full object-cover"
-              />
-            </button>
-          ))}
-        </div>
-      )}
-      {lightboxOpen && (
-        <Lightbox
-          photos={photos}
-          index={active}
-          onIndexChange={setActive}
-          onClose={() => setLightboxOpen(false)}
-        />
-      )}
-    </div>
-  );
-}
-
 export default function ProductPanel() {
   const { slug, isOpen, closeProduct } = useProductPanel();
   const { place, error } = usePlace(slug);
@@ -102,6 +49,14 @@ export default function ProductPanel() {
     window.addEventListener('keydown', onKeydown);
     return () => window.removeEventListener('keydown', onKeydown);
   }, [closeProduct]);
+
+  const photos = place
+    ? (() => {
+        const local = piecePhotos(place.slug);
+        if (local.length) return local;
+        return place.thumb_url ? [place.thumb_url] : [];
+      })()
+    : [];
 
   return (
     <>
@@ -133,7 +88,14 @@ export default function ProductPanel() {
 
           {!error && place && (
             <>
-              <PhotoCarousel place={place} />
+              <PhotoCarousel
+                photos={photos}
+                alt={place.name}
+                placeholderLabel={place.name}
+                overlay={
+                  <TopoLines className="absolute inset-0 w-full h-full text-dark-fg mix-blend-screen opacity-70 pointer-events-none" />
+                }
+              />
 
               <LetterReveal
                 key={place.slug}
