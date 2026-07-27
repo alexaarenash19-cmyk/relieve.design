@@ -10,41 +10,21 @@ import { SIZES } from '../lib/catalog.js';
 import { useProductPanel } from '../context/ProductPanelContext.jsx';
 import Stamp from './Stamp.jsx';
 
-// Grid-aligned, hand-placed cells — straight, never overlapping, varied
-// sizes (1x1 / 2x2) but locked to a 4-col grid, not free/random positions.
-// Only fully-in-view tiles render (see ScatteredCanvas), so CELL/GAP need
-// to be small enough that a full block — ideally more than one — fits
-// inside a typical viewport; too large and almost nothing survives the
-// visibility filter, leaving the canvas looking empty. On a phone-width
-// viewport the desktop size leaves room for ~1 tile total (a 2x2 tile
-// alone is wider than a 390px screen) — mobile audit caught this — so the
-// cell/gap scale down below MOBILE_BREAKPOINT instead of staying fixed.
-const CELL_BASE = 180;
-const GAP_BASE = 50;
-const GRID_COLS = 4;
-const GRID_ROWS = 4;
+// Uniform-cell brick grid — Ale's 2026-07-27 spec, measured directly off
+// the live site: every cell is the same fixed 175x175 footprint at a
+// 255px pitch (175 cell + 80 gap). The "one big, one small" look comes
+// entirely from each piece's own photo crop (some fill the frame, some
+// leave a lot of margin), never from varying the cell/footprint size —
+// replaces the old hand-placed 1x1/2x2 TILE_PATTERN. Even columns
+// (0-indexed col % 2 === 1) are pushed down COL_OFFSET_BASE so rows don't
+// align into a rigid checkerboard.
+const CELL_BASE = 175;
+const GAP_BASE = 80;
+const COL_OFFSET_BASE = 88;
+const GRID_COLS = 3;
+const GRID_ROWS = 3;
 const MOBILE_BREAKPOINT = 640;
-const MOBILE_SCALE = 0.5;
-
-const TILE_PATTERN = [
-  { col: 0, row: 0, span: 2 },
-  { col: 2, row: 0, span: 1 },
-  { col: 3, row: 0, span: 1 },
-  { col: 2, row: 1, span: 1 },
-  { col: 3, row: 1, span: 1 },
-  { col: 0, row: 2, span: 1 },
-  { col: 1, row: 2, span: 2 },
-  { col: 3, row: 2, span: 1 },
-  { col: 0, row: 3, span: 1 },
-];
-
-function tilePx({ col, row, span }, cell, gap) {
-  return {
-    left: col * (cell + gap),
-    top: row * (cell + gap),
-    size: span * cell + (span - 1) * gap,
-  };
-}
+const MOBILE_SCALE = 0.62;
 
 export function GalleryCard({ place, variant = 'grid', slot }) {
   const { openProduct } = useProductPanel();
@@ -127,8 +107,8 @@ export function GalleryCard({ place, variant = 'grid', slot }) {
   );
 }
 
-// Infinite pannable canvas: drag translates an offset; the tile pattern
-// wraps (modulo BLOCK_W/H) and repeats in a grid of copies around the
+// Infinite pannable canvas: drag translates an offset; the grid wraps
+// (modulo blockW/blockH) and repeats in a grid of copies around the
 // wrapped origin, so panning in any direction never runs out of tiles.
 //
 // Every candidate tile's on-screen rect is computed in JS and only
@@ -166,7 +146,11 @@ function ScatteredCanvas({ items, zoom }) {
       x: e.clientX - startRef.current.x,
       y: e.clientY - startRef.current.y,
     };
-    if (Math.abs(next.x - offset.x) > 4 || Math.abs(next.y - offset.y) > 4)
+    // >6px (not >4) before counting as a drag — a tighter threshold was
+    // swallowing taps on the canvas that worked fine from the plain grid
+    // view (which has no drag detection at all), since any pointer jitter
+    // past the old threshold canceled the click that opens ProductPanel.
+    if (Math.abs(next.x - offset.x) > 6 || Math.abs(next.y - offset.y) > 6)
       movedRef.current = true;
     setOffset(next);
   }
@@ -182,14 +166,13 @@ function ScatteredCanvas({ items, zoom }) {
     }
   }
 
-  // One GAP per column/row, including a trailing one after the last — not
-  // (COLS - 1) gaps — so the repeat period leaves a real gutter at the
-  // seam between tiled blocks too, not just between cells inside one block.
   const mobileScale = size.w && size.w < MOBILE_BREAKPOINT ? MOBILE_SCALE : 1;
   const cell = CELL_BASE * mobileScale;
   const gap = GAP_BASE * mobileScale;
-  const blockW = GRID_COLS * (cell + gap);
-  const blockH = GRID_ROWS * (cell + gap);
+  const colOffsetY = COL_OFFSET_BASE * mobileScale;
+  const step = cell + gap;
+  const blockW = GRID_COLS * step;
+  const blockH = GRID_ROWS * step;
 
   const wrappedX = ((offset.x % blockW) + blockW) % blockW;
   const wrappedY = ((offset.y % blockH) + blockH) % blockH;
@@ -200,36 +183,36 @@ function ScatteredCanvas({ items, zoom }) {
   const centerY = size.h / 2;
 
   const tiles = [];
-  if (size.w && size.h) {
+  if (size.w && size.h && items.length) {
     for (const j of REPEAT) {
       for (const i of REPEAT) {
         const blockLeft = wrappedX + i * blockW - blockW / 2;
         const blockTop = wrappedY + j * blockH - blockH / 2;
-        items.forEach((place, idx) => {
-          const slot = tilePx(
-            TILE_PATTERN[idx % TILE_PATTERN.length],
-            cell,
-            gap,
-          );
-          const rawLeft = centerX + blockLeft + slot.left;
-          const rawTop = centerY + blockTop + slot.top;
-          const screenLeft = centerX + (rawLeft - centerX) * zoom;
-          const screenTop = centerY + (rawTop - centerY) * zoom;
-          const screenSize = slot.size * zoom;
-          const fullyVisible =
-            screenLeft >= 0 &&
-            screenTop >= 0 &&
-            screenLeft + screenSize <= size.w &&
-            screenTop + screenSize <= size.h;
-          if (!fullyVisible) return;
-          tiles.push({
-            key: `${i}-${j}-${place.slug}`,
-            place,
-            left: rawLeft,
-            top: rawTop,
-            size: slot.size,
-          });
-        });
+        for (let row = 0; row < GRID_ROWS; row++) {
+          for (let col = 0; col < GRID_COLS; col++) {
+            const cellIdx = row * GRID_COLS + col;
+            const place = items[cellIdx % items.length];
+            const rawLeft = centerX + blockLeft + col * step;
+            const rawTop =
+              centerY + blockTop + row * step + (col % 2 === 1 ? colOffsetY : 0);
+            const screenLeft = centerX + (rawLeft - centerX) * zoom;
+            const screenTop = centerY + (rawTop - centerY) * zoom;
+            const screenSize = cell * zoom;
+            const fullyVisible =
+              screenLeft >= 0 &&
+              screenTop >= 0 &&
+              screenLeft + screenSize <= size.w &&
+              screenTop + screenSize <= size.h;
+            if (!fullyVisible) continue;
+            tiles.push({
+              key: `${i}-${j}-${row}-${col}-${place.slug}`,
+              place,
+              left: rawLeft,
+              top: rawTop,
+              size: cell,
+            });
+          }
+        }
       }
     }
   }

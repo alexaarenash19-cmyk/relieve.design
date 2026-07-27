@@ -1,10 +1,12 @@
 // PRD "Relieve: Fix de carga + paridad de efectos con Palmer", sección 4 —
-// half-screen product panel opened from a canvas pin. Same overlay + slide-
-// in-from-right pattern as CartDrawer.jsx (Escape/click-outside closes,
-// translate-x transition), fetching the same /api/places/:slug endpoint
-// Product.jsx already uses (cached — see catalog-cache-fix). Full
-// personalization (size/frame/color/etc.) stays on /pieza/:slug; this is a
-// lightweight preview ending in a CTA to that page, not a rebuild of it.
+// split-screen product view opened from a canvas/grid pin. Reference:
+// Ale's own Palmer (palmer-dinnerware.com) screenshot, 2026-07-27 — a
+// single hairline divides the screen exactly in half, a big close X sits
+// centered on that line, and the OTHER half keeps showing whatever was
+// already on screen (the canvas, still live and undimmed, not a dark
+// scrim) rather than being covered by a modal. Full personalization
+// (size/frame/color/etc.) stays on /pieza/:slug; this is a lightweight
+// preview ending in a CTA to that page, not a rebuild of it.
 import { useEffect, useState } from 'react';
 import { useProductPanel } from '../context/ProductPanelContext.jsx';
 import { fetchJson } from '../lib/fetchJsonArray.js';
@@ -50,44 +52,42 @@ export default function ProductPanel() {
     return () => window.removeEventListener('keydown', onKeydown);
   }, [closeProduct]);
 
-  const photos = place
-    ? (() => {
-        const local = piecePhotos(place.slug);
-        if (local.length) return local;
-        return place.thumb_url ? [place.thumb_url] : [];
-      })()
-    : [];
+  const photos = place ? piecePhotos(place.slug) : [];
 
   return (
-    <>
+    <div
+      role="dialog"
+      aria-label="Detalle de pieza"
+      aria-hidden={!isOpen}
+      className={`fixed inset-0 z-50 flex ${isOpen ? '' : 'invisible'}`}
+    >
       <div
-        onClick={closeProduct}
-        aria-hidden="true"
-        className={`fixed inset-0 bg-graphite/40 z-40 transition-opacity duration-300 ${
-          isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
-        }`}
-      />
-      <aside
-        role="dialog"
-        aria-label="Detalle de pieza"
-        aria-hidden={!isOpen}
-        className={`fixed inset-y-0 left-0 z-50 w-full md:max-w-[50vw] bg-gallery-white overflow-y-auto transition-transform duration-300 ${
-          isOpen ? 'translate-x-0' : '-translate-x-full'
+        className={`relative flex-1 max-w-full md:max-w-[50%] bg-gallery-white overflow-hidden flex flex-col justify-center gap-5 px-[7vw] md:px-[5vw] py-8 transition-opacity duration-300 ${
+          isOpen ? 'opacity-100' : 'opacity-0'
         }`}
       >
-        <div className="p-6 md:p-10">
-          <button
-            onClick={closeProduct}
-            aria-label="Cerrar"
-            className="text-xl leading-none mb-6 block ml-auto"
-          >
-            ×
-          </button>
+        {/* mobile-only close — the hairline+centered-X pattern only makes
+            sense once there's a second half of the screen to divide from */}
+        <button
+          onClick={closeProduct}
+          aria-label="Cerrar"
+          className="md:hidden absolute top-4 right-4 w-10 h-10 rounded-full border border-graphite bg-gallery-white flex items-center justify-center text-lg leading-none"
+        >
+          ×
+        </button>
 
-          {error && <p className="text-center text-graphite/70">{error}</p>}
+        {error && <p className="text-center text-graphite/70">{error}</p>}
 
-          {!error && place && (
-            <>
+        {!error && place && (
+          <>
+            <LetterReveal
+              key={place.slug}
+              text={place.name}
+              as="h2"
+              className="font-display font-light text-[clamp(1.9rem,2.8vw+1rem,3.25rem)] leading-tight m-0"
+            />
+
+            <div className="w-full max-w-[38vh]">
               <PhotoCarousel
                 photos={photos}
                 alt={place.name}
@@ -96,44 +96,55 @@ export default function ProductPanel() {
                   <TopoLines className="absolute inset-0 w-full h-full text-dark-fg mix-blend-screen opacity-70 pointer-events-none" />
                 }
               />
+            </div>
 
-              <LetterReveal
-                key={place.slug}
-                text={place.name}
-                as="h2"
-                className="font-display font-light text-3xl mt-6 mb-4"
-              />
-
-              <dl className="border-t border-line mb-6">
-                <div className="grid grid-cols-2 border-b border-line py-2 font-label uppercase tracking-wide text-xs">
-                  <dt className="text-graphite/60">Tipo</dt>
-                  <dd>{categoryLabel(place.type)}</dd>
+            <dl className="m-0">
+              <div className="flex gap-2 font-label uppercase tracking-wide text-xs">
+                <dt className="text-graphite/60">Tipo</dt>
+                <dd>{categoryLabel(place.type)}</dd>
+              </div>
+              {place.elevation_m && (
+                <div className="flex gap-2 font-label uppercase tracking-wide text-xs mt-1">
+                  <dt className="text-graphite/60">Altitud</dt>
+                  <dd>{place.elevation_m} msnm</dd>
                 </div>
-                {place.elevation_m && (
-                  <div className="grid grid-cols-2 border-b border-line py-2 font-label uppercase tracking-wide text-xs">
-                    <dt className="text-graphite/60">Altitud</dt>
-                    <dd>{place.elevation_m} msnm</dd>
-                  </div>
-                )}
-              </dl>
+              )}
+            </dl>
 
-              <RollingPrice
-                cents={place.base_price}
-                className="font-label text-2xl font-bold block mb-6"
-              />
+            <RollingPrice
+              cents={place.base_price}
+              className="font-label text-xl font-bold block"
+            />
 
-              <Button
-                as="a"
-                href={`/pieza/${place.slug}`}
-                onClick={closeProduct}
-                className="w-full"
-              >
-                Encargar
-              </Button>
-            </>
-          )}
-        </div>
-      </aside>
-    </>
+            <Button
+              as="a"
+              href={`/pieza/${place.slug}`}
+              onClick={closeProduct}
+              className="self-start !px-5 !py-2.5 !text-sm"
+            >
+              Encargar
+            </Button>
+          </>
+        )}
+      </div>
+
+      {/* hairline divider, the close X centered exactly on it — hidden on
+          mobile, where there's no live "other half" to divide from */}
+      <div className="hidden md:block relative w-px bg-graphite/25 shrink-0">
+        <button
+          onClick={closeProduct}
+          aria-label="Cerrar"
+          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-11 h-11 rounded-full border border-graphite bg-gallery-white text-graphite flex items-center justify-center text-xl leading-none hover:bg-graphite hover:text-gallery-white transition-colors"
+        >
+          ×
+        </button>
+      </div>
+
+      {/* transparent — whatever was already on screen (the live, still-
+          interactive canvas, or any other page) stays fully visible; this
+          only reserves the other 50% so the split matches Ale's reference
+          exactly. No dark scrim: this is a split view, not a modal. */}
+      <div className="hidden md:block flex-1 max-w-[50%] pointer-events-none" />
+    </div>
   );
 }
