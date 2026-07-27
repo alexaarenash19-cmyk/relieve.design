@@ -4,7 +4,16 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { useCart } from '../context/CartContext.jsx';
-import { SIZES, FRAMES, COLORS, PRODUCTION_DAYS, SHIPPING_DAYS, HOW_IT_ARRIVES_STEPS } from '../lib/catalog.js';
+import {
+  SIZES,
+  sizesForType,
+  FRAMES,
+  COLORS,
+  PRODUCTION_DAYS,
+  SHIPPING_DAYS,
+  HOW_IT_ARRIVES_STEPS,
+  PUZZLE_HOW_IT_ARRIVES_STEPS,
+} from '../lib/catalog.js';
 import { useDocumentHead } from '../lib/useDocumentHead.js';
 import RollingPrice from '../components/RollingPrice.jsx';
 import WaitlistDialog from '../components/WaitlistDialog.jsx';
@@ -14,7 +23,8 @@ import BaggageTag from '../components/BaggageTag.jsx';
 import Reviews from '../components/Reviews.jsx';
 import HowItArrives from '../components/HowItArrives.jsx';
 import Accordion from '../components/Accordion.jsx';
-import { pieceMainPhoto, pieceDetailPhoto } from '../lib/photography.js';
+import PhotoCarousel from '../components/PhotoCarousel.jsx';
+import { piecePhotos } from '../lib/photography.js';
 import { fetchJson } from '../lib/fetchJsonArray.js';
 
 export default function Product() {
@@ -31,19 +41,17 @@ export default function Product() {
   const [capelo, setCapelo] = useState(false);
   const [memoryNote, setMemoryNote] = useState('');
   const [unitPriceCents, setUnitPriceCents] = useState(null);
-  const [activePhoto, setActivePhoto] = useState(null);
 
   useEffect(() => {
     let cancelled = false;
     fetchJson(`/api/places/${slug}`)
       .then((data) => {
-        if (!cancelled) {
-          setPlace(data);
-          // Swappable local file (src/assets/photography/pieces/<slug>/main.jpg)
-          // wins over the catalog's thumb_url when present — same convention
-          // as the gallery, so dropping in a real photo needs no code change.
-          setActivePhoto(pieceMainPhoto(data.slug) ?? data.thumb_url);
-        }
+        if (cancelled) return;
+        setPlace(data);
+        // A puzzle only has one real size (see PUZZLE_SIZES) — a wall
+        // piece defaults to the featured tier, same as before.
+        const applicable = sizesForType(data.type);
+        setSizeCode((applicable.find((s) => s.featured) ?? applicable[0]).code);
       })
       // fetchJson throws on a non-ok response AND on timeout (10s, see
       // lib/fetchJsonArray.js) — either way this is a visible error state,
@@ -106,18 +114,25 @@ export default function Product() {
     );
   }
 
+  // El puzzle (colección Juego) no se enmarca, no tiene color ni
+  // orientación, y no cumple el estándar de "se cuelga sin herraje" de las
+  // piezas de pared — vive en su propio camino dentro de esta misma página
+  // en vez de duplicar Product.jsx entero para un solo producto.
+  const isPuzzle = place.type === 'juego';
+  const availableSizes = sizesForType(place.type);
+
   const selectedColor = COLORS.find((c) => c.code === colorCode);
   const selectedFrame = FRAMES.find((f) => f.code === frameCode);
-  const selectedSize = SIZES.find((s) => s.code === sizeCode);
+  const selectedSize = SIZES.find((s) => s.code === sizeCode) ?? availableSizes[0];
+
+  const photos = (() => {
+    const local = piecePhotos(place.slug);
+    if (local.length) return local;
+    return place.thumb_url ? [place.thumb_url] : [];
+  })();
 
   const specs = [
-    // Issue #67 — text-explorer-blue on gallery-white measures ~1.5:1
-    // contrast (WCAG AA needs 4.5:1 for this text size), exactly the risk
-    // ui-ux.md's Accesibilidad section already flagged ("cuidar
-    // terracota/azul sobre claro"). text-walnut passes (~5.6:1) so it's not
-    // touched; dropping the per-type color instead of picking a new blue
-    // shade — the palette is a fixed set of 10, not mine to extend.
-    ['Tipo', place.type === 'montana' ? 'Montaña' : 'Ciudad', place.type === 'montana' ? 'text-walnut' : undefined],
+    ['Tipo', isPuzzle ? 'Juego' : 'Ciudad'],
     ['Medidas', selectedSize.dims],
     place.elevation_m ? ['Altitud', `${place.elevation_m} msnm`] : null,
     place.lat && place.lng ? ['Coordenadas', `${place.lat}, ${place.lng}`] : null,
@@ -130,21 +145,23 @@ export default function Product() {
   // itself and reflects the current personalization, so it updates live as
   // size/frame/color change. No peso/dimensiones de paquete row — that data
   // doesn't exist in the schema yet (issue #99), not something to guess.
+  // Marco/Color skipped for the puzzle — it isn't framed or painted.
   const fullSpecs = [
     ['Material', 'Impresión 3D de alta precisión, acabado mate'],
-    ['Marco', selectedFrame.label],
-    ['Color', selectedColor.label],
+    !isPuzzle ? ['Marco', selectedFrame.label] : null,
+    !isPuzzle ? ['Color', selectedColor.label] : null,
     ['Tamaño', `${selectedSize.label} · ${selectedSize.dims}`],
     ['Producción', `${PRODUCTION_DAYS} días hábiles`],
     ['Envío', `${SHIPPING_DAYS} días`],
     ['Origen', 'Hecho en México'],
-  ];
+  ].filter(Boolean);
 
   const detailsAccordion = [
     {
       title: 'Material y acabado',
-      content:
-        'El relieve se imprime en 3D de alta precisión y se enmarca a mano en parota, roble o negro. Acabado mate en toda la pieza.',
+      content: isPuzzle
+        ? 'El puzzle se imprime en 3D de alta precisión, acabado mate, listo para armar sobre cualquier superficie plana.'
+        : 'El relieve se imprime en 3D de alta precisión y se enmarca a mano en parota, roble o negro. Acabado mate en toda la pieza.',
     },
     {
       title: 'Cambios y devoluciones',
@@ -175,59 +192,27 @@ export default function Product() {
 
   return (
     <main className="grid md:grid-cols-2 gap-8 p-8 max-w-5xl mx-auto">
-      <div>
-        {/* No per-variant photography exists (a made-to-order piece can't
-            be pre-shot in every size/color/frame combination) — background
-            color responds to the actual selection instead, as a rough
-            preview. No frame-colored border: the real photo already shows
-            the actual frame, so an extra colored border around it was just
-            visual clutter. */}
-        <div
-          key={place.slug + activePhoto}
-          className="warp-reveal warm-photo relative aspect-square rounded-[9px] overflow-hidden flex items-center justify-center"
-          style={{
-            backgroundColor: selectedColor?.hex ?? '#C8C3BC',
-          }}
-        >
-          {activePhoto ? (
-            <img
-              src={activePhoto}
-              alt={`Mapa en relieve de ${place.name}, enmarcado en ${selectedFrame?.label.toLowerCase()}`}
-              className="w-full h-full object-cover"
-            />
-          ) : (
-            <span className="font-label uppercase tracking-wide text-xs px-3 py-1 rounded">
-              {place.name}
-            </span>
-          )}
-        </div>
-        {(place.thumb_url || place.detail_url) && (
-          <div className="flex gap-2 mt-3">
-            {[
-              pieceMainPhoto(place.slug) ?? place.thumb_url,
-              pieceDetailPhoto(place.slug) ?? place.detail_url,
-            ].filter(Boolean).map((url) => (
-              <button
-                key={url}
-                onClick={() => setActivePhoto(url)}
-                className={`w-16 h-16 rounded-[6px] overflow-hidden border-2 ${
-                  activePhoto === url ? 'border-sello-navy' : 'border-line'
-                }`}
-              >
-                <img src={url} alt="" className="warm-photo w-full h-full object-cover" />
-              </button>
-            ))}
-          </div>
-        )}
+      <div key={place.slug} className="warp-reveal">
+        <PhotoCarousel
+          photos={photos}
+          alt={`Mapa en relieve de ${place.name}${!isPuzzle ? `, enmarcado en ${selectedFrame?.label.toLowerCase()}` : ''}`}
+          placeholderLabel={place.name}
+        />
       </div>
 
-      <div>
+      {/* min-w-0: without it, a CSS Grid item defaults to a min-width of
+          its content's min-content size, so a long unbreakable value here
+          (coordenadas, SKU) could force this whole column past the
+          viewport instead of wrapping — the "right column overflows and
+          cuts off the CTA" symptom reported in QA. break-words on the
+          dl values below is the other half of the same fix. */}
+      <div className="min-w-0">
         <h1 className="font-display font-light text-3xl mb-4">{place.name}</h1>
 
         <div className="flex flex-wrap gap-3 mb-6">
           <BaggageTag label="Ubicación" value={place.name} />
           <BaggageTag label="Tamaño" value={selectedSize.label} />
-          <BaggageTag label="Marco" value={selectedFrame.label} />
+          {!isPuzzle && <BaggageTag label="Marco" value={selectedFrame.label} />}
         </div>
 
         <dl className="border-t border-line mb-6">
@@ -237,7 +222,7 @@ export default function Product() {
               className="grid grid-cols-2 border-b border-line py-2 font-label uppercase tracking-wide text-xs"
             >
               <dt className="text-graphite/60">{label}</dt>
-              <dd className={valueClassName}>{value}</dd>
+              <dd className={`break-words ${valueClassName ?? ''}`}>{value}</dd>
             </div>
           ))}
         </dl>
@@ -254,7 +239,7 @@ export default function Product() {
             ¿Para quién es esta pieza — para ti, o para presumirla?
           </legend>
           <div className="flex flex-wrap gap-2">
-            {SIZES.map((s) => (
+            {availableSizes.map((s) => (
               <button
                 key={s.code}
                 onClick={() => setSizeCode(s.code)}
@@ -276,60 +261,64 @@ export default function Product() {
           )}
         </fieldset>
 
-        <fieldset className="mb-4">
-          <legend className="font-label uppercase tracking-wide text-xs mb-2">Marco</legend>
-          <div className="flex flex-wrap gap-2">
-            {FRAMES.map((f) => (
-              <button
-                key={f.code}
-                onClick={() => setFrameCode(f.code)}
-                className={`flex items-center gap-2 px-3 py-1 rounded-full border text-sm ${
-                  frameCode === f.code ? 'bg-sello-navy text-dark-bg border-sello-navy' : 'border-line'
-                }`}
-              >
-                <span
-                  className="w-3 h-3 rounded-full"
-                  style={{ backgroundColor: f.hex }}
-                />
-                {f.label}
-              </button>
-            ))}
-          </div>
-        </fieldset>
+        {!isPuzzle && (
+          <>
+            <fieldset className="mb-4">
+              <legend className="font-label uppercase tracking-wide text-xs mb-2">Marco</legend>
+              <div className="flex flex-wrap gap-2">
+                {FRAMES.map((f) => (
+                  <button
+                    key={f.code}
+                    onClick={() => setFrameCode(f.code)}
+                    className={`flex items-center gap-2 px-3 py-1 rounded-full border text-sm ${
+                      frameCode === f.code ? 'bg-sello-navy text-dark-bg border-sello-navy' : 'border-line'
+                    }`}
+                  >
+                    <span
+                      className="w-3 h-3 rounded-full"
+                      style={{ backgroundColor: f.hex }}
+                    />
+                    {f.label}
+                  </button>
+                ))}
+              </div>
+            </fieldset>
 
-        <fieldset className="mb-4">
-          <legend className="font-label uppercase tracking-wide text-xs mb-2">Color</legend>
-          <div className="flex gap-2">
-            {COLORS.map((c) => (
-              <button
-                key={c.code}
-                onClick={() => setColorCode(c.code)}
-                aria-label={c.label}
-                className={`w-7 h-7 rounded-full border-2 ${
-                  colorCode === c.code ? 'border-sello-navy' : 'border-line'
-                }`}
-                style={{ backgroundColor: c.hex }}
-              />
-            ))}
-          </div>
-        </fieldset>
+            <fieldset className="mb-4">
+              <legend className="font-label uppercase tracking-wide text-xs mb-2">Color</legend>
+              <div className="flex gap-2">
+                {COLORS.map((c) => (
+                  <button
+                    key={c.code}
+                    onClick={() => setColorCode(c.code)}
+                    aria-label={c.label}
+                    className={`w-7 h-7 rounded-full border-2 ${
+                      colorCode === c.code ? 'border-sello-navy' : 'border-line'
+                    }`}
+                    style={{ backgroundColor: c.hex }}
+                  />
+                ))}
+              </div>
+            </fieldset>
 
-        <fieldset className="mb-4">
-          <legend className="font-label uppercase tracking-wide text-xs mb-2">Orientación</legend>
-          <div className="flex gap-2">
-            {['horizontal', 'vertical'].map((o) => (
-              <button
-                key={o}
-                onClick={() => setOrientation(o)}
-                className={`px-3 py-1 rounded-full border text-sm capitalize ${
-                  orientation === o ? 'bg-sello-navy text-dark-bg border-sello-navy' : 'border-line'
-                }`}
-              >
-                {o}
-              </button>
-            ))}
-          </div>
-        </fieldset>
+            <fieldset className="mb-4">
+              <legend className="font-label uppercase tracking-wide text-xs mb-2">Orientación</legend>
+              <div className="flex gap-2">
+                {['horizontal', 'vertical'].map((o) => (
+                  <button
+                    key={o}
+                    onClick={() => setOrientation(o)}
+                    className={`px-3 py-1 rounded-full border text-sm capitalize ${
+                      orientation === o ? 'bg-sello-navy text-dark-bg border-sello-navy' : 'border-line'
+                    }`}
+                  >
+                    {o}
+                  </button>
+                ))}
+              </div>
+            </fieldset>
+          </>
+        )}
 
         <div className="mb-4">
           <label htmlFor="memoryNote" className="font-label uppercase tracking-wide text-xs block mb-1">
@@ -348,10 +337,12 @@ export default function Product() {
           </p>
         </div>
 
-        <div className="mb-4 flex items-center gap-2">
-          <input id="capelo" type="checkbox" checked={capelo} onChange={(e) => setCapelo(e.target.checked)} />
-          <label htmlFor="capelo" className="text-sm">Agregar capelo de vidrio</label>
-        </div>
+        {!isPuzzle && (
+          <div className="mb-4 flex items-center gap-2">
+            <input id="capelo" type="checkbox" checked={capelo} onChange={(e) => setCapelo(e.target.checked)} />
+            <label htmlFor="capelo" className="text-sm">Agregar capelo de vidrio</label>
+          </div>
+        )}
 
         <div className="mb-6">
           <label className="font-label uppercase tracking-wide text-xs block mb-1">
@@ -393,7 +384,7 @@ export default function Product() {
                 className="grid grid-cols-2 border-b border-line py-2 font-label uppercase tracking-wide text-xs"
               >
                 <dt className="text-graphite/60">{label}</dt>
-                <dd>{value}</dd>
+                <dd className="break-words">{value}</dd>
               </div>
             ))}
           </dl>
@@ -403,7 +394,7 @@ export default function Product() {
           <h2 className="font-label uppercase tracking-wide text-xs mb-3">
             Cómo llega
           </h2>
-          <HowItArrives steps={HOW_IT_ARRIVES_STEPS} />
+          <HowItArrives steps={isPuzzle ? PUZZLE_HOW_IT_ARRIVES_STEPS : HOW_IT_ARRIVES_STEPS} />
         </div>
 
         <div className="mt-10">

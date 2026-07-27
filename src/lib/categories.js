@@ -2,13 +2,12 @@
 // view's "tipo" filter chip, /buscar's category filter, and the
 // /colecciones "por categoría" view, so the taxonomy isn't duplicated in
 // three places. `value` matches the `places.type` column.
-// Alphabetical by label: Ciudades, Estadios, F1, México, Montaña.
+// Real catalog is just Pared (ciudad) vs Juego — every other category
+// (montaña/estadio/f1/méxico) was dev-phase filler with no real piece
+// behind it and was removed from the catalog entirely.
 export const CATEGORIES = [
   { value: 'ciudad', label: 'Ciudades' },
-  { value: 'estadio', label: 'Estadios' },
-  { value: 'f1', label: 'F1' },
-  { value: 'mexico', label: 'México' },
-  { value: 'montana', label: 'Montaña' },
+  { value: 'juego', label: 'Juego' },
 ];
 
 export function categoryLabel(value) {

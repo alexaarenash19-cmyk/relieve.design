@@ -35,7 +35,12 @@ async function getPlaces(req, res) {
 
   let query = supabase
     .from('places')
-    .select('slug, name, type, thumb_url, base_price_cents, status');
+    .select('slug, name, type, thumb_url, base_price_cents, status')
+    // 'draft' is how a place gets archived when it can't be hard-deleted
+    // (existing order_items/reviews/waitlist reference it — see
+    // 20260727010001_catalog_cleanup_and_puzzle.sql) — it must never
+    // surface in the public catalog.
+    .neq('status', 'draft');
 
   if (q) query = query.ilike('name', `%${q}%`);
   if (type) query = query.eq('type', type);
