@@ -37,6 +37,21 @@ const howItArrivesSteps = import.meta.glob(
   },
 );
 
+// Explorar spec §2 — clean cutout (no background/shadow) per piece, used
+// only by the /colecciones canvas and its product-focus overlay, never by
+// the ambient carousel above. Separate folder from pieces/ so the two
+// photographic treatments (ambient vs. cutout) never mix. No file exists
+// yet for nevado-de-toluca (no real photo anywhere in the repo for that
+// piece) — explorerCutout() returning null for it is correct, not a bug;
+// callers fall back to a TopoLines placeholder.
+const explorerCutouts = import.meta.glob(
+  '../assets/photography/explorar-cutouts/*.png',
+  {
+    eager: true,
+    import: 'default',
+  },
+);
+
 function slugFromPath(path) {
   return path.match(/pieces\/([^/]+)\//)?.[1];
 }
@@ -74,6 +89,13 @@ const howItArrivesByStep = Object.fromEntries(
   Object.entries(howItArrivesSteps).map(([path, url]) => [stepNumberFromPath(path), url]),
 );
 
+const explorerCutoutBySlug = Object.fromEntries(
+  Object.entries(explorerCutouts).map(([path, url]) => [
+    path.match(/explorar-cutouts\/([^/]+)\.png$/)?.[1],
+    url,
+  ]),
+);
+
 export const HERO_AERIAL_CITY = heroAerialCity;
 export const ABOUT_PROCESO = aboutProceso;
 export const ABOUT_IMPRESION = aboutImpresion;
@@ -91,6 +113,10 @@ export function piecePhotos(slug) {
 
 export function howItArrivesPhoto(stepNumber) {
   return howItArrivesByStep[String(stepNumber)] ?? null;
+}
+
+export function explorerCutout(slug) {
+  return explorerCutoutBySlug[slug] ?? null;
 }
 
 // Canvas tiles render photos at ~180px (90px on mobile), but thumb_url from
