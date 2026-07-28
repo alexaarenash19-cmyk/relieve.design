@@ -10,6 +10,23 @@ import { CATEGORIES, categoryLabel } from '../lib/categories.js';
 import { SIZES } from '../lib/catalog.js';
 import { useProductPanel } from '../context/ProductPanelContext.jsx';
 import Stamp from './Stamp.jsx';
+// Funciones puras de animación (spec table + fuente de cada valor en el
+// propio archivo) — ver src/lib/animations.js. gsap se mantiene importado
+// arriba solo para el gsap.set(...) de estado inicial de InlinePanel más
+// abajo (no es una animación en sí, solo fija el estado "oculto" antes del
+// primer open/close).
+import {
+  tilePopIn,
+  menuIconMorphTimeline,
+  menuIconHoverEnter,
+  menuIconHoverLeave,
+  inlinePanelOpen,
+  inlinePanelClose,
+  hoverLift,
+  hoverUnlift,
+  gridCardStagger,
+  zoomButtonPulse,
+} from '../lib/animations.js';
 
 // Uniform-cell brick grid — Ale's 2026-07-27 spec, measured directly off
 // the live site: every cell is the same fixed 175x175 footprint at a
@@ -34,7 +51,7 @@ function priceLabel(cents) {
   return '$' + (cents / 100).toLocaleString('es-MX', { minimumFractionDigits: 0 }) + ' MXN';
 }
 
-export function GalleryCard({ place, variant = 'grid', slot }) {
+export function GalleryCard({ place, variant = 'grid', slot, gridIndex = 0 }) {
   const { openProduct } = useProductPanel();
   const photo = thumbUrlForWidth(
     pieceMainPhoto(place.slug) ?? place.thumb_url,
@@ -58,16 +75,14 @@ export function GalleryCard({ place, variant = 'grid', slot }) {
   // ported, untouched here) has nothing to fight afterward.
   useEffect(() => {
     if (variant !== 'scattered' || !rootRef.current) return;
-    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    gsap.set(rootRef.current, { scale: 0, opacity: 0 });
-    gsap.to(rootRef.current, {
-      scale: 1,
-      opacity: 1,
-      duration: reduced ? 0.01 : 0.5,
-      ease: 'power1.inOut',
-      delay: reduced ? 0 : Math.random() * 0.4,
-    });
+    tilePopIn(rootRef.current);
   }, [variant]);
+
+  // NO VERIFICADO — ver spec table en src/lib/animations.js: gridCardStagger.
+  useEffect(() => {
+    if (variant !== 'explorarGrid' || !rootRef.current) return;
+    gridCardStagger(rootRef.current, gridIndex);
+  }, [variant, gridIndex]);
 
   const tileStyle =
     variant === 'scattered'
@@ -402,10 +417,6 @@ function FilterChip({ label, active, onClick }) {
   );
 }
 
-function reduceMotion() {
-  return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-}
-
 // Menu toggle icon: square -> circle, three lines -> an X, label slides
 // away — a one-shot GSAP timeline (played/reversed on click), ported
 // verbatim from the artifact's menuIconTl. This is a discrete,
@@ -422,16 +433,17 @@ function MenuButton({ open, onToggle }) {
   const tlRef = useRef(null);
 
   useEffect(() => {
-    const tl = gsap.timeline({ paused: true })
-      .to(boxRef.current, { borderRadius: '3em', duration: 0.8, ease: 'power2.out' }, 0)
-      .to(lineMidRef.current, { scaleX: 0, duration: 0.6, ease: 'back.out(1.7)' }, 0)
-      .to(lineTopRef.current, { rotate: 45, marginTop: 0, duration: 0.7, ease: 'back.out(1.7)' }, 0)
-      .to(lineBotRef.current, { rotate: -45, marginTop: 0, duration: 0.7, ease: 'back.out(1.7)' }, 0)
-      .to(labelRef.current, { yPercent: 200, opacity: 0, duration: 0.6, ease: 'back.out(1.7)' }, 0);
-    if (window.innerWidth < MOBILE_BREAKPOINT) {
-      tl.to(btnRef.current, { x: '2.5em', duration: 0.7, ease: 'back.out(1.7)' }, 0);
-    }
-    if (reduceMotion()) tl.duration(0.01);
+    const tl = menuIconMorphTimeline(
+      {
+        btn: btnRef.current,
+        box: boxRef.current,
+        lineTop: lineTopRef.current,
+        lineMid: lineMidRef.current,
+        lineBot: lineBotRef.current,
+        label: labelRef.current,
+      },
+      { mobile: window.innerWidth < MOBILE_BREAKPOINT },
+    );
     tlRef.current = tl;
     return () => tl.kill();
   }, []);
@@ -440,21 +452,16 @@ function MenuButton({ open, onToggle }) {
     tlRef.current?.[open ? 'play' : 'reverse']();
   }, [open]);
 
+  const lineRefs = {
+    lineTop: lineTopRef.current,
+    lineMid: lineMidRef.current,
+    lineBot: lineBotRef.current,
+  };
   function onEnter() {
-    if (open) {
-      gsap.to(lineTopRef.current, { rotate: 35, duration: 0.3, ease: 'power2.out' });
-      gsap.to(lineBotRef.current, { rotate: -35, duration: 0.3, ease: 'power2.out' });
-    } else {
-      gsap.to(lineMidRef.current, { scaleX: 0.4, duration: 0.3, ease: 'power2.out' });
-    }
+    menuIconHoverEnter(lineRefs, open);
   }
   function onLeave() {
-    if (open) {
-      gsap.to(lineTopRef.current, { rotate: 45, duration: 0.3, ease: 'power2.out' });
-      gsap.to(lineBotRef.current, { rotate: -45, duration: 0.3, ease: 'power2.out' });
-    } else {
-      gsap.to(lineMidRef.current, { scaleX: 1, duration: 0.3, ease: 'power2.out' });
-    }
+    menuIconHoverLeave(lineRefs, open);
   }
 
   return (
@@ -478,10 +485,10 @@ function MenuButton({ open, onToggle }) {
 }
 
 function liftOnHover(e) {
-  gsap.to(e.currentTarget, { y: -4, duration: 0.3, ease: 'power2.out' });
+  hoverLift(e.currentTarget);
 }
 function liftOffHover(e) {
-  gsap.to(e.currentTarget, { y: 0, duration: 0.3, ease: 'power2.out' });
+  hoverUnlift(e.currentTarget);
 }
 
 // Shared by the menu-links row and the filter-chips row: the panel sits
@@ -496,44 +503,16 @@ function InlinePanel({ open, children }) {
   useEffect(() => {
     const el = panelRef.current;
     if (!el) return;
-    const reduced = reduceMotion();
     const kids = [...el.children];
     if (!didMountRef.current) {
       didMountRef.current = true;
       el.style.width = '0px';
       el.style.display = 'none';
-      gsap.set(kids, { yPercent: 800, opacity: 0 });
+      gsap.set(kids, { yPercent: 800, opacity: 0 }); // estado inicial, no animación
       return;
     }
-    if (open) {
-      el.style.display = 'flex';
-      el.style.width = 'auto';
-      const targetW = el.offsetWidth;
-      gsap.fromTo(
-        el,
-        { width: 0 },
-        {
-          width: targetW,
-          duration: reduced ? 0.01 : 0.6,
-          ease: 'power2.out',
-          onComplete: () => { el.style.width = 'auto'; },
-        },
-      );
-      gsap.fromTo(
-        kids,
-        { yPercent: 800, opacity: 0 },
-        { yPercent: 0, opacity: 1, duration: reduced ? 0.01 : 0.6, ease: 'back.out(1.7)', stagger: 0.08, delay: 0.05 },
-      );
-    } else {
-      gsap.to(kids, { yPercent: 800, opacity: 0, duration: reduced ? 0.01 : 0.4, ease: 'back.in(1.7)', stagger: 0.05 });
-      gsap.to(el, {
-        width: 0,
-        duration: reduced ? 0.01 : 0.5,
-        ease: 'power2.out',
-        delay: 0.05,
-        onComplete: () => { el.style.display = 'none'; },
-      });
-    }
+    if (open) inlinePanelOpen(el, kids);
+    else inlinePanelClose(el, kids);
   }, [open]);
 
   return (
@@ -709,15 +688,22 @@ function DragHintAndZoom({ setZoom, showHint }) {
             arrastra para explorar
           </span>
         )}
+        {/* NO VERIFICADO — ver spec table en src/lib/animations.js: zoomButtonPulse. */}
         <button
-          onClick={() => setZoom((z) => Math.max(0.75, z - 0.15))}
+          onClick={(e) => {
+            setZoom((z) => Math.max(0.75, z - 0.15));
+            zoomButtonPulse(e.currentTarget);
+          }}
           aria-label="Alejar"
           className="w-6 h-6 rounded-full border border-graphite bg-transparent flex items-center justify-center text-xs text-graphite"
         >
           −
         </button>
         <button
-          onClick={() => setZoom((z) => Math.min(1.4, z + 0.15))}
+          onClick={(e) => {
+            setZoom((z) => Math.min(1.4, z + 0.15));
+            zoomButtonPulse(e.currentTarget);
+          }}
           aria-label="Acercar"
           className="w-6 h-6 rounded-full border border-graphite bg-transparent flex items-center justify-center text-xs text-graphite"
         >
@@ -804,8 +790,8 @@ export default function Gallery({ zoomIn = false }) {
               className="grid gap-px bg-line max-w-[1100px] mx-auto"
               style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))' }}
             >
-              {places.map((place) => (
-                <GalleryCard key={place.slug} place={place} variant="explorarGrid" />
+              {places.map((place, i) => (
+                <GalleryCard key={place.slug} place={place} variant="explorarGrid" gridIndex={i} />
               ))}
             </div>
           </div>

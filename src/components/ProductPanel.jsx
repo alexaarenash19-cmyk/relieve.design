@@ -8,17 +8,15 @@
 // a modal scrim. Full personalization (size/frame/color/etc.) stays on
 // /pieza/:slug.
 import { useEffect, useRef, useState } from 'react';
-import gsap from 'gsap';
-import { CustomEase } from 'gsap/CustomEase';
 import { useProductPanel } from '../context/ProductPanelContext.jsx';
 import { fetchJson } from '../lib/fetchJsonArray.js';
 import { piecePhotos } from '../lib/photography.js';
 import { categoryLabel } from '../lib/categories.js';
-
-gsap.registerPlugin(CustomEase);
-// The artifact's --ease (cubic-bezier(0.2,0.6,0.2,1)) as a reusable named
-// ease — GSAP has no bare "cubic-bezier(...)" string ease without this.
-CustomEase.create('relieveEase', '0.2, 0.6, 0.2, 1');
+// Función pura de animación (spec table + fuente en el propio archivo) —
+// ver src/lib/animations.js. Esa misma importación ya registra GSAP's
+// CustomEase y crea 'relieveEase', así que este archivo no necesita
+// tocar gsap directamente en absoluto.
+import { panelOpenTimeline } from '../lib/animations.js';
 
 function usePlace(slug) {
   const [place, setPlace] = useState(null);
@@ -69,49 +67,21 @@ export default function ProductPanel() {
   const mainPhoto = photos[activePhoto];
 
   // Effect #3 per PRD table: one gsap.timeline(), four .fromTo() calls at
-  // exact durations/delays/eases. The panel container itself has NO
-  // transition (see className below — display/visibility toggles
-  // instantly via the `invisible` class); only this content animates in.
+  // exact durations/delays/eases (ver panelOpenTimeline en
+  // src/lib/animations.js para la spec table completa). The panel
+  // container itself has NO transition (see className below —
+  // display/visibility toggles instantly via the `invisible` class); only
+  // this content animates in.
   useEffect(() => {
     if (!isOpen || !place || !titleRef.current) return;
     tlRef.current?.kill();
-    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    const d = (s) => (reduced ? 0.01 : s);
-    const letters = [...titleRef.current.children];
-
-    const tl = gsap.timeline();
-    tl.fromTo(
-      letters,
-      { opacity: 0, y: 8 },
-      { opacity: 1, y: 0, duration: d(0.5), ease: 'power2.out', stagger: reduced ? 0 : 0.03 },
-      0,
-    );
-    if (photoRef.current) {
-      tl.fromTo(
-        photoRef.current,
-        { opacity: 0 },
-        { opacity: 1, duration: d(0.5), ease: 'relieveEase' },
-        reduced ? 0 : 0.15,
-      );
-    }
-    if (metaRef.current) {
-      tl.fromTo(
-        metaRef.current,
-        { opacity: 0 },
-        { opacity: 1, duration: d(0.4), ease: 'relieveEase' },
-        reduced ? 0 : 0.5,
-      );
-    }
-    if (ctaRef.current) {
-      tl.fromTo(
-        ctaRef.current,
-        { opacity: 0 },
-        { opacity: 1, duration: d(0.4), ease: 'relieveEase' },
-        reduced ? 0 : 0.65,
-      );
-    }
-    tlRef.current = tl;
-    return () => tl.kill();
+    tlRef.current = panelOpenTimeline({
+      titleEl: titleRef.current,
+      photoEl: photoRef.current,
+      metaEl: metaRef.current,
+      ctaEl: ctaRef.current,
+    });
+    return () => tlRef.current?.kill();
     // eslint-disable-next-line react-hooks/exhaustive-deps -- refs are stable;
     // deliberately NOT depending on mainPhoto/activePhoto, or clicking a
     // thumbnail inside an already-open panel would replay the whole
