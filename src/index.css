@@ -288,3 +288,75 @@ body::before {
   }
 }
 
+/* Explorar canvas tiles. Base resting state + hover come from the
+   artifact's .tile / .tile:hover exactly (minus the translate(-50%,-50%)
+   centering trick, since these tiles are positioned by top-left, not by
+   center) — scale/rotate/lift on hover, a plain transition to revert.
+   The entrance pop itself is GSAP now (Gallery.jsx), matching the
+   artifact's own gsap.set/gsap.to exactly (confirmed 2026-07-27 by
+   reading the artifact's actual JS) — GSAP tweens the inline style once
+   on mount and then stops touching the element, so it never leaves a
+   lingering `animation` declaration to fight this hover keyframe or
+   block `.canvas-tile`'s own `transition` from handling the hover
+   revert. */
+.canvas-tile {
+  transform: scale(1) translateY(0) rotate(0deg);
+  transition: transform 0.3s cubic-bezier(0.2, 0.6, 0.2, 1);
+}
+.canvas-tile:hover {
+  animation: tile-hover-pop 0.55s cubic-bezier(0.2, 0.6, 0.2, 1) forwards;
+  z-index: 2;
+}
+@keyframes tile-hover-pop {
+  0% { transform: scale(1) translateY(0) rotate(0deg); }
+  35% { transform: scale(1.1) translateY(-12px) rotate(-1.5deg); }
+  60% { transform: scale(1.04) translateY(-2px) rotate(1deg); }
+  100% { transform: scale(1.065) translateY(-6px) rotate(0deg); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .canvas-tile:hover {
+    animation: none;
+    transform: scale(1.04);
+  }
+}
+
+/* Explorar bottom-bar menu toggle — icon geometry ported verbatim
+   (dimensions, offsets) from the artifact's .menu-toggle/.menu-icon-box/
+   .menu-line rules; the animation itself (icon morph, panel width, link
+   stagger) is driven by a one-shot GSAP timeline in Gallery.jsx triggered
+   only on click/hover — not a persistent scroll-tied ticker, so it
+   doesn't have the shared-ticker risk noted on .tile-pop above.
+   .explorar- prefixed so it can't collide with any other .pill/.menu-*
+   class elsewhere in the codebase. */
+.explorar-menu-icon-box {
+  position: relative;
+  width: 18px;
+  height: 18px;
+  flex: none;
+  border: 1.4px solid currentColor;
+  border-radius: 0.25em;
+}
+.explorar-menu-line {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  height: 1.4px;
+  width: 10px;
+  background: currentColor;
+  transform: translate(-50%, -50%);
+}
+.explorar-line-top {
+  margin-top: -4.5px;
+}
+.explorar-line-bot {
+  margin-top: 4.5px;
+}
+.explorar-menu-label-clip {
+  overflow: hidden;
+  display: inline-block;
+  line-height: 1;
+}
+.explorar-menu-label {
+  display: inline-block;
+}
+

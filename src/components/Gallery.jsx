@@ -2,51 +2,56 @@
 // Two view modes: scattered infinite canvas (default) and a plain grid
 // ("Card Surface").
 import { useEffect, useRef, useState } from 'react';
+import gsap from 'gsap';
 import { placeAlt } from '../lib/altText.js';
 import { pieceMainPhoto, thumbUrlForWidth } from '../lib/photography.js';
 import { fetchJsonArray } from '../lib/fetchJsonArray.js';
-import { CATEGORIES } from '../lib/categories.js';
+import { CATEGORIES, categoryLabel } from '../lib/categories.js';
 import { SIZES } from '../lib/catalog.js';
 import { useProductPanel } from '../context/ProductPanelContext.jsx';
 import Stamp from './Stamp.jsx';
+// Funciones puras de animación (spec table + fuente de cada valor en el
+// propio archivo) — ver src/lib/animations.js. gsap se mantiene importado
+// arriba solo para el gsap.set(...) de estado inicial de InlinePanel más
+// abajo (no es una animación en sí, solo fija el estado "oculto" antes del
+// primer open/close).
+import {
+  tilePopIn,
+  menuIconMorphTimeline,
+  menuIconHoverEnter,
+  menuIconHoverLeave,
+  inlinePanelOpen,
+  inlinePanelClose,
+  hoverLift,
+  hoverUnlift,
+  gridCardStagger,
+  zoomButtonPulse,
+} from '../lib/animations.js';
 
-// Grid-aligned, hand-placed cells — straight, never overlapping, varied
-// sizes (1x1 / 2x2) but locked to a 4-col grid, not free/random positions.
-// Only fully-in-view tiles render (see ScatteredCanvas), so CELL/GAP need
-// to be small enough that a full block — ideally more than one — fits
-// inside a typical viewport; too large and almost nothing survives the
-// visibility filter, leaving the canvas looking empty. On a phone-width
-// viewport the desktop size leaves room for ~1 tile total (a 2x2 tile
-// alone is wider than a 390px screen) — mobile audit caught this — so the
-// cell/gap scale down below MOBILE_BREAKPOINT instead of staying fixed.
-const CELL_BASE = 180;
-const GAP_BASE = 50;
-const GRID_COLS = 4;
-const GRID_ROWS = 4;
+// Uniform-cell brick grid — Ale's 2026-07-27 spec, measured directly off
+// the live site: every cell is the same fixed 175x175 footprint at a
+// 255px pitch (175 cell + 80 gap). The "one big, one small" look comes
+// entirely from each piece's own photo crop (some fill the frame, some
+// leave a lot of margin), never from varying the cell/footprint size —
+// replaces the old hand-placed 1x1/2x2 TILE_PATTERN. Even columns
+// (0-indexed col % 2 === 1) are pushed down COL_OFFSET_BASE so rows don't
+// align into a rigid checkerboard.
+const CELL_BASE = 175;
+const GAP_BASE = 80;
+const COL_OFFSET_BASE = 88;
+const GRID_COLS = 3;
+const GRID_ROWS = 3;
 const MOBILE_BREAKPOINT = 640;
-const MOBILE_SCALE = 0.5;
+const MOBILE_SCALE = 0.62;
 
-const TILE_PATTERN = [
-  { col: 0, row: 0, span: 2 },
-  { col: 2, row: 0, span: 1 },
-  { col: 3, row: 0, span: 1 },
-  { col: 2, row: 1, span: 1 },
-  { col: 3, row: 1, span: 1 },
-  { col: 0, row: 2, span: 1 },
-  { col: 1, row: 2, span: 2 },
-  { col: 3, row: 2, span: 1 },
-  { col: 0, row: 3, span: 1 },
-];
-
-function tilePx({ col, row, span }, cell, gap) {
-  return {
-    left: col * (cell + gap),
-    top: row * (cell + gap),
-    size: span * cell + (span - 1) * gap,
-  };
+// Matches the artifact's priceLabel() exactly — used by the "vista
+// cuadrícula" toggle's card meta (name + tipo + price), which the plain
+// shared 'grid' variant (used by /buscar, /colecciones) doesn't show.
+function priceLabel(cents) {
+  return '$' + (cents / 100).toLocaleString('es-MX', { minimumFractionDigits: 0 }) + ' MXN';
 }
 
-export function GalleryCard({ place, variant = 'grid', slot }) {
+export function GalleryCard({ place, variant = 'grid', slot, gridIndex = 0 }) {
   const { openProduct } = useProductPanel();
   const photo = thumbUrlForWidth(
     pieceMainPhoto(place.slug) ?? place.thumb_url,
@@ -54,6 +59,30 @@ export function GalleryCard({ place, variant = 'grid', slot }) {
   );
   const cursorLabel = variant === 'scattered' ? `+ ${place.name}` : undefined;
   const [loaded, setLoaded] = useState(false);
+  const rootRef = useRef(null);
+
+  // Entrance pop, confirmed 2026-07-27 against the artifact's actual JS
+  // (gsap.set/gsap.to on tile creation) — GSAP, not a CSS keyframe, exact
+  // values: duration 0.5s / ease power1.inOut / delay Math.random()*0.4,
+  // 0.01s duration under prefers-reduced-motion. No rotation or 3D
+  // perspective — confirmed absent from the artifact, not invented here.
+  // Runs once per mount (React mounts/unmounts a tile's DOM node each time
+  // it scrolls in/out of the visible window, unlike the artifact's
+  // plain-DOM version which reused elements and only played this once
+  // ever per element — a reasonable approximation given that difference).
+  // GSAP tweens the inline style directly and then stops touching the
+  // element, so .canvas-tile:hover's own animation/transition (already
+  // ported, untouched here) has nothing to fight afterward.
+  useEffect(() => {
+    if (variant !== 'scattered' || !rootRef.current) return;
+    tilePopIn(rootRef.current);
+  }, [variant]);
+
+  // NO VERIFICADO — ver spec table en src/lib/animations.js: gridCardStagger.
+  useEffect(() => {
+    if (variant !== 'explorarGrid' || !rootRef.current) return;
+    gridCardStagger(rootRef.current, gridIndex);
+  }, [variant, gridIndex]);
 
   const tileStyle =
     variant === 'scattered'
@@ -79,18 +108,27 @@ export function GalleryCard({ place, variant = 'grid', slot }) {
 
   return (
     <a
+      ref={rootRef}
       href={`/pieza/${place.slug}`}
       onClick={handleClick}
       data-cursor-label={cursorLabel}
       className={
         variant === 'scattered'
-          ? 'group block select-none'
-          : 'group block border border-line rounded-[9px] bg-gallery-white overflow-hidden select-none'
+          ? 'group block select-none canvas-tile'
+          : variant === 'explorarGrid'
+            // "vista cuadrícula" toggle only (this file) — the artifact's
+            // .grid-card is a flat, borderless tile; the hairline seams
+            // between cards come from the wrap's own gap-px/bg-line, not a
+            // per-card border. Deliberately a separate variant, not a
+            // change to the shared 'grid' below (used by /buscar and
+            // /colecciones — those keep their own bordered-card look).
+            ? 'group block bg-gallery-white overflow-hidden select-none'
+            : 'group block border border-line rounded-[9px] bg-gallery-white overflow-hidden select-none'
       }
       style={tileStyle}
     >
       <div
-        className={`warm-photo relative w-full h-full aspect-square bg-stone overflow-hidden flex items-center justify-center ${
+        className={`warm-photo relative w-full aspect-square bg-stone overflow-hidden flex items-center justify-center ${
           variant === 'scattered'
             ? 'shadow-[0_16px_32px_-16px_rgba(35,35,35,0.35)]'
             : ''
@@ -101,9 +139,19 @@ export function GalleryCard({ place, variant = 'grid', slot }) {
             src={photo}
             alt={placeAlt(place)}
             onLoad={() => setLoaded(true)}
-            className={`w-full h-full object-cover transition-[transform,opacity] duration-300 group-hover:scale-105 ${
-              loaded ? 'opacity-100' : 'opacity-0'
-            }`}
+            className={
+              variant === 'scattered'
+                // Canvas tiles: the outer .canvas-tile handles scale/lift/
+                // rotate on hover (see index.css) — the image itself only
+                // gets the artifact's own drop-shadow deepen, not a second
+                // independent scale (that would compound with the tile's).
+                ? `w-full h-full object-cover transition-[filter,opacity] duration-300 drop-shadow-[0_1px_1px_rgba(35,35,35,0.06)] group-hover:drop-shadow-[0_16px_22px_rgba(35,35,35,0.2)] ${
+                    loaded ? 'opacity-100' : 'opacity-0'
+                  }`
+                : `w-full h-full object-cover transition-[transform,opacity] duration-300 group-hover:scale-105 ${
+                    loaded ? 'opacity-100' : 'opacity-0'
+                  }`
+            }
             draggable={false}
             loading="eager"
             decoding="async"
@@ -113,22 +161,31 @@ export function GalleryCard({ place, variant = 'grid', slot }) {
             {place.name}
           </span>
         )}
-        {variant !== 'scattered' && (
+        {variant === 'grid' && (
           <Stamp
             label="Ver pieza"
             className="absolute inset-0 m-auto w-fit h-fit opacity-0 scale-90 group-hover:opacity-100 group-hover:scale-100 transition-all duration-200 bg-gallery-white/90"
           />
         )}
       </div>
-      {variant !== 'scattered' && (
+      {variant === 'explorarGrid' && (
+        <div className="pt-[14px] px-1 pb-[22px]">
+          <p className="font-display font-normal text-base m-0 mb-1">{place.name}</p>
+          <p className="font-label uppercase tracking-wide text-[11px] text-graphite/55 flex gap-2 m-0">
+            <span>{categoryLabel(place.type)}</span>
+            <span className="font-bold text-graphite">{priceLabel(place.base_price)}</span>
+          </p>
+        </div>
+      )}
+      {variant === 'grid' && (
         <p className="font-display text-sm px-3 py-2">{place.name}</p>
       )}
     </a>
   );
 }
 
-// Infinite pannable canvas: drag translates an offset; the tile pattern
-// wraps (modulo BLOCK_W/H) and repeats in a grid of copies around the
+// Infinite pannable canvas: drag translates an offset; the grid wraps
+// (modulo blockW/blockH) and repeats in a grid of copies around the
 // wrapped origin, so panning in any direction never runs out of tiles.
 //
 // Every candidate tile's on-screen rect is computed in JS and only
@@ -166,7 +223,11 @@ function ScatteredCanvas({ items, zoom }) {
       x: e.clientX - startRef.current.x,
       y: e.clientY - startRef.current.y,
     };
-    if (Math.abs(next.x - offset.x) > 4 || Math.abs(next.y - offset.y) > 4)
+    // >6px (not >4) before counting as a drag — a tighter threshold was
+    // swallowing taps on the canvas that worked fine from the plain grid
+    // view (which has no drag detection at all), since any pointer jitter
+    // past the old threshold canceled the click that opens ProductPanel.
+    if (Math.abs(next.x - offset.x) > 6 || Math.abs(next.y - offset.y) > 6)
       movedRef.current = true;
     setOffset(next);
   }
@@ -182,14 +243,13 @@ function ScatteredCanvas({ items, zoom }) {
     }
   }
 
-  // One GAP per column/row, including a trailing one after the last — not
-  // (COLS - 1) gaps — so the repeat period leaves a real gutter at the
-  // seam between tiled blocks too, not just between cells inside one block.
   const mobileScale = size.w && size.w < MOBILE_BREAKPOINT ? MOBILE_SCALE : 1;
   const cell = CELL_BASE * mobileScale;
   const gap = GAP_BASE * mobileScale;
-  const blockW = GRID_COLS * (cell + gap);
-  const blockH = GRID_ROWS * (cell + gap);
+  const colOffsetY = COL_OFFSET_BASE * mobileScale;
+  const step = cell + gap;
+  const blockW = GRID_COLS * step;
+  const blockH = GRID_ROWS * step;
 
   const wrappedX = ((offset.x % blockW) + blockW) % blockW;
   const wrappedY = ((offset.y % blockH) + blockH) % blockH;
@@ -200,36 +260,36 @@ function ScatteredCanvas({ items, zoom }) {
   const centerY = size.h / 2;
 
   const tiles = [];
-  if (size.w && size.h) {
+  if (size.w && size.h && items.length) {
     for (const j of REPEAT) {
       for (const i of REPEAT) {
         const blockLeft = wrappedX + i * blockW - blockW / 2;
         const blockTop = wrappedY + j * blockH - blockH / 2;
-        items.forEach((place, idx) => {
-          const slot = tilePx(
-            TILE_PATTERN[idx % TILE_PATTERN.length],
-            cell,
-            gap,
-          );
-          const rawLeft = centerX + blockLeft + slot.left;
-          const rawTop = centerY + blockTop + slot.top;
-          const screenLeft = centerX + (rawLeft - centerX) * zoom;
-          const screenTop = centerY + (rawTop - centerY) * zoom;
-          const screenSize = slot.size * zoom;
-          const fullyVisible =
-            screenLeft >= 0 &&
-            screenTop >= 0 &&
-            screenLeft + screenSize <= size.w &&
-            screenTop + screenSize <= size.h;
-          if (!fullyVisible) return;
-          tiles.push({
-            key: `${i}-${j}-${place.slug}`,
-            place,
-            left: rawLeft,
-            top: rawTop,
-            size: slot.size,
-          });
-        });
+        for (let row = 0; row < GRID_ROWS; row++) {
+          for (let col = 0; col < GRID_COLS; col++) {
+            const cellIdx = row * GRID_COLS + col;
+            const place = items[cellIdx % items.length];
+            const rawLeft = centerX + blockLeft + col * step;
+            const rawTop =
+              centerY + blockTop + row * step + (col % 2 === 1 ? colOffsetY : 0);
+            const screenLeft = centerX + (rawLeft - centerX) * zoom;
+            const screenTop = centerY + (rawTop - centerY) * zoom;
+            const screenSize = cell * zoom;
+            const fullyVisible =
+              screenLeft >= 0 &&
+              screenTop >= 0 &&
+              screenLeft + screenSize <= size.w &&
+              screenTop + screenSize <= size.h;
+            if (!fullyVisible) continue;
+            tiles.push({
+              key: `${i}-${j}-${row}-${col}-${place.slug}`,
+              place,
+              left: rawLeft,
+              top: rawTop,
+              size: cell,
+            });
+          }
+        }
       }
     }
   }
@@ -295,7 +355,7 @@ function ExperienceToggle({ view, onChange }) {
             )),
           )}
         </svg>
-        experience view
+        {view === 'scattered' ? 'vista cuadrícula' : 'vista lienzo'}
       </button>
     </div>
   );
@@ -329,16 +389,6 @@ const COLOR_OPTIONS = [
   { value: 'negro', label: 'Negro mate' },
 ];
 
-function MenuIcon() {
-  return (
-    <svg viewBox="0 0 14 10" width="12" height="9" aria-hidden="true">
-      <line x1="0" y1="1" x2="14" y2="1" stroke="currentColor" />
-      <line x1="0" y1="5" x2="14" y2="5" stroke="currentColor" />
-      <line x1="0" y1="9" x2="14" y2="9" stroke="currentColor" />
-    </svg>
-  );
-}
-
 function FilterIcon() {
   return (
     <svg viewBox="0 0 14 10" width="12" height="9" aria-hidden="true">
@@ -364,6 +414,115 @@ function FilterChip({ label, active, onClick }) {
     <button onClick={onClick} className={DARK_PILL} aria-expanded={active}>
       {label} <span className="text-[10px]">+</span>
     </button>
+  );
+}
+
+// Menu toggle icon: square -> circle, three lines -> an X, label slides
+// away — a one-shot GSAP timeline (played/reversed on click), ported
+// verbatim from the artifact's menuIconTl. This is a discrete,
+// user-triggered timeline, not tied to the page-load scroll ticker, so it
+// doesn't carry the shared-ticker risk noted for the old tile-entrance
+// GSAP attempt.
+function MenuButton({ open, onToggle }) {
+  const btnRef = useRef(null);
+  const boxRef = useRef(null);
+  const lineTopRef = useRef(null);
+  const lineMidRef = useRef(null);
+  const lineBotRef = useRef(null);
+  const labelRef = useRef(null);
+  const tlRef = useRef(null);
+
+  useEffect(() => {
+    const tl = menuIconMorphTimeline(
+      {
+        btn: btnRef.current,
+        box: boxRef.current,
+        lineTop: lineTopRef.current,
+        lineMid: lineMidRef.current,
+        lineBot: lineBotRef.current,
+        label: labelRef.current,
+      },
+      { mobile: window.innerWidth < MOBILE_BREAKPOINT },
+    );
+    tlRef.current = tl;
+    return () => tl.kill();
+  }, []);
+
+  useEffect(() => {
+    tlRef.current?.[open ? 'play' : 'reverse']();
+  }, [open]);
+
+  const lineRefs = {
+    lineTop: lineTopRef.current,
+    lineMid: lineMidRef.current,
+    lineBot: lineBotRef.current,
+  };
+  function onEnter() {
+    menuIconHoverEnter(lineRefs, open);
+  }
+  function onLeave() {
+    menuIconHoverLeave(lineRefs, open);
+  }
+
+  return (
+    <button
+      ref={btnRef}
+      onClick={onToggle}
+      onMouseEnter={onEnter}
+      onMouseLeave={onLeave}
+      className="rounded-full border border-graphite bg-transparent text-graphite pl-[10px] pr-4 py-2 font-label uppercase tracking-wide text-xs inline-flex items-center gap-2 overflow-hidden"
+    >
+      <span ref={boxRef} className="explorar-menu-icon-box">
+        <span ref={lineTopRef} className="explorar-menu-line explorar-line-top" />
+        <span ref={lineMidRef} className="explorar-menu-line" />
+        <span ref={lineBotRef} className="explorar-menu-line explorar-line-bot" />
+      </span>
+      <span className="explorar-menu-label-clip">
+        <span ref={labelRef} className="explorar-menu-label">menu</span>
+      </span>
+    </button>
+  );
+}
+
+function liftOnHover(e) {
+  hoverLift(e.currentTarget);
+}
+function liftOffHover(e) {
+  hoverUnlift(e.currentTarget);
+}
+
+// Shared by the menu-links row and the filter-chips row: the panel sits
+// inline in the bottom bar and grows the row's width open (not a floating
+// dropdown — that's the separate absolutely-positioned chip-value lists
+// below), matching the artifact's .inline-panel + openMenuPanel/
+// closeMenuPanel technique exactly, generalized to take any children.
+function InlinePanel({ open, children }) {
+  const panelRef = useRef(null);
+  const didMountRef = useRef(false);
+
+  useEffect(() => {
+    const el = panelRef.current;
+    if (!el) return;
+    const kids = [...el.children];
+    if (!didMountRef.current) {
+      didMountRef.current = true;
+      el.style.width = '0px';
+      el.style.display = 'none';
+      gsap.set(kids, { yPercent: 800, opacity: 0 }); // estado inicial, no animación
+      return;
+    }
+    if (open) inlinePanelOpen(el, kids);
+    else inlinePanelClose(el, kids);
+  }, [open]);
+
+  return (
+    <div
+      ref={panelRef}
+      className="flex gap-2 overflow-hidden whitespace-nowrap items-center"
+      style={{ display: 'none', width: 0 }}
+    >
+      {children}
+    </div>
   );
 }
 
@@ -407,61 +566,59 @@ function BottomControlBar({
   return (
     <div className="fixed bottom-5 inset-x-0 z-30 flex justify-center pointer-events-none">
       <div className="relative flex flex-wrap items-center justify-center gap-2 px-4 max-w-[calc(100vw-28rem)] pointer-events-auto">
-        <button
-          onClick={toggleMenu}
-          className={menuOpen ? DARK_PILL : GHOST_PILL}
-        >
-          {menuOpen ? <CloseIcon /> : <MenuIcon />}
-          {menuOpen ? 'cerrar' : 'menu'}
-        </button>
-        {menuOpen && (
-          <>
-            <a href="/colecciones" className={DARK_PILL}>
-              colecciones
-            </a>
-            <a href="/sobre" className={DARK_PILL}>
-              sobre
-            </a>
-            {/* Points at the reviews section on the collections index page.
-              No "contacto" pill: there's no real destination for it yet (no
-              contact page, and a mailto: link launches the visitor's mail
-              app, which read as a broken/unexpected interaction) — removed
-              rather than fake it. */}
-            <a href="/colecciones#resenas" className={DARK_PILL}>
-              reseñas
-            </a>
-          </>
-        )}
+        <MenuButton open={menuOpen} onToggle={toggleMenu} />
+        <InlinePanel open={menuOpen}>
+          <a href="/colecciones" className={DARK_PILL} onMouseEnter={liftOnHover} onMouseLeave={liftOffHover}>
+            colecciones
+          </a>
+          <a href="/sobre" className={DARK_PILL} onMouseEnter={liftOnHover} onMouseLeave={liftOffHover}>
+            sobre
+          </a>
+          {/* Points at the reviews section on the collections index page.
+            No "contacto" pill: there's no real destination for it yet (no
+            contact page, and a mailto: link launches the visitor's mail
+            app, which read as a broken/unexpected interaction) — removed
+            rather than fake it. */}
+          <a
+            href="/colecciones#resenas"
+            className={DARK_PILL}
+            onMouseEnter={liftOnHover}
+            onMouseLeave={liftOffHover}
+          >
+            reseñas
+          </a>
+        </InlinePanel>
 
         <button
           onClick={toggleFilter}
           className={filterOpen ? DARK_PILL : GHOST_PILL}
         >
           {filterOpen ? <CloseIcon /> : <FilterIcon />}
-          {filterOpen ? 'cerrar' : 'filter'}
+          {filterOpen ? 'cerrar' : 'filtrar'}
         </button>
-        {filterOpen && (
-          <>
-            <FilterChip
-              label="color"
-              active={activeChip === 'color'}
-              onClick={() => toggleChip('color')}
-            />
-            <FilterChip
-              label="tipo"
-              active={activeChip === 'tipo'}
-              onClick={() => toggleChip('tipo')}
-            />
-            <FilterChip
-              label="⌀ tamaño"
-              active={activeChip === 'tamano'}
-              onClick={() => toggleChip('tamano')}
-            />
-            <button onClick={handleReset} className={GHOST_PILL}>
-              reset
-            </button>
-          </>
-        )}
+        <InlinePanel open={filterOpen}>
+          <FilterChip
+            label="color"
+            active={activeChip === 'color'}
+            onClick={() => toggleChip('color')}
+          />
+          <FilterChip
+            label="tipo"
+            active={activeChip === 'tipo'}
+            onClick={() => toggleChip('tipo')}
+          />
+          <FilterChip
+            label="⌀ tamaño"
+            active={activeChip === 'tamano'}
+            onClick={() => toggleChip('tamano')}
+          />
+          <button onClick={handleReset} className={`${GHOST_PILL} group`}>
+            <span className="inline-block transition-transform duration-1000 ease-[cubic-bezier(0.2,0.6,0.2,1)] group-hover:rotate-[360deg]">
+              ↻
+            </span>{' '}
+            reset
+          </button>
+        </InlinePanel>
 
         {activeChip === 'tipo' && (
           <div className="absolute bottom-12 left-1/2 -translate-x-1/2 bg-gallery-white border border-line rounded-[9px] p-2 flex gap-1.5">
@@ -528,18 +685,25 @@ function DragHintAndZoom({ setZoom, showHint }) {
       <div className="flex items-center gap-2 pointer-events-auto">
         {showHint && (
           <span className="font-label uppercase tracking-wide text-[9px] text-graphite/50">
-            drag to explore
+            arrastra para explorar
           </span>
         )}
+        {/* NO VERIFICADO — ver spec table en src/lib/animations.js: zoomButtonPulse. */}
         <button
-          onClick={() => setZoom((z) => Math.max(0.75, z - 0.15))}
+          onClick={(e) => {
+            setZoom((z) => Math.max(0.75, z - 0.15));
+            zoomButtonPulse(e.currentTarget);
+          }}
           aria-label="Alejar"
           className="w-6 h-6 rounded-full border border-graphite bg-transparent flex items-center justify-center text-xs text-graphite"
         >
           −
         </button>
         <button
-          onClick={() => setZoom((z) => Math.min(1.4, z + 0.15))}
+          onClick={(e) => {
+            setZoom((z) => Math.min(1.4, z + 0.15));
+            zoomButtonPulse(e.currentTarget);
+          }}
           aria-label="Acercar"
           className="w-6 h-6 rounded-full border border-graphite bg-transparent flex items-center justify-center text-xs text-graphite"
         >
@@ -615,15 +779,21 @@ export default function Gallery({ zoomIn = false }) {
             <div style={{ height: '25vh' }} aria-hidden="true" />
           </>
         ) : (
-          <div
-            className="grid gap-px bg-line p-px"
-            style={{
-              gridTemplateColumns: `repeat(${Math.round(3 * zoom)}, minmax(0, 1fr))`,
-            }}
-          >
-            {places.map((place) => (
-              <GalleryCard key={place.slug} place={place} variant="grid" />
-            ))}
+          // Artifact's #grid-view/.grid-wrap exactly: responsive auto-fill
+          // columns (not tied to the canvas zoom stepper — the artifact's
+          // grid view doesn't respond to zoom at all, it's a separate
+          // fixed layout), max-width 1100px centered, top/bottom page
+          // padding matching a full-page scrollable view rather than the
+          // canvas's fixed 100vh.
+          <div className="pt-[110px] px-6 pb-[140px]">
+            <div
+              className="grid gap-px bg-line max-w-[1100px] mx-auto"
+              style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))' }}
+            >
+              {places.map((place, i) => (
+                <GalleryCard key={place.slug} place={place} variant="explorarGrid" gridIndex={i} />
+              ))}
+            </div>
           </div>
         )}
       </div>
