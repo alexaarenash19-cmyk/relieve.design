@@ -13,7 +13,9 @@
 // confirmado contra el artifact original, el comentario lo dice
 // explícitamente ("NO VERIFICADO").
 //
-// gsap y gsap/CustomEase deben estar cargados antes de este archivo.
+import gsap from 'gsap';
+import { CustomEase } from 'gsap/CustomEase';
+
 gsap.registerPlugin(CustomEase);
 // El --ease del artifact (cubic-bezier(0.2,0.6,0.2,1)) como ease reusable con
 // nombre — GSAP no acepta un string "cubic-bezier(...)" suelto sin esto.
@@ -35,7 +37,7 @@ function reduceMotion() {
 // Sin rotación ni perspectiva 3D — confirmado ausente en el artifact
 // original, no es una omisión. Corre una vez por montaje del elemento.
 // ─────────────────────────────────────────────────────────────────────────
-function tilePopIn(el) {
+export function tilePopIn(el) {
   if (!el) return;
   const reduced = reduceMotion();
   gsap.set(el, { scale: 0, opacity: 0 });
@@ -81,7 +83,7 @@ function tilePopIn(el) {
 // └──────────────────────────────────────────────────────────────────┘
 // reduced-motion: tl.duration(0.01) completo.
 // ─────────────────────────────────────────────────────────────────────────
-function menuIconMorphTimeline({ btn, box, lineTop, lineMid, lineBot, label }, { mobile } = {}) {
+export function menuIconMorphTimeline({ btn, box, lineTop, lineMid, lineBot, label }, { mobile } = {}) {
   const tl = gsap.timeline({ paused: true })
     .to(box, { borderRadius: '3em', duration: 0.8, ease: 'power2.out' }, 0)
     .to(lineMid, { scaleX: 0, duration: 0.6, ease: 'back.out(1.7)' }, 0)
@@ -97,7 +99,7 @@ function menuIconMorphTimeline({ btn, box, lineTop, lineMid, lineBot, label }, {
 // mientras CERRADO, la línea del medio se acorta; mientras ABIERTO, las dos
 // líneas diagonales (ya convertidas en la X) cierran un poco su ángulo.
 // Todo 0.3s power2.out.
-function menuIconHoverEnter({ lineTop, lineMid, lineBot }, open) {
+export function menuIconHoverEnter({ lineTop, lineMid, lineBot }, open) {
   if (open) {
     gsap.to(lineTop, { rotate: 35, duration: 0.3, ease: 'power2.out' });
     gsap.to(lineBot, { rotate: -35, duration: 0.3, ease: 'power2.out' });
@@ -105,7 +107,7 @@ function menuIconHoverEnter({ lineTop, lineMid, lineBot }, open) {
     gsap.to(lineMid, { scaleX: 0.4, duration: 0.3, ease: 'power2.out' });
   }
 }
-function menuIconHoverLeave({ lineTop, lineMid, lineBot }, open) {
+export function menuIconHoverLeave({ lineTop, lineMid, lineBot }, open) {
   if (open) {
     gsap.to(lineTop, { rotate: 45, duration: 0.3, ease: 'power2.out' });
     gsap.to(lineBot, { rotate: -45, duration: 0.3, ease: 'power2.out' });
@@ -130,7 +132,7 @@ function menuIconHoverLeave({ lineTop, lineMid, lineBot }, open) {
 // └─────────┴───────────────────┴────────┴───────────────────────────────┘
 // reduced-motion: todas las duraciones de esta tabla → 0.01s.
 // ─────────────────────────────────────────────────────────────────────────
-function inlinePanelOpen(el, kids) {
+export function inlinePanelOpen(el, kids) {
   const reduced = reduceMotion();
   el.style.display = 'flex';
   el.style.width = 'auto';
@@ -151,7 +153,7 @@ function inlinePanelOpen(el, kids) {
     { yPercent: 0, opacity: 1, duration: reduced ? 0.01 : 0.6, ease: 'back.out(1.7)', stagger: 0.08, delay: 0.05 },
   );
 }
-function inlinePanelClose(el, kids) {
+export function inlinePanelClose(el, kids) {
   const reduced = reduceMotion();
   gsap.to(kids, { yPercent: 800, opacity: 0, duration: reduced ? 0.01 : 0.4, ease: 'back.in(1.7)', stagger: 0.05 });
   gsap.to(el, {
@@ -167,10 +169,10 @@ function inlinePanelClose(el, kids) {
 // EFECTO 5 — Hover de los links dentro del panel inline (colecciones/sobre/
 // reseñas): se levantan 4px. 0.3s power2.out, ida y vuelta.
 // ─────────────────────────────────────────────────────────────────────────
-function hoverLift(el) {
+export function hoverLift(el) {
   gsap.to(el, { y: -4, duration: 0.3, ease: 'power2.out' });
 }
-function hoverUnlift(el) {
+export function hoverUnlift(el) {
   gsap.to(el, { y: 0, duration: 0.3, ease: 'power2.out' });
 }
 
@@ -192,7 +194,7 @@ function hoverUnlift(el) {
 // artifact). reduced-motion: todas las duraciones → 0.01s, stagger 0, y
 // las posiciones (0.15/0.5/0.65) se anulan a 0 también.
 // ─────────────────────────────────────────────────────────────────────────
-function panelOpenTimeline({ titleEl, photoEl, metaEl, ctaEl }) {
+export function panelOpenTimeline({ titleEl, photoEl, metaEl, ctaEl }) {
   const reduced = reduceMotion();
   const d = (s) => (reduced ? 0.01 : s);
   const pos = (p) => (reduced ? 0 : p);
@@ -233,7 +235,7 @@ function panelOpenTimeline({ titleEl, photoEl, metaEl, ctaEl }) {
 // Reutiliza el mismo timing/easing que .flap-row-anim (real, confirmado en
 // src/index.css, usado por DeparturesBoard): 350ms, cubic-bezier(0.2,0.6,
 // 0.2,1), stagger manual de 60ms por índice — no un valor nuevo inventado.
-function gridCardStagger(el, index) {
+export function gridCardStagger(el, index) {
   const reduced = reduceMotion();
   gsap.set(el, { opacity: 0, y: 14 });
   gsap.to(el, {
@@ -249,21 +251,7 @@ function gridCardStagger(el, index) {
 // artifact no pudo inspeccionarse para confirmar si el botón da algún
 // feedback más allá del `:active` nativo. Un pulso conservador, mismo
 // relieveEase real del repo, no un valor nuevo.
-function zoomButtonPulse(el) {
+export function zoomButtonPulse(el) {
   if (reduceMotion()) return;
   gsap.fromTo(el, { scale: 0.85 }, { scale: 1, duration: 0.3, ease: 'relieveEase' });
 }
-
-window.RelieveAnimations = {
-  tilePopIn,
-  menuIconMorphTimeline,
-  menuIconHoverEnter,
-  menuIconHoverLeave,
-  inlinePanelOpen,
-  inlinePanelClose,
-  hoverLift,
-  hoverUnlift,
-  panelOpenTimeline,
-  gridCardStagger,
-  zoomButtonPulse,
-};
