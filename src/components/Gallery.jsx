@@ -128,7 +128,7 @@ export function GalleryCard({ place, variant = 'grid', slot, gridIndex = 0 }) {
       style={tileStyle}
     >
       <div
-        className={`warm-photo relative w-full h-full aspect-square bg-stone overflow-hidden flex items-center justify-center ${
+        className={`warm-photo relative w-full aspect-square bg-stone overflow-hidden flex items-center justify-center ${
           variant === 'scattered'
             ? 'shadow-[0_16px_32px_-16px_rgba(35,35,35,0.35)]'
             : ''
