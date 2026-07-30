@@ -13,6 +13,22 @@ const pieceMains = import.meta.glob(
     import: 'default',
   },
 );
+// 480px-long-edge copies of main.{ext} — the catalog grid renders each tile
+// at 175-360px (per GalleryCard/Gallery.jsx), but with no build-time image
+// pipeline in this project, the plain main.jpg glob above was serving the
+// full ~2048px source (measured: 217-390KB) to every tile on every visit.
+// thumbUrlForWidth() can't help here — it only rewrites a `w` query param on
+// *remote* URLs, and these are local bundled assets with none. Optional
+// glob (no `eager`/error if a piece has no thumb yet, e.g. before one is
+// generated for a newly added piece) — pieceMainThumb() falls back to the
+// full-size main photo in that case, same file just not resized yet.
+const pieceMainThumbs = import.meta.glob(
+  '../assets/photography/pieces/*/main-thumb.{jpg,jpeg,png,webp}',
+  {
+    eager: true,
+    import: 'default',
+  },
+);
 // Every photo in a piece's folder, not just main/detail-1 — several pieces
 // (barcelona, ciudad-de-mexico, paris, shanghai) already have extra shots
 // committed (king.jpg, vista.jpg, top-view-2.jpg, en-contexto.jpg, etc.)
@@ -52,6 +68,9 @@ function stepNumberFromPath(path) {
 const mainBySlug = Object.fromEntries(
   Object.entries(pieceMains).map(([path, url]) => [slugFromPath(path), url]),
 );
+const mainThumbBySlug = Object.fromEntries(
+  Object.entries(pieceMainThumbs).map(([path, url]) => [slugFromPath(path), url]),
+);
 
 // Groups every matched file by slug, `main` first (matching mainBySlug
 // above) then the rest alphabetically by filename — a stable, predictable
@@ -80,6 +99,14 @@ export const ABOUT_IMPRESION = aboutImpresion;
 
 export function pieceMainPhoto(slug) {
   return mainBySlug[slug] ?? null;
+}
+
+// Small catalog-tile-sized copy of the main photo — see the
+// pieceMainThumbs comment above. Falls back to the full main photo, so a
+// piece is never left with no image just because its thumb hasn't been
+// generated yet.
+export function pieceMainThumb(slug) {
+  return mainThumbBySlug[slug] ?? mainBySlug[slug] ?? null;
 }
 
 // All bundled photos for a piece, main first — [] (not null) when the
