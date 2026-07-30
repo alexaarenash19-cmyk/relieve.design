@@ -1,3 +1,5 @@
+import { useDocumentHead } from '../lib/useDocumentHead.js';
+
 const FAQS = [
   {
     q: '¿Cómo elijo el lugar de mi pieza?',
@@ -26,6 +28,13 @@ const FAQS = [
 ];
 
 export default function Faq() {
+  useDocumentHead({
+    title: 'Preguntas frecuentes — Relieve',
+    description:
+      'Cómo elegir tu pieza, tiempos de producción y envío, materiales, facturación y política de cambios y devoluciones.',
+    canonicalPath: '/faq',
+  });
+
   return (
     <main className="mx-auto max-w-[70ch] p-8 leading-relaxed">
       <h1 className="font-display font-light text-3xl mb-6">
