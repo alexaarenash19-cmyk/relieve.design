@@ -9,6 +9,7 @@ import {
   sizesForType,
   FRAMES,
   COLORS,
+  ADDONS,
   PRODUCTION_DAYS,
   SHIPPING_DAYS,
   HOW_IT_ARRIVES_STEPS,
@@ -54,6 +55,11 @@ const ACCENT_BY_SLUG = {
 };
 function accentFor(slug) {
   return ACCENT_CLASSES[ACCENT_BY_SLUG[slug] ?? 'stone'];
+}
+
+// Same $X,XXX MXN format as CartDrawer.jsx's money() / RollingPrice.jsx.
+function addonPrice(cents) {
+  return `+$${(cents / 100).toLocaleString('es-MX')} MXN`;
 }
 
 export default function Product() {
@@ -382,13 +388,16 @@ export default function Product() {
             {!isPuzzle && (
               <div className="mb-4 flex items-center gap-2">
                 <input id="capelo" type="checkbox" checked={capelo} onChange={(e) => setCapelo(e.target.checked)} />
-                <label htmlFor="capelo" className="text-sm">Agregar capelo de vidrio</label>
+                <label htmlFor="capelo" className="text-sm">
+                  Agregar capelo de vidrio{' '}
+                  <span className="text-graphite/60">{addonPrice(ADDONS.capelo)}</span>
+                </label>
               </div>
             )}
 
             <div className="mb-6">
               <label className="font-label uppercase tracking-wide text-xs block mb-1">
-                Placa grabada (opcional)
+                Placa grabada (opcional) <span className="normal-case text-graphite/60">{addonPrice(ADDONS.placa)}</span>
               </label>
               <input
                 value={plateText}

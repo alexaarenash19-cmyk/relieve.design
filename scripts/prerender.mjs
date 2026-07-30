@@ -142,7 +142,13 @@ async function main() {
     const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_KEY);
     const { data, error } = await supabase
       .from('places')
-      .select('slug, name, story, thumb_url, base_price_cents, type');
+      .select('slug, name, story, thumb_url, base_price_cents, type')
+      // Same filter as api/catalog.js's getPlaces() — without it, a place
+      // archived to 'draft' (can't be hard-deleted once order_items/
+      // reviews/waitlist reference it) still got an indexable /pieza/:slug
+      // page and a sitemap.xml entry, even though it's correctly hidden
+      // from /colecciones.
+      .neq('status', 'draft');
     if (error) {
       console.error('[prerender] failed to fetch real catalog, using dummy catalog instead:', error.message);
     } else {
