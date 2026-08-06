@@ -35,7 +35,7 @@ async function getPlaces(req, res) {
 
   let query = supabase
     .from('places')
-    .select('slug, name, type, thumb_url, base_price_cents, status')
+    .select('slug, name, type, series, thumb_url, base_price_cents, status')
     // 'draft' is how a place gets archived when it can't be hard-deleted
     // (existing order_items/reviews/waitlist reference it — see
     // 20260727010001_catalog_cleanup_and_puzzle.sql) — it must never
@@ -87,7 +87,7 @@ async function getPlaceDetail(req, res, slug) {
   const { data: place, error } = await supabase
     .from('places')
     .select(
-      'id, slug, name, type, lat, lng, elevation_m, story, aerial_url, model_url, thumb_url, base_price_cents, status',
+      'id, slug, name, type, series, lat, lng, elevation_m, story, aerial_url, model_url, thumb_url, base_price_cents, status',
     )
     .eq('slug', slug)
     .maybeSingle();
