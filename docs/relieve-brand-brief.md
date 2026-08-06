@@ -347,4 +347,13 @@ Esta sección registra las resoluciones acordadas con Ale durante la sesión de 
 
 ---
 
+## 17. Fase 2 — Copy & nomenclatura (registro de ejecución)
+
+- [x] **Terms.jsx — renombrar "Producto" a "Pieza".** `src/pages/Terms.jsx`: el `<h2>` de la primera sección del documento pasa de "Producto" a "Pieza", por la regla de nomenclatura de la sección 2.
+- [x] **Product.jsx — CTA "Encargar mi pieza".** `src/pages/Product.jsx`: el botón de agregar al carrito (rama de pieza en stock, junto a `WaitlistDialog` para la rama de soldout) pasa de "Agregar al carrito" a "Encargar mi pieza" — solo el texto visible, el handler `handleAddToCart` no cambia.
+- [x] **About.jsx / passportContent.js — historia de marca.** El copy de "Sobre Relieve" vive en `ABOUT_COPY` dentro de `src/lib/passportContent.js` (no inline en `About.jsx`) y se reemplaza por completo con la historia de la sección 1 ("Hay una versión de mí que nunca volvió de Madrid..."). Estructura, markup y estilos del flipbook (7 páginas, `react-pageflip`) sin cambios — solo el contenido de esta página.
+- [x] **Migración de historias de lugar.** Nueva migración `supabase/migrations/20260806010001_update_place_stories.sql` con `UPDATE places SET story = '...'` para los 6 slugs reales del catálogo (`ciudad-de-mexico`, `paris`, `shanghai`, `barcelona`, `londres`, `nevado-de-toluca`), copy verbatim de la sección 7. Nota: `ciudad-de-mexico` ya tenía un `story` de una migración anterior (dev-phase, `20260716140001_place_stories.sql`) — esta migración lo reemplaza intencionalmente por la copy final aprobada aquí. Esta migración solo agrega el archivo `.sql` al repo; aplicarla contra la base de datos real de Supabase es un paso de deploy/ops aparte.
+
+---
+
 *Documento compilado a partir de sesión de brand storytelling — referencias analizadas: Nude Project, Piedra Studios, Walled Maps, Model-Arq, Cityframes.*

@@ -1,8 +1,9 @@
-// Copy for the "Sobre Relieve" passport redesign. Revised 2026-07-23 to
-// clarify product positioning, drop "hecho a mano" framing in favor of an
-// explicit fabrication chain, and align with the site's cartography/
-// architecture positioning (see PR for context). Still pulled into its own
-// module because it's stable regardless of the visual treatment.
+// Copy for the "Sobre Relieve" passport redesign. Revised 2026-08-06 (Phase 2
+// of docs/relieve-brand-brief.md, §1) to swap ABOUT_COPY for the brief's
+// approved brand-story copy (the "Hay una versión de mí que nunca volvió de
+// Madrid..." story) — replaces the earlier cartography/fabrication-chain
+// framing. Still pulled into its own module because it's stable regardless
+// of the visual treatment.
 // All-Spanish per Ale's explicit call (first pass mirrored her brief's
 // English field labels literally; she wants Spanish throughout instead).
 export const PASSENGER_INFO = [
@@ -16,15 +17,17 @@ export const PASSENGER_INFO = [
   ['Estado', 'Listo para Partir'],
 ];
 
-export const ABOUT_COPY = `Relieve es un estudio de diseño especializado en cartografía contemporánea.
+export const ABOUT_COPY = `Hay una versión de mí que nunca volvió de Madrid.
 
-Diseñamos objetos tridimensionales inspirados en ciudades, paisajes y territorios que han marcado la vida de las personas.
+No hablo de la ciudad — hablo de quién fui mientras la habité. De las tardes sin prisa que ya no tengo, de las calles que aprendí a reconocer de memoria, de la persona en la que me fui convirtiendo sin darme cuenta, solo por vivir ahí un tiempo.
 
-Cada pieza comienza con una investigación cartográfica, continúa con un proceso de reconstrucción digital y termina con una fabricación cuidadosamente controlada: impresión 3D de alta precisión y acabado artesanal en nuestro estudio en México.
+Cuando volví, me costó explicar qué había cambiado. No tenía cómo mostrarlo. Una foto se queda guardada en el teléfono y ahí se olvida. Un recuerdo, con los años, se empieza a desdibujar. Necesitaba algo que pudiera tocar — algo que estuviera en mi casa todos los días, recordándome quién fui en ese lugar, aunque ya viviera una vida completamente distinta.
 
-No buscamos reproducir un mapa. Buscamos representar la esencia de un lugar.
+Así nació Relieve.
 
-Relieve transforma información geográfica en objetos de diseño.`;
+Empecé a crear piezas de las ciudades que me formaron — no souvenirs, sino algo que se pudiera sostener, con el peso y la textura de un lugar real.
+
+Relieve existe para quien también tiene una ciudad así. La que te formó, la que amaste, la que sigues cargando contigo aunque hayan pasado los años y ya no vivas ahí. Esa ciudad merece un lugar en tu casa.`;
 
 export const JOURNEY_STEPS = [
   { label: 'Origen', detail: 'Investigación y Selección del Lugar' },

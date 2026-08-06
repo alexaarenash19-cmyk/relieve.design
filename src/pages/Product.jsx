@@ -412,7 +412,7 @@ export default function Product() {
             {place.status === 'soldout' ? (
               <WaitlistDialog placeSlug={place.slug} />
             ) : (
-              <Button onClick={handleAddToCart}>Agregar al carrito</Button>
+              <Button onClick={handleAddToCart}>Encargar mi pieza</Button>
             )}
 
             <div className="mt-10">

@@ -6,7 +6,7 @@ export default function Terms() {
         Términos y Condiciones
       </h1>
 
-      <h2 className="font-display font-light text-xl mt-8 mb-3">Producto</h2>
+      <h2 className="font-display font-light text-xl mt-8 mb-3">Pieza</h2>
       <p className="mb-4">
         Cada pieza se fabrica sobre pedido (made-to-order); no manejamos
         inventario por unidad. Los tiempos de producción se muestran en tu
