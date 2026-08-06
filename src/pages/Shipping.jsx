@@ -1,7 +1,7 @@
 export default function Shipping() {
   return (
     <main className="mx-auto max-w-[70ch] p-8 leading-relaxed">
-      <h1 className="font-display font-light text-3xl mb-6">Envíos</h1>
+      <h1 className="font-heading font-bold text-brand-dark text-3xl mb-6">Envíos</h1>
 
       <p className="mb-4">
         Enviamos a todo México. El costo y tiempo estimado de entrega se

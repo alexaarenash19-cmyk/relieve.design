@@ -70,7 +70,7 @@ export default function Reviews({ slug }) {
 
   return (
     <section className="mt-8 pt-6 border-t border-line">
-      <h2 className="font-label uppercase tracking-wide text-xs text-graphite/60 mb-4">
+      <h2 className="font-heading font-bold text-brand-dark uppercase tracking-wide text-xs mb-4">
         Reseñas ({displayable.length})
       </h2>
       <ul className="flex flex-col gap-3">

@@ -63,7 +63,7 @@ export default function OrderStatus() {
   if (order.status === 'cancelled') {
     return (
       <main className="max-w-2xl mx-auto p-8">
-        <h1 className="font-label uppercase tracking-wide text-lg mb-4">
+        <h1 className="font-heading font-bold text-brand-dark uppercase tracking-wide text-lg mb-4">
           Pedido {order.number}
         </h1>
         <p>Este pedido fue cancelado.</p>
@@ -81,7 +81,7 @@ export default function OrderStatus() {
       </p>
 
       {stateCopy && (
-        <h1 className="font-display font-light text-2xl md:text-3xl mb-4">
+        <h1 className="font-heading font-bold text-brand-dark text-2xl md:text-3xl mb-4">
           {stateCopy.headline}
         </h1>
       )}

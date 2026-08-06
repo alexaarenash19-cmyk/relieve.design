@@ -41,13 +41,13 @@ export default function HeroSection() {
         }}
       >
         <h1
-          className="font-display font-light text-[clamp(2rem,3.2vw+1rem,3.75rem)] leading-[1.05] tracking-[-0.02em] text-dark-fg"
+          className="font-heading font-bold text-brand-dark text-[clamp(2rem,3.2vw+1rem,3.75rem)] leading-[1.05] tracking-[-0.02em]"
           style={{ textShadow: '0 2px 24px rgba(26,27,25,0.55)' }}
         >
           No recuerdas un lugar. Recuerdas quién eras ahí.
         </h1>
         <h2
-          className="mt-3 font-light text-[clamp(0.9rem,1vw+0.6rem,1.15rem)] leading-snug text-dark-fg/90"
+          className="mt-3 font-heading font-bold text-brand-dark text-[clamp(0.9rem,1vw+0.6rem,1.15rem)] leading-snug"
           style={{ textShadow: '0 2px 16px rgba(26,27,25,0.5)' }}
         >
           Relieve talla ese lugar en relieve topográfico, montado en madera, con calidad de galería — hecho por encargo, una pieza a la vez.

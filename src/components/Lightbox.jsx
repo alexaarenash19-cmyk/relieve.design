@@ -57,7 +57,7 @@ export default function Lightbox({ photos, index, onIndexChange, onClose }) {
             </button>
           </>
         )}
-        <button className="underline underline-offset-4" onClick={onClose}>
+        <button className="underline underline-offset-4 font-heading font-bold text-brand-dark" onClick={onClose}>
           close
         </button>
       </div>

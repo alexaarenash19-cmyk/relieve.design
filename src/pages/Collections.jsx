@@ -47,21 +47,21 @@ export default function Collections() {
 
   return (
     <main className="p-8">
-      <h1 className="font-display font-light text-3xl mb-6">Colecciones</h1>
+      <h1 className="font-heading font-bold text-brand-dark text-3xl mb-6">Colecciones</h1>
 
       <div className="flex gap-2 mb-8 font-label uppercase tracking-wide text-xs">
         <button
           onClick={() => setView('todos')}
-          className={`rounded-full px-4 py-2 border ${
-            view === 'todos' ? 'bg-graphite text-gallery-white border-graphite' : 'border-line text-graphite'
+          className={`rounded-full px-4 py-2 border font-heading font-bold ${
+            view === 'todos' ? 'bg-brand-dark text-gallery-white border-brand-dark' : 'border-line text-brand-dark'
           }`}
         >
           Todos los mapas
         </button>
         <button
           onClick={() => setView('categoria')}
-          className={`rounded-full px-4 py-2 border ${
-            view === 'categoria' ? 'bg-graphite text-gallery-white border-graphite' : 'border-line text-graphite'
+          className={`rounded-full px-4 py-2 border font-heading font-bold ${
+            view === 'categoria' ? 'bg-brand-dark text-gallery-white border-brand-dark' : 'border-line text-brand-dark'
           }`}
         >
           Por categoría
@@ -96,7 +96,7 @@ export default function Collections() {
 
       {reviews.length > 0 && (
         <section id="resenas" className="mt-12 max-w-2xl">
-          <h2 className="font-label uppercase tracking-wide text-sm mb-4">Reseñas</h2>
+          <h2 className="font-heading font-bold text-brand-dark uppercase tracking-wide text-sm mb-4">Reseñas</h2>
           <ul className="space-y-2">
             {reviews.map((r, i) => (
               <li key={i} className="border-b border-line pb-2">
