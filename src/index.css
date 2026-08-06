@@ -1,5 +1,21 @@
 @import "tailwindcss";
 
+/* ⚠️ PREVIEW-ONLY, DO NOT MERGE TO MAIN. ⚠️
+   Agrandir Text Bold loaded here from Pangram Pangram's "Free For Personal
+   Use" pack — that license explicitly forbids commercial use, and
+   relieve.design is a commercial site. This @font-face exists only so Ale
+   can see the real typeface on a Vercel preview deploy before deciding to
+   buy the commercial license at pangrampangram.com. Once she has a
+   commercially-licensed file, swap it in here and this warning goes away —
+   until then, this branch must never merge into main. */
+@font-face {
+  font-family: "Agrandir";
+  src: url("/fonts/agrandir-textbold-PERSONAL-USE-PREVIEW-ONLY.woff2") format("woff2");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
 /* Brand tokens — exact 10 from the brand audit, plus --color-line (a
    structural hairline for borders/dividers, not a brand "color"; #E4DED3
    confirmed separately since it isn't one of the 10).
@@ -31,9 +47,7 @@
      token as --font-display. Scoped to Nav.jsx; the rest of the site's
      type system (Fraunces/Courier Prime/Inter) is untouched. */
   --font-wordmark: "Poppins", sans-serif;
-  /* Rebranding tipográfico (brand-brief.md §15/§16) — headings + buttons only.
-     @font-face pending: Ale hasn't delivered the Agrandir .woff2 file yet,
-     so this falls back to plain sans-serif until then (expected, tracked separately). */
+  /* Rebranding tipográfico (brand-brief.md §15/§16) — headings + buttons only. */
   --font-heading: "Agrandir", sans-serif;
 
   /* Pinned to its literal pixel value, overriding Tailwind's default
@@ -368,4 +382,3 @@ body::before {
 .explorar-menu-label {
   display: inline-block;
 }
-
