@@ -4,7 +4,7 @@
 import { useEffect, useRef, useState } from 'react';
 import gsap from 'gsap';
 import { placeAlt } from '../lib/altText.js';
-import { pieceMainPhoto, thumbUrlForWidth } from '../lib/photography.js';
+import { pieceMainThumb, thumbUrlForWidth } from '../lib/photography.js';
 import { fetchJsonArray } from '../lib/fetchJsonArray.js';
 import { CATEGORIES, categoryLabel } from '../lib/categories.js';
 import { SIZES } from '../lib/catalog.js';
@@ -54,7 +54,7 @@ function priceLabel(cents) {
 export function GalleryCard({ place, variant = 'grid', slot, gridIndex = 0 }) {
   const { openProduct } = useProductPanel();
   const photo = thumbUrlForWidth(
-    pieceMainPhoto(place.slug) ?? place.thumb_url,
+    pieceMainThumb(place.slug) ?? place.thumb_url,
     360,
   );
   const cursorLabel = variant === 'scattered' ? `+ ${place.name}` : undefined;
@@ -132,7 +132,7 @@ export function GalleryCard({ place, variant = 'grid', slot, gridIndex = 0 }) {
           variant === 'scattered'
             ? 'shadow-[0_16px_32px_-16px_rgba(35,35,35,0.35)]'
             : ''
-        }`}
+        } ${photo && !loaded ? 'animate-pulse' : ''}`}
       >
         {photo ? (
           <img

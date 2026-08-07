@@ -47,6 +47,26 @@ const STATIC_PAGES = {
     title: 'Colecciones — Relieve',
     description: 'Todos los mapas en relieve de Relieve, o explóralos por categoría: ciudades, montañas, estadios y circuitos de México.',
   },
+  '/faq': {
+    title: 'Preguntas frecuentes — Relieve',
+    description: 'Cómo elegir tu pieza, tiempos de producción y envío, materiales, facturación y política de cambios y devoluciones.',
+  },
+  '/envios': {
+    title: 'Envíos — Relieve',
+    description: 'Envíos a todo México, costo y tiempo estimado en el checkout, envío incluido en pedidos mayores a $2,500 MXN, y rastreo de tu pedido por correo.',
+  },
+  '/personaliza': {
+    title: 'Encarga tu lugar — Relieve',
+    description: '¿No encontraste tu lugar en el catálogo? Cuéntanos cuál quieres y te avisamos si es posible fabricarlo en relieve.',
+  },
+  '/terminos': {
+    title: 'Términos y Condiciones — Relieve',
+    description: 'Condiciones de producto, precios y pago, envíos, cancelaciones y devoluciones, y facturación para tu compra en Relieve.',
+  },
+  '/aviso-privacidad': {
+    title: 'Aviso de Privacidad — Relieve',
+    description: 'Aviso de privacidad conforme a la LFPDPPP: datos que recabamos, finalidades, terceros y tus derechos ARCO.',
+  },
 };
 
 function metaTags({ title, description, image, canonicalUrl, type = 'website' }) {
@@ -142,7 +162,13 @@ async function main() {
     const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_KEY);
     const { data, error } = await supabase
       .from('places')
-      .select('slug, name, story, thumb_url, base_price_cents, type');
+      .select('slug, name, story, thumb_url, base_price_cents, type')
+      // Same filter as api/catalog.js's getPlaces() — without it, a place
+      // archived to 'draft' (can't be hard-deleted once order_items/
+      // reviews/waitlist reference it) still got an indexable /pieza/:slug
+      // page and a sitemap.xml entry, even though it's correctly hidden
+      // from /colecciones.
+      .neq('status', 'draft');
     if (error) {
       console.error('[prerender] failed to fetch real catalog, using dummy catalog instead:', error.message);
     } else {

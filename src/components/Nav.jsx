@@ -26,7 +26,11 @@ import { Link } from 'react-router-dom';
 import { useCart } from '../context/CartContext.jsx';
 import markIcon from '../assets/brand/mark.svg';
 
-const REVEAL_ZONE_PX = 72;
+// Was 72px — too easy to miss on a normal-sized viewport, effectively
+// hiding the only way back to the catalog/cart from every product page.
+// Widened per audit feedback; still small enough that it doesn't compete
+// with the page content just below it.
+const REVEAL_ZONE_PX = 200;
 
 export default function Nav() {
   const [solid, setSolid] = useState(false);

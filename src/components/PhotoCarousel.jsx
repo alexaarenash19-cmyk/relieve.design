@@ -12,7 +12,12 @@ import Lightbox from './Lightbox.jsx';
 export default function PhotoCarousel({ photos, alt = '', placeholderLabel, overlay = null }) {
   const [active, setActive] = useState(0);
   const [lightboxOpen, setLightboxOpen] = useState(false);
+  // Keyed by URL, not a single boolean, so switching back to an
+  // already-loaded photo doesn't re-flash the skeleton — was a flat
+  // bg-stone block with zero loading feedback (looked broken, not loading).
+  const [loadedUrls, setLoadedUrls] = useState(() => new Set());
   const photo = photos[active];
+  const photoLoaded = photo && loadedUrls.has(photo);
 
   return (
     <div>
@@ -20,10 +25,17 @@ export default function PhotoCarousel({ photos, alt = '', placeholderLabel, over
         type="button"
         onClick={() => photo && setLightboxOpen(true)}
         data-cursor={photo ? 'view' : undefined}
-        className="warm-photo relative w-full aspect-square rounded-[9px] overflow-hidden bg-stone flex items-center justify-center"
+        className={`warm-photo relative w-full aspect-square rounded-[9px] overflow-hidden bg-stone flex items-center justify-center ${
+          photo && !photoLoaded ? 'animate-pulse' : ''
+        }`}
       >
         {photo ? (
-          <img src={photo} alt={alt} className="w-full h-full object-cover" />
+          <img
+            src={photo}
+            alt={alt}
+            onLoad={() => setLoadedUrls((prev) => (prev.has(photo) ? prev : new Set(prev).add(photo)))}
+            className={`w-full h-full object-cover transition-opacity duration-300 ${photoLoaded ? 'opacity-100' : 'opacity-0'}`}
+          />
         ) : (
           <span className="font-label uppercase tracking-wide text-xs px-3 py-1">
             {placeholderLabel}

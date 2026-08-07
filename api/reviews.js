@@ -14,6 +14,40 @@ const MAX_PHOTO_BYTES = 5 * 1024 * 1024; // 5MB — reviews are a phone snapshot
 const ALLOWED_PHOTO_MIME = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/gif']);
 const MIME_EXTENSION = { 'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp', 'image/gif': 'gif' };
 
+// photo.mimetype below is whatever Content-Type the client's multipart
+// request declared — formidable trusts it, it doesn't inspect the file.
+// Anyone can label arbitrary bytes "image/jpeg". This checks the real file
+// signature instead, so the declared mimetype is only ever a hint, not the
+// thing that decides what gets stored. No dependency: four fixed magic
+// numbers don't need a library.
+function detectImageMime(buffer) {
+  if (buffer.length >= 3 && buffer[0] === 0xff && buffer[1] === 0xd8 && buffer[2] === 0xff) {
+    return 'image/jpeg';
+  }
+  if (
+    buffer.length >= 8 &&
+    buffer[0] === 0x89 && buffer[1] === 0x50 && buffer[2] === 0x4e && buffer[3] === 0x47 &&
+    buffer[4] === 0x0d && buffer[5] === 0x0a && buffer[6] === 0x1a && buffer[7] === 0x0a
+  ) {
+    return 'image/png';
+  }
+  if (
+    buffer.length >= 6 &&
+    buffer[0] === 0x47 && buffer[1] === 0x49 && buffer[2] === 0x46 && buffer[3] === 0x38 &&
+    (buffer[4] === 0x37 || buffer[4] === 0x39) && buffer[5] === 0x61
+  ) {
+    return 'image/gif';
+  }
+  if (
+    buffer.length >= 12 &&
+    buffer.toString('ascii', 0, 4) === 'RIFF' &&
+    buffer.toString('ascii', 8, 12) === 'WEBP'
+  ) {
+    return 'image/webp';
+  }
+  return null;
+}
+
 async function parseMultipart(req) {
   // maxFileSize/maxFiles were unset before — a public, unauthenticated
   // upload endpoint with no limit accepts formidable's default (a few GB),
@@ -88,6 +122,12 @@ async function handlePost(req, res) {
     return sendError(res, 400, 'invalid_photo', 'photo must be JPEG, PNG, WEBP, or GIF');
   }
 
+  const photoBuffer = await fs.readFile(photo.filepath);
+  const realMime = detectImageMime(photoBuffer);
+  if (!realMime) {
+    return sendError(res, 400, 'invalid_photo', 'photo content is not a recognizable JPEG, PNG, WEBP, or GIF');
+  }
+
   const { data: place } = await supabase
     .from('places')
     .select('id')
@@ -95,19 +135,18 @@ async function handlePost(req, res) {
     .maybeSingle();
   if (!place) return sendError(res, 400, 'invalid_place', `Unknown place_slug: ${place_slug}`);
 
-  let photo_url = null;
-  if (photo) {
-    const buffer = await fs.readFile(photo.filepath);
-    // Generated name, not photo.originalFilename — an uploader-controlled
-    // filename landing straight in a storage path/public URL is an easy
-    // place for path separators or unexpected characters to cause trouble.
-    const path = `reviews/${Date.now()}-${crypto.randomUUID()}.${MIME_EXTENSION[photo.mimetype]}`;
-    const { error: uploadError } = await supabase.storage
-      .from('images')
-      .upload(path, buffer, { contentType: photo.mimetype });
-    if (uploadError) return sendError(res, 500, 'upload_error', uploadError.message);
-    photo_url = supabase.storage.from('images').getPublicUrl(path).data.publicUrl;
-  }
+  // Generated name, not photo.originalFilename — an uploader-controlled
+  // filename landing straight in a storage path/public URL is an easy
+  // place for path separators or unexpected characters to cause trouble.
+  // Extension/contentType come from the verified realMime, not the
+  // client-declared photo.mimetype, so a mislabeled-but-real image still
+  // gets stored correctly and a spoofed one never reaches this line at all.
+  const path = `reviews/${Date.now()}-${crypto.randomUUID()}.${MIME_EXTENSION[realMime]}`;
+  const { error: uploadError } = await supabase.storage
+    .from('images')
+    .upload(path, photoBuffer, { contentType: realMime });
+  if (uploadError) return sendError(res, 500, 'upload_error', uploadError.message);
+  const photo_url = supabase.storage.from('images').getPublicUrl(path).data.publicUrl;
 
   const { error } = await supabase.from('reviews').insert({
     place_id: place.id,

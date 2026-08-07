@@ -3,8 +3,16 @@
 // that's decided. For now the form just confirms client-side on submit.
 import { useState } from 'react';
 import Button from '../components/Button.jsx';
+import { useDocumentHead } from '../lib/useDocumentHead.js';
 
 export default function Personalize() {
+  useDocumentHead({
+    title: 'Encarga tu lugar — Relieve',
+    description:
+      '¿No encontraste tu lugar en el catálogo? Cuéntanos cuál quieres y te avisamos si es posible fabricarlo en relieve.',
+    canonicalPath: '/personaliza',
+  });
+
   const [form, setForm] = useState({ name: '', email: '', location: '', notes: '' });
   const [sent, setSent] = useState(false);
 

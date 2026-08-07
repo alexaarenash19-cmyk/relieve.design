@@ -1,5 +1,14 @@
 // Issue #58 — draft aviso de privacidad (LFPDPPP). Borrador; requiere revisión legal antes de lanzamiento.
+import { useDocumentHead } from '../lib/useDocumentHead.js';
+
 export default function PrivacyNotice() {
+  useDocumentHead({
+    title: 'Aviso de Privacidad — Relieve',
+    description:
+      'Aviso de privacidad conforme a la LFPDPPP: datos que recabamos, finalidades, terceros y tus derechos ARCO.',
+    canonicalPath: '/aviso-privacidad',
+  });
+
   return (
     <main className="mx-auto max-w-[70ch] p-8 leading-relaxed">
       <h1 className="font-heading font-bold text-brand-dark text-3xl mb-6">Aviso de Privacidad</h1>

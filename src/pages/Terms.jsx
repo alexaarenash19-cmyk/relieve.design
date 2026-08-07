@@ -1,5 +1,14 @@
 // Issue #58 — draft términos y condiciones. Borrador; requiere revisión legal antes de lanzamiento.
+import { useDocumentHead } from '../lib/useDocumentHead.js';
+
 export default function Terms() {
+  useDocumentHead({
+    title: 'Términos y Condiciones — Relieve',
+    description:
+      'Condiciones de producto, precios y pago, envíos, cancelaciones y devoluciones, y facturación para tu compra en Relieve.',
+    canonicalPath: '/terminos',
+  });
+
   return (
     <main className="mx-auto max-w-[70ch] p-8 leading-relaxed">
       <h1 className="font-heading font-bold text-brand-dark text-3xl mb-6">
