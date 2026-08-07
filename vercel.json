@@ -2,6 +2,7 @@
   "rewrites": [
     { "source": "/api/pricing", "destination": "/api/catalog?resource=pricing" },
     { "source": "/api/waitlist", "destination": "/api/catalog?resource=waitlist" },
+    { "source": "/api/curva-de-nivel", "destination": "/api/catalog?resource=curva_de_nivel" },
     { "source": "/api/places", "destination": "/api/catalog?resource=places" },
     { "source": "/api/places/:slug", "destination": "/api/catalog?resource=places&slug=:slug" },
     { "source": "/api/orders/by-session/:sessionId", "destination": "/api/catalog?resource=orders_by_session&session_id=:sessionId" },

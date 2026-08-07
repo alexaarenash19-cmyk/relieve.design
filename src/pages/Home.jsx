@@ -22,6 +22,7 @@ import {
 } from '../context/HeroScrollContext.jsx';
 import { usePageWipe } from '../context/PageWipeContext.jsx';
 import Gallery from '../components/Gallery.jsx';
+import CurvaDeNivel from '../components/CurvaDeNivel.jsx';
 import { useDocumentHead } from '../lib/useDocumentHead.js';
 
 const HERO_SEEN_KEY = 'relieve_hero_seen';
@@ -96,8 +97,18 @@ export default function Home() {
     canonicalPath: '/',
   });
 
+  // brand-brief.md sección 11 — estructura de Home: Hero → Canvas → Curva
+  // de Nivel → Footer. CurvaDeNivel cae después del canvas en flujo normal
+  // (Gallery ya no es fixed full-screen, ver Gallery.jsx); Footer se
+  // renderiza en App.jsx fuera de <Routes>, así que cae después de lo que
+  // sea que esta página pinte al final, sin tocar App.jsx por ruta.
   if (pastHero) {
-    return <Gallery zoomIn={justArrived} />;
+    return (
+      <>
+        <Gallery zoomIn={justArrived} />
+        <CurvaDeNivel />
+      </>
+    );
   }
 
   if (reduceMotion) {
@@ -105,6 +116,7 @@ export default function Home() {
       <>
         <HeroReducedMotion />
         <Gallery />
+        <CurvaDeNivel />
       </>
     );
   }

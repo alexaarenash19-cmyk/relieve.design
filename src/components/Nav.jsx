@@ -32,6 +32,11 @@ import markIcon from '../assets/brand/mark.svg';
 // with the page content just below it.
 const REVEAL_ZONE_PX = 200;
 
+// brand-brief.md §16 decisión 7 — nav queda exactamente "Colecciones ·
+// Método · Reseñas". Buscar/Regalar se quitan de aquí (las rutas siguen
+// funcionando, solo dejan de estar enlazadas desde el nav superior).
+// "Reseñas" apunta al ancla ya usada por el menú interno de Gallery.jsx.
+
 export default function Nav() {
   const [solid, setSolid] = useState(false);
   const [visible, setVisible] = useState(
@@ -63,7 +68,7 @@ export default function Nav() {
   return (
     <nav
       onFocusCapture={() => setVisible(true)}
-      className={`fixed top-0 inset-x-0 z-40 flex items-center justify-between px-6 py-2 transition-[transform,opacity,background-color] duration-300 ${
+      className={`fixed top-7 inset-x-0 z-40 flex items-center justify-between px-6 py-2 transition-[transform,opacity,background-color] duration-300 ${
         solid
           ? 'bg-gallery-white/95 backdrop-blur border-b border-line'
           : 'bg-transparent'
@@ -82,17 +87,22 @@ export default function Nav() {
       </Link>
       <div className="flex items-center gap-6 font-label uppercase tracking-wide text-xs">
         <Link
-          to="/buscar"
-          data-cursor-label="Ver destino"
+          to="/colecciones"
           className="hover:text-passport-ink transition-colors"
         >
-          Buscar
+          Colecciones
         </Link>
         <Link
-          to="/regalar"
+          to="/metodo-relieve"
           className="hover:text-passport-ink transition-colors"
         >
-          Regalar
+          Método
+        </Link>
+        <Link
+          to="/colecciones#resenas"
+          className="hover:text-passport-ink transition-colors"
+        >
+          Reseñas
         </Link>
         <button
           onClick={toggleCart}
