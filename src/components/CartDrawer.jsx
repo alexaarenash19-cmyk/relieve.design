@@ -150,7 +150,12 @@ export default function CartDrawer() {
           </div>
 
           <label className="flex items-center gap-2 mt-6 normal-case font-body text-sm">
-            <input type="checkbox" checked={isGift} onChange={(e) => setIsGift(e.target.checked)} />
+            <input
+              type="checkbox"
+              checked={isGift}
+              onChange={(e) => setIsGift(e.target.checked)}
+              className="appearance-none w-5 h-5 rounded border border-line bg-gallery-white relative cursor-pointer checked:bg-sello-navy checked:border-sello-navy after:content-[''] after:absolute after:inset-0 after:flex after:items-center after:justify-center checked:after:content-['✓'] after:text-dark-bg after:text-xs"
+            />
             Es un regalo
           </label>
           {isGift && (

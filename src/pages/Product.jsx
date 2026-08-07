@@ -299,7 +299,7 @@ export default function Product() {
                           : 'border-line'
                     }`}
                   >
-                    {s.label}
+                    {s.label} <span className="opacity-70">· {s.dims}</span>
                     {s.featured && <span className="ml-1 text-xs opacity-70">· el más elegido para regalar</span>}
                   </button>
                 ))}
@@ -340,6 +340,7 @@ export default function Product() {
                         key={c.code}
                         onClick={() => setColorCode(c.code)}
                         aria-label={c.label}
+                        title={c.label}
                         className={`w-7 h-7 rounded-full border-2 ${
                           colorCode === c.code ? 'border-sello-navy' : 'border-line'
                         }`}
@@ -347,6 +348,9 @@ export default function Product() {
                       />
                     ))}
                   </div>
+                  <p className="mt-2 text-xs text-graphite/70">
+                    {COLORS.find((c) => c.code === colorCode)?.label}
+                  </p>
                 </fieldset>
 
                 <fieldset className="mb-4">
@@ -387,7 +391,13 @@ export default function Product() {
 
             {!isPuzzle && (
               <div className="mb-4 flex items-center gap-2">
-                <input id="capelo" type="checkbox" checked={capelo} onChange={(e) => setCapelo(e.target.checked)} />
+                <input
+                  id="capelo"
+                  type="checkbox"
+                  checked={capelo}
+                  onChange={(e) => setCapelo(e.target.checked)}
+                  className="appearance-none w-5 h-5 rounded border border-line bg-gallery-white relative cursor-pointer checked:bg-sello-navy checked:border-sello-navy after:content-[''] after:absolute after:inset-0 after:flex after:items-center after:justify-center checked:after:content-['✓'] after:text-dark-bg after:text-xs"
+                />
                 <label htmlFor="capelo" className="text-sm">
                   Agregar capelo de vidrio{' '}
                   <span className="text-graphite/60">{addonPrice(ADDONS.capelo)}</span>
