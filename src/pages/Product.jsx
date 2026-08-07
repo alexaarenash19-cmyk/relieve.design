@@ -118,13 +118,40 @@ export default function Product() {
     };
   }, [sizeCode, frameCode, capelo, plateText]);
 
+  const productDescription = place
+    ? (place.story?.slice(0, 155) ?? `Mapa en relieve de ${place.name}, enmarcado en parota.`)
+    : undefined;
+
+  // Same shape as scripts/prerender.mjs's buildPlaceHtml() — that version
+  // covers the first request (crawlers, direct loads), this one keeps it
+  // live once React Router navigates here client-side, and reflects the
+  // real-time price/status instead of whatever was true at last build.
+  const JSONLD_AVAILABILITY = {
+    soldout: 'https://schema.org/OutOfStock',
+    preorder: 'https://schema.org/PreOrder',
+  };
+  const productJsonLd = place
+    ? {
+        '@context': 'https://schema.org',
+        '@type': 'Product',
+        name: `Relieve · ${place.name}`,
+        description: productDescription,
+        image: place.thumb_url ?? undefined,
+        offers: {
+          '@type': 'Offer',
+          priceCurrency: 'MXN',
+          price: ((unitPriceCents ?? place.base_price) / 100).toFixed(2),
+          availability: JSONLD_AVAILABILITY[place.status] ?? 'https://schema.org/InStock',
+        },
+      }
+    : undefined;
+
   useDocumentHead({
     title: place ? `${place.name} — Mapa en relieve | Relieve` : undefined,
-    description: place
-      ? (place.story?.slice(0, 155) ?? `Mapa en relieve de ${place.name}, enmarcado en parota.`)
-      : undefined,
+    description: productDescription,
     image: place?.thumb_url,
     canonicalPath: `/pieza/${slug}`,
+    jsonLd: productJsonLd,
   });
 
   if (error) {
