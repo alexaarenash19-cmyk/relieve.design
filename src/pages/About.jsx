@@ -220,7 +220,7 @@ const CoverLeaf = forwardRef(function CoverLeaf(_, ref) {
       <TopoLines className="absolute inset-0 w-full h-full opacity-10" />
       <Crest />
       <div className="relative text-center px-6">
-        <h1 className="font-display font-light text-4xl tracking-wide">
+        <h1 className="font-heading font-bold text-brand-dark text-4xl tracking-wide">
           RELIEVE
         </h1>
         <p className="font-label uppercase tracking-wide text-[10px] opacity-70 mt-2">
@@ -360,7 +360,7 @@ function VisaPageBody() {
   return (
     <>
       <PageKicker n="06" title="Visa" />
-      <h2 className="font-label uppercase tracking-wide text-[10px] mb-2">
+      <h2 className="font-heading font-bold text-brand-dark uppercase tracking-wide text-[10px] mb-2">
         Destinos Autorizados
       </h2>
       <ul className="space-y-1 font-label text-[10px] mb-4">
@@ -462,7 +462,7 @@ export default function About() {
           type="button"
           onClick={() => flipRef.current?.pageFlip()?.flipPrev()}
           disabled={index === 0}
-          className="disabled:opacity-30 hover:text-passport-ink transition-colors"
+          className="font-heading font-bold text-brand-dark disabled:opacity-30 hover:text-passport-ink transition-colors"
         >
           ‹ Anterior
         </button>
@@ -482,7 +482,7 @@ export default function About() {
           type="button"
           onClick={() => flipRef.current?.pageFlip()?.flipNext()}
           disabled={index === PAGE_COUNT - 1}
-          className="disabled:opacity-30 hover:text-passport-ink transition-colors"
+          className="font-heading font-bold text-brand-dark disabled:opacity-30 hover:text-passport-ink transition-colors"
         >
           Siguiente ›
         </button>

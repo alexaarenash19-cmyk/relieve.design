@@ -8,7 +8,7 @@ import Button from '../components/Button.jsx';
 export default function Gift() {
   return (
     <main className="max-w-2xl mx-auto p-8 text-center">
-      <h1 className="font-display font-light text-3xl md:text-4xl mb-4">
+      <h1 className="font-heading font-bold text-brand-dark text-3xl md:text-4xl mb-4">
         El regalo que demuestra que sí prestaste atención.
       </h1>
       <p className="text-graphite/70 mb-8">

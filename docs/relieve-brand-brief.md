@@ -304,23 +304,29 @@ Loop sugerido: *Envío gratis · Envíos a toda la República · Devolución gra
 
 ### Fase 1 — Auditoría y confirmación (no tocar código todavía)
 
-- [ ] **1.1** Verificar si Agrandir ya está disponible en el proyecto (paquete instalado, import existente, o referencia en algún CSS/config).
-- [ ] **1.2** Si no está disponible: determinar método de carga — Google Fonts (si Agrandir está ahí) vs. `@font-face` con archivos locales. **Si se necesitan archivos `.woff`/`.woff2`, preguntar directamente a Ale — no asumir que existen ni buscarlos por cuenta propia.**
-- [ ] **1.3** Hacer inventario completo de componentes que contienen headings (h1-h6) y botones/CTAs en todo el sitio (incluir nav, footer, panel de producto, home, y cualquier página secundaria).
-- [ ] **1.4** Presentar a Ale la lista de componentes identificados en 1.3 — esperar su confirmación explícita de que nada debe quedar fuera antes de tocar código.
+- [x] **1.1** Verificar si Agrandir ya está disponible en el proyecto (paquete instalado, import existente, o referencia en algún CSS/config).
+- [x] **1.2** Si no está disponible: determinar método de carga — Google Fonts (si Agrandir está ahí) vs. `@font-face` con archivos locales. **Si se necesitan archivos `.woff`/`.woff2`, preguntar directamente a Ale — no asumir que existen ni buscarlos por cuenta propia.**
+- [x] **1.3** Hacer inventario completo de componentes que contienen headings (h1-h6) y botones/CTAs en todo el sitio (incluir nav, footer, panel de producto, home, y cualquier página secundaria).
+- [x] **1.4** Presentar a Ale la lista de componentes identificados en 1.3 — esperar su confirmación explícita de que nada debe quedar fuera antes de tocar código.
+
+**Nota (Fase 1, cerrada 2026-08-05):** Auditoría hecha vía tres pases de investigación de solo lectura sobre el repo real (`gh api`, sin clonar). Confirmado: Agrandir no existía en el proyecto (cero referencias en `package.json`, `src/index.css`, `index.html` ni docs). No hay `tailwind.config.js` — Tailwind v4 usa `@theme` CSS-first en `src/index.css`. Inventario completo: 40 headings (h1-h6) en 20 archivos, más los botones/controles de `Button.jsx`, `WaitlistDialog.jsx`, `Gallery.jsx` y los controles funcionales listados en la Fase 3. La lista se presentó a Ale en conversación, quien confirmó el alcance completo (ver §16, decisión 3: aplica a *todo* botón/control, no solo CTAs principales) antes de tocar código.
 
 ### Fase 2 — Tokens centralizados (setup, sin aplicar todavía a componentes)
 
-- [ ] **2.1** Agregar Agrandir como token de fuente en `tailwind.config` (ej. `fontFamily.heading`), no como clase suelta.
-- [ ] **2.2** Agregar `#355974` como token de color en `tailwind.config` (ej. `colors.brand-dark` o nombre equivalente ya usado en el sistema de diseño existente).
-- [ ] **2.3** Cargar la fuente físicamente en el proyecto: `@font-face` en CSS global si son archivos locales, o `<link>`/import si es Google Fonts.
+- [x] **2.1** Agregar Agrandir como token de fuente en `tailwind.config` (ej. `fontFamily.heading`), no como clase suelta.
+- [x] **2.2** Agregar `#355974` como token de color en `tailwind.config` (ej. `colors.brand-dark` o nombre equivalente ya usado en el sistema de diseño existente).
+- [x] **2.3** Cargar la fuente físicamente en el proyecto: `@font-face` en CSS global si son archivos locales, o `<link>`/import si es Google Fonts. — **font-face pendiente — token agregado, `@font-face` diferido hasta que Ale entregue el .woff2.**
+
+**Nota (Fase 2, cerrada 2026-08-05):** No hay `tailwind.config.js` en este repo — Tailwind v4 usa config CSS-first vía `@theme`. Se agregaron `--font-heading: "Agrandir", sans-serif;` y `--color-brand-dark: #355974;` al bloque `@theme` existente en `src/index.css`, de forma aditiva (los 10 colores y 4 fuentes existentes no se tocaron). `--color-brand-dark` es un token nuevo y distinto de `--color-passport-ink` (#355A75), sin alias entre ellos, por decisión 1 de §16. No se agregó `@font-face` todavía — bloqueado por la entrega pendiente del archivo `.woff2` de Agrandir (Ale); el token cae de vuelta a `sans-serif` mientras tanto, como se esperaba. Archivo tocado: `src/index.css`.
 
 ### Fase 3 — Aplicación
 
-- [ ] **3.1** Aplicar el token de fuente Agrandir bold + token de color `#355974` a todos los headings (h1-h6) usando los tokens de la Fase 2 — sin hardcodear en ningún componente.
-- [ ] **3.2** Aplicar el mismo token de fuente + color a todos los botones/CTAs del sitio (incluyendo "Personalizar", nav, y cualquier botón identificado en 1.3).
-- [ ] **3.3** Confirmar que el cuerpo de texto (párrafos, descripciones) no fue tocado — ni fuente ni color.
-- [ ] **3.4** Confirmar que no se modificó estructura, layout, ni ningún otro color del sitio fuera del alcance de esta tarea.
+- [x] **3.1** Aplicar el token de fuente Agrandir bold + token de color `#355974` a todos los headings (h1-h6) usando los tokens de la Fase 2 — sin hardcodear en ningún componente.
+- [x] **3.2** Aplicar el mismo token de fuente + color a todos los botones/CTAs del sitio (incluyendo "Personalizar", nav, y cualquier botón identificado en 1.3).
+- [x] **3.3** Confirmar que el cuerpo de texto (párrafos, descripciones) no fue tocado — ni fuente ni color.
+- [x] **3.4** Confirmar que no se modificó estructura, layout, ni ningún otro color del sitio fuera del alcance de esta tarea.
+
+**Nota (Fase 3, cerrada 2026-08-05):** Se aplicó `font-heading font-bold text-brand-dark` a los 40 headings (h1-h6) encontrados en los 20 archivos de alcance, y el mismo tratamiento de fuente/color a todo botón/control identificado (decisión 3, §16): `Button.jsx` (CTA compartido, retinte de `sello-navy`→`brand-dark`), los 2 botones hand-rolled de `WaitlistDialog.jsx`, las constantes `GHOST_PILL`/`DARK_PILL` de `Gallery.jsx`, los selectores de tamaño/marco/color/orientación de `Product.jsx`, qty +/- y "Quitar" de `CartDrawer.jsx`, el close de `Lightbox.jsx`, los 2 close de `ProductPanel.jsx`, los filter tabs de `Collections.jsx`, y el disclosure trigger (`<button>` dentro del `<h3>`) de `Accordion.jsx`. Cuerpo de texto, layout y cualquier color fuera de títulos/botones quedaron sin tocar. Archivos tocados (24): `src/index.css`, `src/components/Button.jsx`, `src/components/Accordion.jsx`, `src/components/CartDrawer.jsx`, `src/components/Gallery.jsx`, `src/components/HeroReducedMotion.jsx`, `src/components/HeroSection.jsx`, `src/components/Lightbox.jsx`, `src/components/ProductPanel.jsx`, `src/components/Reviews.jsx`, `src/components/WaitlistDialog.jsx`, `src/pages/About.jsx`, `src/pages/Collection.jsx`, `src/pages/Collections.jsx`, `src/pages/Faq.jsx`, `src/pages/Gift.jsx`, `src/pages/NotFound.jsx`, `src/pages/OrderStatus.jsx`, `src/pages/Personalize.jsx`, `src/pages/PrivacyNotice.jsx`, `src/pages/Product.jsx`, `src/pages/Search.jsx`, `src/pages/Shipping.jsx`, `src/pages/Terms.jsx`. Nota de seguimiento (ver PR #147): un primer pase dejó fuera, pese a la decisión 3 ("todo botón/control"), los botones ‹ Anterior/Siguiente › del flipbook en `About.jsx` y el botón × de cierre de `CartDrawer.jsx` — cerrados en un segundo commit sobre la misma rama. También se corrigió un conflicto preexistente en `CartDrawer.jsx`: el botón "Pagar" pasaba `font-label` como override hacia el componente `Button`, lo que peleaba con el nuevo `font-heading` de la base — se quitó ese override.
 
 ### Fase 4 — Verificación final
 

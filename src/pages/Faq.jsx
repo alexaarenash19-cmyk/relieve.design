@@ -37,7 +37,7 @@ export default function Faq() {
 
   return (
     <main className="mx-auto max-w-[70ch] p-8 leading-relaxed">
-      <h1 className="font-display font-light text-3xl mb-6">
+      <h1 className="font-heading font-bold text-brand-dark text-3xl mb-6">
         Preguntas frecuentes
       </h1>
       <dl className="space-y-6">

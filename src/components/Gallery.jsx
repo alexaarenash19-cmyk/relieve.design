@@ -367,9 +367,9 @@ function ExperienceToggle({ view, onChange }) {
 // directly over whatever's behind them (photo or canvas), not a solid
 // panel. Dark pills are the deliberate exception (active-state fill).
 const GHOST_PILL =
-  'rounded-full border border-graphite bg-transparent text-graphite px-3 py-2 font-label uppercase tracking-wide text-xs flex items-center gap-1.5';
+  'rounded-full border border-brand-dark bg-transparent text-brand-dark px-3 py-2 font-heading font-bold uppercase tracking-wide text-xs flex items-center gap-1.5';
 const DARK_PILL =
-  'rounded-full bg-graphite text-gallery-white px-3 py-2 font-label uppercase tracking-wide text-xs flex items-center gap-1.5';
+  'rounded-full bg-brand-dark text-gallery-white px-3 py-2 font-heading font-bold uppercase tracking-wide text-xs flex items-center gap-1.5';
 
 // Same taxonomy as /buscar and /colecciones — CATEGORIES is the one
 // source of truth, not a separate list per filter UI.

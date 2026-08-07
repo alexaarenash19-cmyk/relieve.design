@@ -28,7 +28,7 @@ export default function Personalize() {
   if (sent) {
     return (
       <main className="max-w-md mx-auto p-8">
-        <h1 className="font-display font-light text-3xl mb-4">¡Gracias!</h1>
+        <h1 className="font-heading font-bold text-brand-dark text-3xl mb-4">¡Gracias!</h1>
         <p>Recibimos tu solicitud para {form.location || 'tu lugar'}. Te contactamos por correo.</p>
       </main>
     );
@@ -36,7 +36,7 @@ export default function Personalize() {
 
   return (
     <main className="max-w-md mx-auto p-8">
-      <h1 className="font-display font-light text-3xl mb-2">Elige el lugar de tu encargo</h1>
+      <h1 className="font-heading font-bold text-brand-dark text-3xl mb-2">Elige el lugar de tu encargo</h1>
       <p className="text-graphite/70 mb-6">
         ¿No encontraste tu lugar en el catálogo? Cuéntanos cuál quieres y te avisamos si es posible fabricarlo.
       </p>

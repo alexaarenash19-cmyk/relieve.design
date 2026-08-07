@@ -11,18 +11,18 @@ export default function Terms() {
 
   return (
     <main className="mx-auto max-w-[70ch] p-8 leading-relaxed">
-      <h1 className="font-display font-light text-3xl mb-6">
+      <h1 className="font-heading font-bold text-brand-dark text-3xl mb-6">
         Términos y Condiciones
       </h1>
 
-      <h2 className="font-display font-light text-xl mt-8 mb-3">Producto</h2>
+      <h2 className="font-heading font-bold text-brand-dark text-xl mt-8 mb-3">Producto</h2>
       <p className="mb-4">
         Cada pieza se fabrica sobre pedido (made-to-order); no manejamos
         inventario por unidad. Los tiempos de producción se muestran en tu
         página de estatus del pedido.
       </p>
 
-      <h2 className="font-display font-light text-xl mt-8 mb-3">Precios y pago</h2>
+      <h2 className="font-heading font-bold text-brand-dark text-xl mt-8 mb-3">Precios y pago</h2>
       <p className="mb-4">
         Los precios se muestran en pesos mexicanos (MXN) e incluyen IVA. El
         pago se procesa mediante Stripe (tarjeta u OXXO, de contado — no
@@ -30,13 +30,13 @@ export default function Terms() {
         servidor al momento del pago.
       </p>
 
-      <h2 className="font-display font-light text-xl mt-8 mb-3">Envíos</h2>
+      <h2 className="font-heading font-bold text-brand-dark text-xl mt-8 mb-3">Envíos</h2>
       <p className="mb-4">
         Enviamos a todo México. El costo y tiempo de envío se muestran en el
         checkout; pedidos mayores a $2,500 MXN incluyen envío sin costo.
       </p>
 
-      <h2 className="font-display font-light text-xl mt-8 mb-3">
+      <h2 className="font-heading font-bold text-brand-dark text-xl mt-8 mb-3">
         Cancelaciones y devoluciones
       </h2>
       <p className="mb-4">
@@ -49,7 +49,7 @@ export default function Terms() {
         dentro de los 7 días posteriores a la entrega.
       </p>
 
-      <h2 className="font-display font-light text-xl mt-8 mb-3">Facturación</h2>
+      <h2 className="font-heading font-bold text-brand-dark text-xl mt-8 mb-3">Facturación</h2>
       <p className="mb-4">
         Si necesitas factura (CFDI), solicítala dentro del mismo mes de tu
         compra proporcionando tus datos fiscales.

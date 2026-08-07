@@ -105,7 +105,7 @@ export default function ProductPanel() {
         <button
           onClick={closeProduct}
           aria-label="Cerrar"
-          className="md:hidden absolute top-6 right-6 w-10 h-10 border border-graphite bg-gallery-white flex items-center justify-center text-lg leading-none"
+          className="md:hidden absolute top-6 right-6 w-10 h-10 border border-brand-dark bg-gallery-white text-brand-dark font-heading font-bold flex items-center justify-center text-lg leading-none"
         >
           ×
         </button>
@@ -122,7 +122,7 @@ export default function ProductPanel() {
                 timeline. */}
             <h2
               ref={titleRef}
-              className="font-display font-light text-[clamp(1.9rem,2.8vw+1rem,3.25rem)] leading-[1.05] m-0"
+              className="font-heading font-bold text-brand-dark text-[clamp(1.9rem,2.8vw+1rem,3.25rem)] leading-[1.05] m-0"
             >
               {[...place.name].map((c, i) => (
                 <span key={i} className="inline-block">
@@ -215,7 +215,7 @@ export default function ProductPanel() {
         <button
           onClick={closeProduct}
           aria-label="Cerrar"
-          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[46px] h-[46px] border border-graphite bg-gallery-white text-graphite flex items-center justify-center text-[1.2rem] leading-none transition-colors duration-200 hover:bg-graphite hover:text-gallery-white"
+          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[46px] h-[46px] border border-brand-dark bg-gallery-white text-brand-dark font-heading font-bold flex items-center justify-center text-[1.2rem] leading-none transition-colors duration-200 hover:bg-brand-dark hover:text-gallery-white"
         >
           ×
         </button>

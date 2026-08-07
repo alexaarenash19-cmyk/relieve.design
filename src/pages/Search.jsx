@@ -61,7 +61,7 @@ export default function Search() {
     <main className="max-w-3xl mx-auto p-8">
       <div className="relative mb-6 rounded-[9px] bg-dark-bg text-dark-fg px-6 py-8 overflow-hidden">
         <TopoLines className="absolute inset-0 w-full h-full text-dark-fg/30" />
-        <h1 className="relative font-display font-light text-3xl">Encuentra tu lugar</h1>
+        <h1 className="relative font-heading font-bold text-brand-dark text-3xl">Encuentra tu lugar</h1>
         <p className="relative font-label uppercase tracking-wide text-xs text-dark-fg/60 mt-2">
           {places.length} destinos en catálogo
         </p>
@@ -81,8 +81,8 @@ export default function Search() {
             key={l}
             disabled={!available.has(l)}
             onClick={() => setLetter(letter === l ? null : l)}
-            className={`w-7 h-7 text-xs font-label rounded ${
-              letter === l ? 'bg-sello-navy text-dark-bg' : 'text-graphite/70'
+            className={`w-7 h-7 text-xs font-heading font-bold rounded ${
+              letter === l ? 'bg-brand-dark text-dark-bg' : 'text-brand-dark/70'
             } ${available.has(l) ? 'hover:bg-line' : 'opacity-20 cursor-default'}`}
           >
             {l}

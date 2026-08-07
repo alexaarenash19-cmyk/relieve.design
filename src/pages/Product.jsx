@@ -158,7 +158,7 @@ export default function Product() {
     return (
       <main className="max-w-md mx-auto p-8 text-center">
         <Stamp label="Sin ruta" className="mb-6" />
-        <h1 className="font-display font-light text-2xl mb-2">{error}</h1>
+        <h1 className="font-heading font-bold text-brand-dark text-2xl mb-2">{error}</h1>
         <p className="text-graphite/60 mb-6">
           Puede que esta pieza no exista o que el catálogo aún no esté conectado.
         </p>
@@ -271,7 +271,7 @@ export default function Product() {
             cuts off the CTA" symptom reported in QA. break-words on the
             dl values below is the other half of the same fix. */}
         <div className="min-w-0">
-          <h1 className="font-display font-light text-[clamp(2.25rem,3vw+1.5rem,3.5rem)] leading-tight mb-4">
+          <h1 className="font-heading font-bold text-brand-dark text-[clamp(2.25rem,3vw+1.5rem,3.5rem)] leading-tight mb-4">
             {place.name}
           </h1>
 
@@ -343,11 +343,11 @@ export default function Product() {
                   <button
                     key={s.code}
                     onClick={() => setSizeCode(s.code)}
-                    className={`px-3 py-1 rounded-full border text-sm ${
+                    className={`px-3 py-1 rounded-full border text-sm font-heading font-bold ${
                       sizeCode === s.code
-                        ? 'bg-sello-navy text-dark-bg border-sello-navy'
+                        ? 'bg-brand-dark text-dark-bg border-brand-dark'
                         : s.featured
-                          ? 'border-sello-navy border-2'
+                          ? 'border-brand-dark border-2'
                           : 'border-line'
                     }`}
                   >
@@ -370,8 +370,8 @@ export default function Product() {
                       <button
                         key={f.code}
                         onClick={() => setFrameCode(f.code)}
-                        className={`flex items-center gap-2 px-3 py-1 rounded-full border text-sm ${
-                          frameCode === f.code ? 'bg-sello-navy text-dark-bg border-sello-navy' : 'border-line'
+                        className={`flex items-center gap-2 px-3 py-1 rounded-full border text-sm font-heading font-bold ${
+                          frameCode === f.code ? 'bg-brand-dark text-dark-bg border-brand-dark' : 'border-line'
                         }`}
                       >
                         <span
@@ -394,7 +394,7 @@ export default function Product() {
                         aria-label={c.label}
                         title={c.label}
                         className={`w-7 h-7 rounded-full border-2 ${
-                          colorCode === c.code ? 'border-sello-navy' : 'border-line'
+                          colorCode === c.code ? 'border-brand-dark' : 'border-line'
                         }`}
                         style={{ backgroundColor: c.hex }}
                       />
@@ -412,8 +412,8 @@ export default function Product() {
                       <button
                         key={o}
                         onClick={() => setOrientation(o)}
-                        className={`px-3 py-1 rounded-full border text-sm capitalize ${
-                          orientation === o ? 'bg-sello-navy text-dark-bg border-sello-navy' : 'border-line'
+                        className={`px-3 py-1 rounded-full border text-sm capitalize font-heading font-bold ${
+                          orientation === o ? 'bg-brand-dark text-dark-bg border-brand-dark' : 'border-line'
                         }`}
                       >
                         {o}
@@ -471,7 +471,7 @@ export default function Product() {
             </div>
 
             <div className="mt-10">
-              <h2 className="font-label uppercase tracking-wide text-xs mb-2">
+              <h2 className="font-heading font-bold text-brand-dark uppercase tracking-wide text-xs mb-2">
                 Especificaciones
               </h2>
               <dl className="border-t border-line">
@@ -488,14 +488,14 @@ export default function Product() {
             </div>
 
             <div className="mt-10">
-              <h2 className="font-label uppercase tracking-wide text-xs mb-3">
+              <h2 className="font-heading font-bold text-brand-dark uppercase tracking-wide text-xs mb-3">
                 Cómo llega
               </h2>
               <HowItArrives steps={isPuzzle ? PUZZLE_HOW_IT_ARRIVES_STEPS : HOW_IT_ARRIVES_STEPS} />
             </div>
 
             <div id="detalles" className="mt-10">
-              <h2 className="font-label uppercase tracking-wide text-xs mb-2">
+              <h2 className="font-heading font-bold text-brand-dark uppercase tracking-wide text-xs mb-2">
                 Detalles
               </h2>
               <Accordion items={detailsAccordion} />
