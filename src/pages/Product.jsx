@@ -261,6 +261,31 @@ export default function Product() {
               </div>
             ))}
           </dl>
+
+          {/* Pulled out of the selector card and pinned near the top of the
+              column instead of after every selector (was ~8 scrolls down) —
+              stays visible via `sticky` while the user configures the piece
+              below. RollingPrice still reacts to sizeCode/frameCode/addons
+              exactly as before; only its position in the DOM changed. */}
+          <div className="sticky top-4 z-10 bg-gallery-white text-graphite rounded-[9px] p-4 mb-6 shadow-md">
+            <RollingPrice
+              cents={unitPriceCents ?? place.base_price}
+              className="font-label text-2xl font-bold block mb-1"
+            />
+            <p className="font-label uppercase tracking-wide text-[11px] text-graphite/60 mb-3">
+              Se fabrica en {PRODUCTION_DAYS} días hábiles · llega {SHIPPING_DAYS} días después
+            </p>
+            {place.status === 'soldout' ? (
+              <WaitlistDialog placeSlug={place.slug} />
+            ) : (
+              <Button onClick={handleAddToCart}>Agregar al carrito</Button>
+            )}
+            <p className="text-[11px] text-graphite/60 mt-2">
+              Pieza hecha por encargo — no aplican cambios ni devoluciones salvo defecto.{' '}
+              <a href="#detalles" className="underline">Ver detalles</a>
+            </p>
+          </div>
+
           {place.story && <p className="mb-8 leading-relaxed max-w-[46ch]">{place.story}</p>}
 
           {/* Everything below is the real purchase flow (selectors, live
@@ -418,22 +443,6 @@ export default function Product() {
               />
             </div>
 
-            <RollingPrice
-              cents={unitPriceCents ?? place.base_price}
-              className="font-label text-2xl font-bold block mb-2"
-            />
-
-            {/* Made-to-order, no inventory — every piece needs this. */}
-            <p className="font-label uppercase tracking-wide text-[11px] text-graphite/60 mb-6">
-              Se fabrica en {PRODUCTION_DAYS} días hábiles · llega {SHIPPING_DAYS} días después
-            </p>
-
-            {place.status === 'soldout' ? (
-              <WaitlistDialog placeSlug={place.slug} />
-            ) : (
-              <Button onClick={handleAddToCart}>Agregar al carrito</Button>
-            )}
-
             <div className="mt-10">
               <h2 className="font-label uppercase tracking-wide text-xs mb-2">
                 Especificaciones
@@ -458,7 +467,7 @@ export default function Product() {
               <HowItArrives steps={isPuzzle ? PUZZLE_HOW_IT_ARRIVES_STEPS : HOW_IT_ARRIVES_STEPS} />
             </div>
 
-            <div className="mt-10">
+            <div id="detalles" className="mt-10">
               <h2 className="font-label uppercase tracking-wide text-xs mb-2">
                 Detalles
               </h2>
