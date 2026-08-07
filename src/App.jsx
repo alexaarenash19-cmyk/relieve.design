@@ -1,6 +1,7 @@
 import { Suspense, lazy } from 'react';
-import { Routes, Route, Link, useLocation } from 'react-router-dom';
+import { Routes, Route, Link } from 'react-router-dom';
 import Nav from './components/Nav.jsx';
+import TrustBar from './components/TrustBar.jsx';
 import CustomCursor from './components/CustomCursor.jsx';
 import PageStamp from './components/PageStamp.jsx';
 import CartDrawer from './components/CartDrawer.jsx';
@@ -26,6 +27,7 @@ const Product = lazy(() => import('./pages/Product.jsx'));
 const Personalize = lazy(() => import('./pages/Personalize.jsx'));
 const Search = lazy(() => import('./pages/Search.jsx'));
 const About = lazy(() => import('./pages/About.jsx'));
+const MetodoRelieve = lazy(() => import('./pages/MetodoRelieve.jsx'));
 const Shipping = lazy(() => import('./pages/Shipping.jsx'));
 const Faq = lazy(() => import('./pages/Faq.jsx'));
 const OrderStatus = lazy(() => import('./pages/OrderStatus.jsx'));
@@ -42,11 +44,12 @@ function RouteFallback() {
 }
 
 function Footer() {
-  // No footer anywhere on the home page — not just the experience view —
-  // per explicit request. Every other route keeps it.
-  const location = useLocation();
-  if (location.pathname === '/') return null;
-
+  // brand-brief.md §16 decisión 11 — reversión explícita de la petición
+  // anterior de nunca mostrar footer en home: la nueva estructura de Home
+  // (Hero → Canvas → Curva de Nivel → Footer) requiere que vuelva a
+  // aparecer en '/', debajo de la nueva sección Curva de Nivel. Footer se
+  // renderiza aquí, fuera de <Routes>, así que cae naturalmente después de
+  // lo que Home.jsx pinte (Gallery + CurvaDeNivel) sin tocar Home.jsx.
   return (
     <footer className="font-label uppercase tracking-wide text-xs text-graphite/70 flex items-center justify-center gap-6 p-8">
       <Link
@@ -69,6 +72,7 @@ export default function App() {
       <SvgFilters />
       <PageStamp />
       <CustomCursor />
+      <TrustBar />
       <Nav />
       <CartDrawer />
       <ProductPanel />
@@ -82,6 +86,7 @@ export default function App() {
           <Route path="/personaliza" element={<Personalize />} />
           <Route path="/buscar" element={<Search />} />
           <Route path="/sobre" element={<About />} />
+          <Route path="/metodo-relieve" element={<MetodoRelieve />} />
           <Route path="/envios" element={<Shipping />} />
           <Route path="/faq" element={<Faq />} />
           {/* Must resolve before /pedido/:token below — Stripe's success_url

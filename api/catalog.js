@@ -1,5 +1,5 @@
 // Consolidated storefront-read/write endpoints — places, pricing, waitlist,
-// order status — merged into one function so the Vercel Hobby plan's
+// curva_de_nivel, order status — merged into one function so the Vercel Hobby plan's
 // 12-function cap has real margin. Same URLs, same behavior: vercel.json
 // rewrites each original path here with a `resource` query param. Kept
 // separate from checkout/reviews/webhooks/admin because those need either
@@ -87,7 +87,10 @@ async function getPlaceDetail(req, res, slug) {
   const { data: place, error } = await supabase
     .from('places')
     .select(
-      'id, slug, name, type, series, lat, lng, elevation_m, story, aerial_url, model_url, thumb_url, base_price_cents, status',
+      // country added for FichaTecnica.jsx (brand-brief.md sección 6/10) —
+      // was already a real column (default 'MX', 20260716120001) but never
+      // selected here since nothing needed it before.
+      'id, slug, name, type, series, country, lat, lng, elevation_m, story, aerial_url, model_url, thumb_url, base_price_cents, status',
     )
     .eq('slug', slug)
     .maybeSingle();
@@ -204,6 +207,34 @@ async function postWaitlist(req, res) {
   return res.status(201).json({ ok: true });
 }
 
+// brand-brief.md §16 decisión 9: POST /api/curva-de-nivel { email } -> 201.
+// A nivel sitio, no por pieza (a diferencia de waitlist) — sin place_id.
+// Mismas convenciones de validación/rate-limit que postWaitlist arriba y
+// api/reviews.js. Un email duplicado no es un error del cliente — la
+// constraint `unique` en la tabla ya lo deduplica en silencio (23505 =
+// unique_violation), así que un reintento/doble-click sigue devolviendo
+// 201 en vez de un 500 confuso.
+async function postCurvaDeNivel(req, res) {
+  if (req.method !== 'POST') {
+    res.setHeader('Allow', 'POST');
+    return sendError(res, 405, 'method_not_allowed', 'Use POST');
+  }
+
+  if (!(await checkRateLimit(req, res, { key: 'curva-de-nivel', limit: 5, windowMs: 60_000 }))) return;
+
+  const { email } = req.body ?? {};
+  if (!email || typeof email !== 'string' || !email.includes('@')) {
+    return sendError(res, 400, 'invalid_request', 'A valid email is required');
+  }
+
+  const { error } = await supabase.from('curva_de_nivel').insert({ email: email.trim().toLowerCase() });
+
+  if (error && error.code !== '23505') {
+    return sendError(res, 500, 'db_error', error.message);
+  }
+  return res.status(201).json({ ok: true });
+}
+
 // Issue #36: GET /api/orders/:token — magic-link order status, no login.
 async function getOrder(req, res) {
   if (req.method !== 'GET') {
@@ -265,6 +296,7 @@ const RESOURCES = {
   places: getPlaces,
   pricing: postPricing,
   waitlist: postWaitlist,
+  curva_de_nivel: postCurvaDeNivel,
   orders: getOrder,
   orders_by_session: getOrderBySession,
 };

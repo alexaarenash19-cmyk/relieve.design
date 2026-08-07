@@ -2,7 +2,7 @@
 // with live pricing. Issue #53 — presale/soldout states.
 // Bundle step (optional, #52 AC) skipped — no bundle catalog/spec exists yet.
 import { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, Link } from 'react-router-dom';
 import { useCart } from '../context/CartContext.jsx';
 import {
   SIZES,
@@ -25,8 +25,21 @@ import Reviews from '../components/Reviews.jsx';
 import HowItArrives from '../components/HowItArrives.jsx';
 import Accordion from '../components/Accordion.jsx';
 import PhotoCarousel from '../components/PhotoCarousel.jsx';
+import FichaTecnica from '../components/FichaTecnica.jsx';
 import { piecePhotos } from '../lib/photography.js';
 import { fetchJson } from '../lib/fetchJsonArray.js';
+
+// brand-brief.md sección 6 — la ficha técnica necesita "Ciudad, País" en
+// texto real. `places.country` (default 'MX') ya existía en la DB pero no
+// se seleccionaba hasta ahora (api/catalog.js) — son los 5 códigos reales
+// del catálogo actual, no una lista inventada.
+const COUNTRY_NAMES = {
+  MX: 'México',
+  FR: 'Francia',
+  GB: 'Reino Unido',
+  CN: 'China',
+  ES: 'España',
+};
 
 // Full-bleed color backdrop behind the title/photo/spec area — exact
 // per-piece mapping from the "Explorar (preview)" artifact's mock PIECES
@@ -194,30 +207,25 @@ export default function Product() {
     return place.thumb_url ? [place.thumb_url] : [];
   })();
 
+  // brand-brief.md sección 6 — Coordenadas y SKU se eliminan de toda ficha
+  // (no son datos reales que el cliente deba ver — SKU aquí era una cadena
+  // generada, no un dato real de inventario). Tipo/Medidas/Altitud se
+  // quedan, no están en la lista de campos eliminados.
   const specs = [
     ['Tipo', isPuzzle ? 'Juego' : 'Ciudad'],
     ['Medidas', selectedSize.dims],
     place.elevation_m ? ['Altitud', `${place.elevation_m} msnm`] : null,
-    place.lat && place.lng ? ['Coordenadas', `${place.lat}, ${place.lng}`] : null,
-    ['SKU', `RLV-${place.slug.toUpperCase()}-${sizeCode.slice(0, 3).toUpperCase()}`],
   ].filter(Boolean);
 
-  // Issue #83 — separate, fuller spec sheet (Shupatto style) further down
-  // the page, distinct from the compact `specs` strip above (which is
-  // about the PLACE — msnm/coordenadas/SKU). This one is about the OBJECT
-  // itself and reflects the current personalization, so it updates live as
-  // size/frame/color change. No peso/dimensiones de paquete row — that data
-  // doesn't exist in the schema yet (issue #99), not something to guess.
-  // Marco/Color skipped for the puzzle — it isn't framed or painted.
-  const fullSpecs = [
-    ['Material', 'Impresión 3D de alta precisión, acabado mate'],
-    !isPuzzle ? ['Marco', selectedFrame.label] : null,
-    !isPuzzle ? ['Color', selectedColor.label] : null,
-    ['Tamaño', `${selectedSize.label} · ${selectedSize.dims}`],
-    ['Producción', `${PRODUCTION_DAYS} días hábiles`],
-    ['Envío', `${SHIPPING_DAYS} días`],
-    ['Origen', 'Hecho en México'],
-  ].filter(Boolean);
+  // brand-brief.md sección 6/10/18 — reemplaza el bloque "Especificaciones"
+  // (antes `fullSpecs`, un <dl> ad-hoc) por <FichaTecnica>, el componente
+  // "pieza de museo" de la Fase 3 (#150). collectionName sigue el mismo
+  // mapeo que el propio ejemplo de FichaTecnica.jsx: "Juego" para el
+  // puzzle, "Ciudades del Mundo" para el resto — no hay un campo de
+  // colección propio expuesto por /api/places todavía. pieceNumber/
+  // editionNumber van en null: no existe un contador real (ver §18), y
+  // FichaTecnica ya sabe omitir esas líneas en vez de mostrar "undefined".
+  const countryLabel = COUNTRY_NAMES[place.country] ?? place.country;
 
   const detailsAccordion = [
     {
@@ -457,7 +465,7 @@ export default function Product() {
               </div>
             )}
 
-            <div className="mb-6">
+            <div className="mb-2">
               <label className="font-label uppercase tracking-wide text-xs block mb-1">
                 Placa grabada (opcional) <span className="normal-case text-graphite/60">{addonPrice(ADDONS.placa)}</span>
               </label>
@@ -470,21 +478,31 @@ export default function Product() {
               />
             </div>
 
+            {/* brand-brief.md sección 5/10 punto 9 — único punto de entrada
+                a /metodo-relieve desde la ficha de producto: un link, no
+                contenido inline/colapsable. */}
+            <Link
+              to="/metodo-relieve"
+              className="inline-block mb-6 text-sm underline text-brand-dark hover:opacity-70 transition-opacity"
+            >
+              Cómo se hizo esta pieza
+            </Link>
+
             <div className="mt-10">
               <h2 className="font-heading font-bold text-brand-dark uppercase tracking-wide text-xs mb-2">
-                Especificaciones
+                Ficha técnica
               </h2>
-              <dl className="border-t border-line">
-                {fullSpecs.map(([label, value]) => (
-                  <div
-                    key={label}
-                    className="grid grid-cols-2 border-b border-line py-2 font-label uppercase tracking-wide text-xs"
-                  >
-                    <dt className="text-graphite/60">{label}</dt>
-                    <dd className="break-words">{value}</dd>
-                  </div>
-                ))}
-              </dl>
+              <FichaTecnica
+                pieceNumber={null}
+                editionNumber={null}
+                collectionName={isPuzzle ? 'Juego' : 'Ciudades del Mundo'}
+                series={place.series}
+                placeName={place.name}
+                country={countryLabel}
+                sizeCode={sizeCode}
+                frameCode={isPuzzle ? undefined : frameCode}
+                colorCode={isPuzzle ? undefined : colorCode}
+              />
             </div>
 
             <div className="mt-10">

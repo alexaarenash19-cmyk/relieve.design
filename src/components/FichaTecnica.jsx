@@ -36,14 +36,17 @@
 // Numeración de pieza/edición (pieceNumber/editionNumber): NO existe hoy
 // ningún contador secuencial persistido en la base de datos (revisado
 // `orders`/`order_items` y sus migraciones — no hay columna ni secuencia
-// para esto). Este componente NO inventa un esquema de numeración: recibe
-// pieceNumber/editionNumber como props obligatorias y solo las formatea
-// (rellenado con ceros, ej. 14 -> "014"). Cablear esto a un contador real
-// (ej. una sequence de Postgres o un ROW_NUMBER() sobre order_items) queda
-// pendiente — ver nota en docs/relieve-brand-brief.md sección 18.
+// para esto). Este componente NO inventa un esquema de numeración:
+// pieceNumber/editionNumber son opcionales — cuando faltan (null/undefined,
+// que es lo que Product.jsx pasa hoy, ver Fase 4 más abajo), la línea
+// "Pieza N.º ###"/"Edición N.º ###" se omite en vez de mostrar "undefined".
+// Cablear esto a un contador real (ej. una sequence de Postgres o un
+// ROW_NUMBER() sobre order_items) queda pendiente — ver nota en
+// docs/relieve-brand-brief.md sección 18.
 //
-// Esta fase (3) solo crea y exporta el componente — NO se integra todavía
-// en Product.jsx (eso es trabajo de la Fase 4).
+// Fase 4 — integrado en Product.jsx (reemplaza el bloque "Especificaciones"
+// existente), pasando pieceNumber/editionNumber en null hasta que exista un
+// contador real.
 //
 // --- Ejemplo de uso (representativo, no se ejecuta desde aquí) ---
 //
@@ -100,8 +103,14 @@ function formatDims(dims) {
   return dims ? dims.replace(/(\d+)\s*x\s*(\d+)/i, '$1 × $2') : dims;
 }
 
+// Fase 4 (Product.jsx integration) — pieceNumber/editionNumber are still
+// genuinely unresolved (no counter exists yet, see file header + brand-
+// brief.md §18): Product.jsx passes null/undefined for both today rather
+// than inventing a number. pad() must not turn that into the literal
+// string "undefined" — it renders nothing (the figcaption/closing line
+// below skip themselves entirely) until a real value exists.
 function pad(n) {
-  return String(n).padStart(3, '0');
+  return n == null ? null : String(n).padStart(3, '0');
 }
 
 export default function FichaTecnica({
@@ -122,11 +131,13 @@ export default function FichaTecnica({
   const frame = frameCode ? FRAMES.find((f) => f.code === frameCode) : null;
   const color = colorCode ? COLORS.find((c) => c.code === colorCode) : null;
   const seriesLabel = SERIES_LABELS[series] ?? series;
+  const pieceNo = pad(pieceNumber);
+  const editionNo = pad(editionNumber);
 
   return (
     <figure className={`font-label text-xs ${className}`}>
       <figcaption className="uppercase tracking-wide mb-1">
-        Pieza N.º {pad(pieceNumber)}
+        {pieceNo ? `Pieza N.º ${pieceNo}` : 'Pieza'}
       </figcaption>
       <p className="uppercase tracking-wide text-graphite/60 mb-3">
         Colección {collectionName} — {seriesLabel}
@@ -152,11 +163,14 @@ export default function FichaTecnica({
         )}
       </dl>
 
-      <hr className="border-graphite/20 mt-3 mb-1" />
-
-      <p className="uppercase tracking-wide text-graphite/60 mt-2">
-        Edición N.º {pad(editionNumber)}
-      </p>
+      {editionNo && (
+        <>
+          <hr className="border-graphite/20 mt-3 mb-1" />
+          <p className="uppercase tracking-wide text-graphite/60 mt-2">
+            Edición N.º {editionNo}
+          </p>
+        </>
+      )}
     </figure>
   );
 }
