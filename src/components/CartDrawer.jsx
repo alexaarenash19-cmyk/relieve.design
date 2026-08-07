@@ -87,7 +87,7 @@ export default function CartDrawer() {
       >
         <div className="boarding-pass-edge ml-4 min-h-full p-6 font-label">
           <div className="flex justify-between items-center mb-4">
-            <h1 className="uppercase tracking-wide text-lg">Tu carrito</h1>
+            <h2 className="uppercase tracking-wide text-lg">Tu carrito</h2>
             <button onClick={closeCart} aria-label="Cerrar carrito" className="text-xl leading-none">
               ×
             </button>

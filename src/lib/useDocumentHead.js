@@ -4,7 +4,11 @@
 // go stale unless something updates them too. Same tags, two mechanisms.
 import { useEffect } from 'react';
 
-const SITE_URL = 'https://relieve-web.vercel.app';
+// Must match the production domain used by robots.txt, index.html's
+// Organization JSON-LD, and scripts/prerender.mjs's AUTO_SITE_URL — this
+// used to point at the Vercel preview domain, which told Google the
+// canonical home of every SPA-navigated page was relieve-web.vercel.app.
+const SITE_URL = 'https://relieve.design';
 
 function setMeta(attr, name, content) {
   if (!content) return;
