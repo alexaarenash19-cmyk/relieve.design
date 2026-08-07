@@ -4,7 +4,7 @@
 import { useEffect, useRef, useState } from 'react';
 import gsap from 'gsap';
 import { placeAlt } from '../lib/altText.js';
-import { pieceMainPhoto, thumbUrlForWidth } from '../lib/photography.js';
+import { pieceMainThumb, thumbUrlForWidth } from '../lib/photography.js';
 import { fetchJsonArray } from '../lib/fetchJsonArray.js';
 import { CATEGORIES, categoryLabel } from '../lib/categories.js';
 import { SIZES } from '../lib/catalog.js';
@@ -54,7 +54,7 @@ function priceLabel(cents) {
 export function GalleryCard({ place, variant = 'grid', slot, gridIndex = 0 }) {
   const { openProduct } = useProductPanel();
   const photo = thumbUrlForWidth(
-    pieceMainPhoto(place.slug) ?? place.thumb_url,
+    pieceMainThumb(place.slug) ?? place.thumb_url,
     360,
   );
   const cursorLabel = variant === 'scattered' ? `+ ${place.name}` : undefined;
@@ -132,7 +132,7 @@ export function GalleryCard({ place, variant = 'grid', slot, gridIndex = 0 }) {
           variant === 'scattered'
             ? 'shadow-[0_16px_32px_-16px_rgba(35,35,35,0.35)]'
             : ''
-        }`}
+        } ${photo && !loaded ? 'animate-pulse' : ''}`}
       >
         {photo ? (
           <img
@@ -367,9 +367,9 @@ function ExperienceToggle({ view, onChange }) {
 // directly over whatever's behind them (photo or canvas), not a solid
 // panel. Dark pills are the deliberate exception (active-state fill).
 const GHOST_PILL =
-  'rounded-full border border-graphite bg-transparent text-graphite px-3 py-2 font-label uppercase tracking-wide text-xs flex items-center gap-1.5';
+  'rounded-full border border-brand-dark bg-transparent text-brand-dark px-3 py-2 font-heading font-bold uppercase tracking-wide text-xs flex items-center gap-1.5';
 const DARK_PILL =
-  'rounded-full bg-graphite text-gallery-white px-3 py-2 font-label uppercase tracking-wide text-xs flex items-center gap-1.5';
+  'rounded-full bg-brand-dark text-gallery-white px-3 py-2 font-heading font-bold uppercase tracking-wide text-xs flex items-center gap-1.5';
 
 // Same taxonomy as /buscar and /colecciones — CATEGORIES is the one
 // source of truth, not a separate list per filter UI.

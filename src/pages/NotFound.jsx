@@ -8,7 +8,7 @@ export default function NotFound() {
   return (
     <main className="max-w-md mx-auto p-8 text-center">
       <Stamp label="Sin ruta" className="mb-6" />
-      <h1 className="font-display font-light text-2xl mb-2">Esta página no existe.</h1>
+      <h1 className="font-heading font-bold text-brand-dark text-2xl mb-2">Esta página no existe.</h1>
       <p className="text-graphite/60 mb-6">
         Puede que el enlace esté roto o que el lugar ya no esté disponible.
       </p>

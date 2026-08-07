@@ -48,6 +48,16 @@ export const FRAMES = [
 // "el lugar es protagonista, no el color") — the `colors` DB row is kept
 // for existing order_items FK integrity (same precedent as 'nogal' in
 // FRAMES above), only dropped from this customer-facing list.
+// Mirrors lib/dummyCatalog.js's DUMMY_ADDONS (server-side pricing fallback,
+// not importable from src/ — see lib/pricing.js) so Product.jsx can show a
+// "+$XXX MXN" delta next to each addon control without hardcoding a second
+// copy of the price. Same convention as SIZES/FRAMES above: mirror the seed
+// data here instead of adding a client-facing endpoint for four small values.
+export const ADDONS = {
+  capelo: 35000,
+  placa: 15000,
+};
+
 export const COLORS = [
   { code: 'blanco', label: 'Blanco', hex: '#F6F3ED' }, // --gallery-white (no pure white — ui-ux.md)
   { code: 'arena', label: 'Arena', hex: '#C2B280' }, // real sand-paint swatch, no brand token for it

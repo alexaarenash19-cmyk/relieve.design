@@ -23,7 +23,7 @@ export default function WaitlistDialog({ placeSlug }) {
     <>
       <button
         onClick={() => dialogRef.current?.showModal()}
-        className="mt-6 border border-sello-navy text-sello-navy px-6 py-3 rounded-[9px] font-body font-medium hover:bg-sello-navy hover:text-dark-bg transition-colors"
+        className="mt-6 border border-brand-dark text-brand-dark px-6 py-3 rounded-[9px] font-heading font-bold hover:bg-brand-dark hover:text-dark-bg transition-colors"
       >
         Avisarme cuando vuelva
       </button>
@@ -39,7 +39,7 @@ export default function WaitlistDialog({ placeSlug }) {
           </div>
         ) : (
           <form onSubmit={onSubmit} className="flex flex-col gap-3 min-w-[280px]">
-            <h2 className="font-label uppercase tracking-wide text-sm">Lista de espera</h2>
+            <h2 className="font-heading font-bold text-brand-dark uppercase tracking-wide text-sm">Lista de espera</h2>
             <select
               value={sizeCode}
               onChange={(e) => setSizeCode(e.target.value)}
@@ -63,7 +63,7 @@ export default function WaitlistDialog({ placeSlug }) {
               <button type="button" onClick={() => dialogRef.current?.close()} className="text-sm text-graphite/60">
                 Cancelar
               </button>
-              <button type="submit" className="bg-sello-navy text-dark-bg px-4 py-2 rounded-[9px] text-sm">
+              <button type="submit" className="bg-brand-dark text-dark-bg px-4 py-2 rounded-[9px] text-sm font-heading font-bold">
                 Avisarme
               </button>
             </div>

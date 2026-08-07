@@ -9,6 +9,7 @@ import {
   sizesForType,
   FRAMES,
   COLORS,
+  ADDONS,
   PRODUCTION_DAYS,
   SHIPPING_DAYS,
   HOW_IT_ARRIVES_STEPS,
@@ -54,6 +55,11 @@ const ACCENT_BY_SLUG = {
 };
 function accentFor(slug) {
   return ACCENT_CLASSES[ACCENT_BY_SLUG[slug] ?? 'stone'];
+}
+
+// Same $X,XXX MXN format as CartDrawer.jsx's money() / RollingPrice.jsx.
+function addonPrice(cents) {
+  return `+$${(cents / 100).toLocaleString('es-MX')} MXN`;
 }
 
 export default function Product() {
@@ -112,20 +118,47 @@ export default function Product() {
     };
   }, [sizeCode, frameCode, capelo, plateText]);
 
+  const productDescription = place
+    ? (place.story?.slice(0, 155) ?? `Mapa en relieve de ${place.name}, enmarcado en parota.`)
+    : undefined;
+
+  // Same shape as scripts/prerender.mjs's buildPlaceHtml() — that version
+  // covers the first request (crawlers, direct loads), this one keeps it
+  // live once React Router navigates here client-side, and reflects the
+  // real-time price/status instead of whatever was true at last build.
+  const JSONLD_AVAILABILITY = {
+    soldout: 'https://schema.org/OutOfStock',
+    preorder: 'https://schema.org/PreOrder',
+  };
+  const productJsonLd = place
+    ? {
+        '@context': 'https://schema.org',
+        '@type': 'Product',
+        name: `Relieve · ${place.name}`,
+        description: productDescription,
+        image: place.thumb_url ?? undefined,
+        offers: {
+          '@type': 'Offer',
+          priceCurrency: 'MXN',
+          price: ((unitPriceCents ?? place.base_price) / 100).toFixed(2),
+          availability: JSONLD_AVAILABILITY[place.status] ?? 'https://schema.org/InStock',
+        },
+      }
+    : undefined;
+
   useDocumentHead({
     title: place ? `${place.name} — Mapa en relieve | Relieve` : undefined,
-    description: place
-      ? (place.story?.slice(0, 155) ?? `Mapa en relieve de ${place.name}, enmarcado en parota.`)
-      : undefined,
+    description: productDescription,
     image: place?.thumb_url,
     canonicalPath: `/pieza/${slug}`,
+    jsonLd: productJsonLd,
   });
 
   if (error) {
     return (
       <main className="max-w-md mx-auto p-8 text-center">
         <Stamp label="Sin ruta" className="mb-6" />
-        <h1 className="font-display font-light text-2xl mb-2">{error}</h1>
+        <h1 className="font-heading font-bold text-brand-dark text-2xl mb-2">{error}</h1>
         <p className="text-graphite/60 mb-6">
           Puede que esta pieza no exista o que el catálogo aún no esté conectado.
         </p>
@@ -238,7 +271,7 @@ export default function Product() {
             cuts off the CTA" symptom reported in QA. break-words on the
             dl values below is the other half of the same fix. */}
         <div className="min-w-0">
-          <h1 className="font-display font-light text-[clamp(2.25rem,3vw+1.5rem,3.5rem)] leading-tight mb-4">
+          <h1 className="font-heading font-bold text-brand-dark text-[clamp(2.25rem,3vw+1.5rem,3.5rem)] leading-tight mb-4">
             {place.name}
           </h1>
 
@@ -255,6 +288,31 @@ export default function Product() {
               </div>
             ))}
           </dl>
+
+          {/* Pulled out of the selector card and pinned near the top of the
+              column instead of after every selector (was ~8 scrolls down) —
+              stays visible via `sticky` while the user configures the piece
+              below. RollingPrice still reacts to sizeCode/frameCode/addons
+              exactly as before; only its position in the DOM changed. */}
+          <div className="sticky top-4 z-10 bg-gallery-white text-graphite rounded-[9px] p-4 mb-6 shadow-md">
+            <RollingPrice
+              cents={unitPriceCents ?? place.base_price}
+              className="font-label text-2xl font-bold block mb-1"
+            />
+            <p className="font-label uppercase tracking-wide text-[11px] text-graphite/60 mb-3">
+              Se fabrica en {PRODUCTION_DAYS} días hábiles · llega {SHIPPING_DAYS} días después
+            </p>
+            {place.status === 'soldout' ? (
+              <WaitlistDialog placeSlug={place.slug} />
+            ) : (
+              <Button onClick={handleAddToCart}>Encargar mi pieza</Button>
+            )}
+            <p className="text-[11px] text-graphite/60 mt-2">
+              Pieza hecha por encargo — no aplican cambios ni devoluciones salvo defecto.{' '}
+              <a href="#detalles" className="underline">Ver detalles</a>
+            </p>
+          </div>
+
           {place.story && <p className="mb-8 leading-relaxed max-w-[46ch]">{place.story}</p>}
 
           {/* Everything below is the real purchase flow (selectors, live
@@ -285,15 +343,15 @@ export default function Product() {
                   <button
                     key={s.code}
                     onClick={() => setSizeCode(s.code)}
-                    className={`px-3 py-1 rounded-full border text-sm ${
+                    className={`px-3 py-1 rounded-full border text-sm font-heading font-bold ${
                       sizeCode === s.code
-                        ? 'bg-sello-navy text-dark-bg border-sello-navy'
+                        ? 'bg-brand-dark text-dark-bg border-brand-dark'
                         : s.featured
-                          ? 'border-sello-navy border-2'
+                          ? 'border-brand-dark border-2'
                           : 'border-line'
                     }`}
                   >
-                    {s.label}
+                    {s.label} <span className="opacity-70">· {s.dims}</span>
                     {s.featured && <span className="ml-1 text-xs opacity-70">· el más elegido para regalar</span>}
                   </button>
                 ))}
@@ -312,8 +370,8 @@ export default function Product() {
                       <button
                         key={f.code}
                         onClick={() => setFrameCode(f.code)}
-                        className={`flex items-center gap-2 px-3 py-1 rounded-full border text-sm ${
-                          frameCode === f.code ? 'bg-sello-navy text-dark-bg border-sello-navy' : 'border-line'
+                        className={`flex items-center gap-2 px-3 py-1 rounded-full border text-sm font-heading font-bold ${
+                          frameCode === f.code ? 'bg-brand-dark text-dark-bg border-brand-dark' : 'border-line'
                         }`}
                       >
                         <span
@@ -334,13 +392,17 @@ export default function Product() {
                         key={c.code}
                         onClick={() => setColorCode(c.code)}
                         aria-label={c.label}
+                        title={c.label}
                         className={`w-7 h-7 rounded-full border-2 ${
-                          colorCode === c.code ? 'border-sello-navy' : 'border-line'
+                          colorCode === c.code ? 'border-brand-dark' : 'border-line'
                         }`}
                         style={{ backgroundColor: c.hex }}
                       />
                     ))}
                   </div>
+                  <p className="mt-2 text-xs text-graphite/70">
+                    {COLORS.find((c) => c.code === colorCode)?.label}
+                  </p>
                 </fieldset>
 
                 <fieldset className="mb-4">
@@ -350,8 +412,8 @@ export default function Product() {
                       <button
                         key={o}
                         onClick={() => setOrientation(o)}
-                        className={`px-3 py-1 rounded-full border text-sm capitalize ${
-                          orientation === o ? 'bg-sello-navy text-dark-bg border-sello-navy' : 'border-line'
+                        className={`px-3 py-1 rounded-full border text-sm capitalize font-heading font-bold ${
+                          orientation === o ? 'bg-brand-dark text-dark-bg border-brand-dark' : 'border-line'
                         }`}
                       >
                         {o}
@@ -381,14 +443,23 @@ export default function Product() {
 
             {!isPuzzle && (
               <div className="mb-4 flex items-center gap-2">
-                <input id="capelo" type="checkbox" checked={capelo} onChange={(e) => setCapelo(e.target.checked)} />
-                <label htmlFor="capelo" className="text-sm">Agregar capelo de vidrio</label>
+                <input
+                  id="capelo"
+                  type="checkbox"
+                  checked={capelo}
+                  onChange={(e) => setCapelo(e.target.checked)}
+                  className="appearance-none w-5 h-5 rounded border border-line bg-gallery-white relative cursor-pointer checked:bg-sello-navy checked:border-sello-navy after:content-[''] after:absolute after:inset-0 after:flex after:items-center after:justify-center checked:after:content-['✓'] after:text-dark-bg after:text-xs"
+                />
+                <label htmlFor="capelo" className="text-sm">
+                  Agregar capelo de vidrio{' '}
+                  <span className="text-graphite/60">{addonPrice(ADDONS.capelo)}</span>
+                </label>
               </div>
             )}
 
             <div className="mb-6">
               <label className="font-label uppercase tracking-wide text-xs block mb-1">
-                Placa grabada (opcional)
+                Placa grabada (opcional) <span className="normal-case text-graphite/60">{addonPrice(ADDONS.placa)}</span>
               </label>
               <input
                 value={plateText}
@@ -399,24 +470,8 @@ export default function Product() {
               />
             </div>
 
-            <RollingPrice
-              cents={unitPriceCents ?? place.base_price}
-              className="font-label text-2xl font-bold block mb-2"
-            />
-
-            {/* Made-to-order, no inventory — every piece needs this. */}
-            <p className="font-label uppercase tracking-wide text-[11px] text-graphite/60 mb-6">
-              Se fabrica en {PRODUCTION_DAYS} días hábiles · llega {SHIPPING_DAYS} días después
-            </p>
-
-            {place.status === 'soldout' ? (
-              <WaitlistDialog placeSlug={place.slug} />
-            ) : (
-              <Button onClick={handleAddToCart}>Encargar mi pieza</Button>
-            )}
-
             <div className="mt-10">
-              <h2 className="font-label uppercase tracking-wide text-xs mb-2">
+              <h2 className="font-heading font-bold text-brand-dark uppercase tracking-wide text-xs mb-2">
                 Especificaciones
               </h2>
               <dl className="border-t border-line">
@@ -433,14 +488,14 @@ export default function Product() {
             </div>
 
             <div className="mt-10">
-              <h2 className="font-label uppercase tracking-wide text-xs mb-3">
+              <h2 className="font-heading font-bold text-brand-dark uppercase tracking-wide text-xs mb-3">
                 Cómo llega
               </h2>
               <HowItArrives steps={isPuzzle ? PUZZLE_HOW_IT_ARRIVES_STEPS : HOW_IT_ARRIVES_STEPS} />
             </div>
 
-            <div className="mt-10">
-              <h2 className="font-label uppercase tracking-wide text-xs mb-2">
+            <div id="detalles" className="mt-10">
+              <h2 className="font-heading font-bold text-brand-dark uppercase tracking-wide text-xs mb-2">
                 Detalles
               </h2>
               <Accordion items={detailsAccordion} />

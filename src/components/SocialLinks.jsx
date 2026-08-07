@@ -22,6 +22,16 @@ const LINKS = [
       </svg>
     ),
   },
+  {
+    name: 'Pinterest',
+    href: '#',
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" width="18" height="18">
+        <circle cx="12" cy="12" r="9" />
+        <path d="M9.5 17c1-3 1.5-5 1.5-6.5a2 2 0 1 1 4 .3c0 1.4-1 3.7-1.5 4.7a1.8 1.8 0 0 0 2.9 2c1.6-1.2 2.1-3.1 2.1-4.5a5 5 0 0 0-9.9-1" />
+      </svg>
+    ),
+  },
 ];
 
 export default function SocialLinks({ className = '' }) {

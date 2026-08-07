@@ -3,7 +3,9 @@
 /* Brand tokens — exact 10 from the brand audit, plus --color-line (a
    structural hairline for borders/dividers, not a brand "color"; #E4DED3
    confirmed separately since it isn't one of the 10).
-   Fraunces never bold (300/400 only, italic for emphasis).
+   Fraunces never bold (300/400 only, italic for emphasis) — for BODY TEXT.
+   Headings/buttons are the one exception: see --font-heading below
+   (brand-brief.md §16, decision 1).
    Courier Prime for labels/specs/prices, always uppercase + tracking. */
 @theme {
   --color-gallery-white: #f6f3ed;
@@ -17,6 +19,9 @@
   --color-dark-bg: #1a1b19;
   --color-dark-fg: #ece7dd;
   --color-line: #e4ded3;
+  /* Rebranding tipográfico (brand-brief.md §15/§16) — new, distinct from
+     --color-passport-ink (#355A75) even though visually close; do not alias. */
+  --color-brand-dark: #355974;
 
   --font-display: "Fraunces", serif;
   --font-label: "Courier Prime", monospace;
@@ -26,6 +31,10 @@
      token as --font-display. Scoped to Nav.jsx; the rest of the site's
      type system (Fraunces/Courier Prime/Inter) is untouched. */
   --font-wordmark: "Poppins", sans-serif;
+  /* Rebranding tipográfico (brand-brief.md §15/§16) — headings + buttons only.
+     @font-face pending: Ale hasn't delivered the Agrandir .woff2 file yet,
+     so this falls back to plain sans-serif until then (expected, tracked separately). */
+  --font-heading: "Agrandir", sans-serif;
 
   /* Pinned to its literal pixel value, overriding Tailwind's default
      dynamic spacing scale (where mt-96 would otherwise compute to

@@ -1,8 +1,17 @@
 // Issue #58 — draft aviso de privacidad (LFPDPPP). Borrador; requiere revisión legal antes de lanzamiento.
+import { useDocumentHead } from '../lib/useDocumentHead.js';
+
 export default function PrivacyNotice() {
+  useDocumentHead({
+    title: 'Aviso de Privacidad — Relieve',
+    description:
+      'Aviso de privacidad conforme a la LFPDPPP: datos que recabamos, finalidades, terceros y tus derechos ARCO.',
+    canonicalPath: '/aviso-privacidad',
+  });
+
   return (
     <main className="mx-auto max-w-[70ch] p-8 leading-relaxed">
-      <h1 className="font-display font-light text-3xl mb-6">Aviso de Privacidad</h1>
+      <h1 className="font-heading font-bold text-brand-dark text-3xl mb-6">Aviso de Privacidad</h1>
 
       <p className="mb-4">
         Relieve ("nosotros"), con domicilio en México, es responsable del
@@ -11,7 +20,7 @@ export default function PrivacyNotice() {
         (LFPDPPP).
       </p>
 
-      <h2 className="font-display font-light text-xl mt-8 mb-3">Datos que recabamos</h2>
+      <h2 className="font-heading font-bold text-brand-dark text-xl mt-8 mb-3">Datos que recabamos</h2>
       <p className="mb-4">
         Nombre, correo electrónico, dirección de envío, teléfono y, en su
         caso, datos fiscales para facturación (CFDI). No solicitamos datos
@@ -19,21 +28,21 @@ export default function PrivacyNotice() {
         correo y un enlace único.
       </p>
 
-      <h2 className="font-display font-light text-xl mt-8 mb-3">Finalidades</h2>
+      <h2 className="font-heading font-bold text-brand-dark text-xl mt-8 mb-3">Finalidades</h2>
       <p className="mb-4">
         Procesar tu pedido, fabricar y enviar tu pieza, facturar cuando lo
         solicites, notificarte el estatus de tu compra y, si nos autorizas,
         pedirte una reseña una vez entregada la pieza.
       </p>
 
-      <h2 className="font-display font-light text-xl mt-8 mb-3">Terceros</h2>
+      <h2 className="font-heading font-bold text-brand-dark text-xl mt-8 mb-3">Terceros</h2>
       <p className="mb-4">
         Compartimos datos estrictamente necesarios con nuestros proveedores
         de pago (Stripe), facturación (Facturama) y paquetería, únicamente
         para cumplir con tu pedido.
       </p>
 
-      <h2 className="font-display font-light text-xl mt-8 mb-3">
+      <h2 className="font-heading font-bold text-brand-dark text-xl mt-8 mb-3">
         Derechos ARCO
       </h2>
       <p className="mb-4">

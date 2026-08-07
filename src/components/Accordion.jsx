@@ -16,14 +16,14 @@ export default function Accordion({ items }) {
         const buttonId = `${baseId}-button-${i}`;
         return (
           <div key={title} className="border-b border-line">
-            <h3 className="m-0">
+            <h3 className="m-0 font-heading font-bold text-brand-dark">
               <button
                 id={buttonId}
                 type="button"
                 aria-expanded={open}
                 aria-controls={panelId}
                 onClick={() => setOpenIndex(open ? null : i)}
-                className="w-full flex items-center justify-between gap-4 py-3 text-left font-label uppercase tracking-wide text-xs"
+                className="w-full flex items-center justify-between gap-4 py-3 text-left font-heading font-bold text-brand-dark uppercase tracking-wide text-xs"
               >
                 {title}
                 <span

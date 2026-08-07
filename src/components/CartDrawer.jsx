@@ -87,8 +87,8 @@ export default function CartDrawer() {
       >
         <div className="boarding-pass-edge ml-4 min-h-full p-6 font-label">
           <div className="flex justify-between items-center mb-4">
-            <h1 className="uppercase tracking-wide text-lg">Tu carrito</h1>
-            <button onClick={closeCart} aria-label="Cerrar carrito" className="text-xl leading-none">
+            <h2 className="font-heading font-bold text-brand-dark uppercase tracking-wide text-lg">Tu carrito</h2>
+            <button onClick={closeCart} aria-label="Cerrar carrito" className="font-heading font-bold text-brand-dark text-xl leading-none">
               ×
             </button>
           </div>
@@ -105,7 +105,7 @@ export default function CartDrawer() {
                       <button
                         onClick={() => updateQty(item.key, item.qty - 1)}
                         aria-label="Reducir cantidad"
-                        className="w-6 h-6 border border-line rounded"
+                        className="w-6 h-6 border border-line rounded font-heading font-bold text-brand-dark"
                       >
                         −
                       </button>
@@ -113,7 +113,7 @@ export default function CartDrawer() {
                       <button
                         onClick={() => updateQty(item.key, item.qty + 1)}
                         aria-label="Aumentar cantidad"
-                        className="w-6 h-6 border border-line rounded"
+                        className="w-6 h-6 border border-line rounded font-heading font-bold text-brand-dark"
                       >
                         +
                       </button>
@@ -123,7 +123,7 @@ export default function CartDrawer() {
                     <p>{money(item.unit_price_cents * item.qty)}</p>
                     <button
                       onClick={() => removeItem(item.key)}
-                      className="normal-case font-body text-xs underline text-graphite/60"
+                      className="normal-case font-heading font-bold text-xs underline text-brand-dark"
                     >
                       Quitar
                     </button>
@@ -150,7 +150,12 @@ export default function CartDrawer() {
           </div>
 
           <label className="flex items-center gap-2 mt-6 normal-case font-body text-sm">
-            <input type="checkbox" checked={isGift} onChange={(e) => setIsGift(e.target.checked)} />
+            <input
+              type="checkbox"
+              checked={isGift}
+              onChange={(e) => setIsGift(e.target.checked)}
+              className="appearance-none w-5 h-5 rounded border border-line bg-gallery-white relative cursor-pointer checked:bg-sello-navy checked:border-sello-navy after:content-[''] after:absolute after:inset-0 after:flex after:items-center after:justify-center checked:after:content-['✓'] after:text-dark-bg after:text-xs"
+            />
             Es un regalo
           </label>
           {isGift && (
@@ -197,7 +202,7 @@ export default function CartDrawer() {
                 <Button
                   onClick={onCheckout}
                   disabled={loading || !email}
-                  className="w-full mt-3 normal-case font-label"
+                  className="w-full mt-3 normal-case"
                 >
                   {loading ? 'Redirigiendo…' : 'Pagar'}
                 </Button>

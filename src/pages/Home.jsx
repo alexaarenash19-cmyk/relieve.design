@@ -22,6 +22,7 @@ import {
 } from '../context/HeroScrollContext.jsx';
 import { usePageWipe } from '../context/PageWipeContext.jsx';
 import Gallery from '../components/Gallery.jsx';
+import { useDocumentHead } from '../lib/useDocumentHead.js';
 
 const HERO_SEEN_KEY = 'relieve_hero_seen';
 
@@ -83,6 +84,17 @@ export default function Home() {
   const [reduceMotion] = useState(prefersReducedMotion);
   const [pastHero, setPastHero] = useState(heroAlreadySeen);
   const [justArrived, setJustArrived] = useState(false);
+
+  // Resets the <title>/meta/canonical back to the site defaults (already
+  // baked into index.html for the very first load) after a client-side
+  // navigation away from and back to home — otherwise whatever the last
+  // visited page set (e.g. a product's title) stays stuck.
+  useDocumentHead({
+    title: 'Relieve Design | Mapas en Relieve 3D con Marco en Madera Mexicana',
+    description:
+      'Mapas en relieve impresos en 3D, montados en marco de madera noble mexicana. Piezas de autor y regalos de diseño coleccionables, hechos a mano en México.',
+    canonicalPath: '/',
+  });
 
   if (pastHero) {
     return <Gallery zoomIn={justArrived} />;

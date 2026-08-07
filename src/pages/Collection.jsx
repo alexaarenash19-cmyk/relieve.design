@@ -33,7 +33,7 @@ export default function Collection() {
 
   return (
     <main className="p-8">
-      <h1 className="font-display font-light text-3xl mb-6">{categoryLabel(slug)}</h1>
+      <h1 className="font-heading font-bold text-brand-dark text-3xl mb-6">{categoryLabel(slug)}</h1>
 
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-px bg-line">
         {places.map((place) => (
@@ -43,7 +43,7 @@ export default function Collection() {
 
       {reviews.length > 0 && (
         <section id="resenas" className="mt-12 max-w-2xl">
-          <h2 className="font-label uppercase tracking-wide text-sm mb-4">Reseñas</h2>
+          <h2 className="font-heading font-bold text-brand-dark uppercase tracking-wide text-sm mb-4">Reseñas</h2>
           <ul className="space-y-2">
             {reviews.map((r, i) => (
               <li key={i} className="border-b border-line pb-2">
