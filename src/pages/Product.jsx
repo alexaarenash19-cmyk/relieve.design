@@ -305,7 +305,7 @@ export default function Product() {
             {place.status === 'soldout' ? (
               <WaitlistDialog placeSlug={place.slug} />
             ) : (
-              <Button onClick={handleAddToCart}>Agregar al carrito</Button>
+              <Button onClick={handleAddToCart}>Encargar mi pieza</Button>
             )}
             <p className="text-[11px] text-graphite/60 mt-2">
               Pieza hecha por encargo — no aplican cambios ni devoluciones salvo defecto.{' '}
