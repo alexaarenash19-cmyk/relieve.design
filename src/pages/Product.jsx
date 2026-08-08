@@ -1,6 +1,11 @@
 // Issue #51 — base product page layout. Issue #52 — personalization selectors
 // with live pricing. Issue #53 — presale/soldout states.
 // Bundle step (optional, #52 AC) skipped — no bundle catalog/spec exists yet.
+// brand-brief.md sección 10 — reordenado a la arquitectura horizontal de
+// esa sección (carrusel dominante + orden de contenido fijo: nombre →
+// gancho → pregunta → historia → ficha técnica → personalización → link
+// de método → precio/CTA → tiempos → cómo llega → trust). Ver §16
+// decisión 10 (video de unboxing) y §20 (registro de esta ejecución).
 import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useCart } from '../context/CartContext.jsx';
@@ -193,28 +198,21 @@ export default function Product() {
   const photos = (() => {
     const local = piecePhotos(place.slug);
     if (local.length) return local;
-    return place.thumb_url ? [place.thumb_url] : [];
+    return place.thumb_url ? [{ url: place.thumb_url, type: 'image' }] : [];
   })();
 
-  // brand-brief.md sección 6 — Coordenadas y SKU se eliminan de toda ficha
-  // (no son datos reales que el cliente deba ver — SKU aquí era una cadena
-  // generada, no un dato real de inventario). Tipo/Medidas/Altitud se
-  // quedan, no están en la lista de campos eliminados.
-  const specs = [
-    ['Tipo', isPuzzle ? 'Juego' : 'Ciudad'],
-    ['Medidas', selectedSize.dims],
-    place.elevation_m ? ['Altitud', `${place.elevation_m} msnm`] : null,
-  ].filter(Boolean);
-
-  // brand-brief.md sección 6/10/18 — reemplaza el bloque "Especificaciones"
-  // (antes `fullSpecs`, un <dl> ad-hoc) por <FichaTecnica>, el componente
-  // "pieza de museo" de la Fase 3 (#150). collectionName sigue el mismo
-  // mapeo que el propio ejemplo de FichaTecnica.jsx: "Juego" para el
-  // puzzle, "Ciudades del Mundo" para el resto — no hay un campo de
-  // colección propio expuesto por /api/places todavía. pieceNumber/
-  // editionNumber van en null: no existe un contador real (ver §18), y
-  // FichaTecnica ya sabe omitir esas líneas en vez de mostrar "undefined".
   const countryLabel = COUNTRY_NAMES[place.country] ?? place.country;
+
+  // brand-brief.md sección 7/10 punto 3 — el "gancho emocional" es la
+  // primera frase de la historia ya redactada (cada historia real se
+  // escribió como gancho + cuerpo + cierre en un solo bloque, ver sección
+  // 7); se separa por la primera oración en vez de inventar un campo de
+  // gancho aparte que /api/places no tiene. Si el texto no trae punto
+  // (no pasa hoy en ninguna de las 6 historias reales), split() devuelve
+  // el string completo como único elemento y storyBody queda vacío — se
+  // degrada mostrando solo el gancho, no rompe.
+  const [hookText, ...restSentences] = place.story ? place.story.split(/(?<=\.)\s+/) : [];
+  const storyBody = restSentences.join(' ');
 
   const detailsAccordion = [
     {
@@ -252,8 +250,12 @@ export default function Product() {
 
   return (
     <main className={`${accent.bg} ${accent.text} transition-colors`}>
-      <div className="grid md:grid-cols-2 gap-8 p-8 max-w-5xl mx-auto items-start">
-        <div key={place.slug} className="warp-reveal">
+      {/* grid-cols-[3fr_2fr]: el carrusel domina visualmente sobre el
+          texto (sección 10 — "las imágenes dominan, el texto no compite
+          en tamaño"), en vez del 50/50 anterior. */}
+      <div className="grid md:grid-cols-[3fr_2fr] gap-8 p-8 max-w-6xl mx-auto items-start">
+        {/* 1. Carrusel */}
+        <div key={place.slug} className="warp-reveal md:sticky md:top-8">
           <PhotoCarousel
             photos={photos}
             alt={`Mapa en relieve de ${place.name}${!isPuzzle ? `, enmarcado en ${selectedFrame?.label.toLowerCase()}` : ''}`}
@@ -263,100 +265,76 @@ export default function Product() {
 
         {/* min-w-0: without it, a CSS Grid item defaults to a min-width of
             its content's min-content size, so a long unbreakable value here
-            (coordenadas, SKU) could force this whole column past the
-            viewport instead of wrapping — the "right column overflows and
-            cuts off the CTA" symptom reported in QA. break-words on the
-            dl values below is the other half of the same fix. */}
+            could force this whole column past the viewport instead of
+            wrapping — the "right column overflows and cuts off the CTA"
+            symptom reported in QA. break-words on dl values is the other
+            half of the same fix. */}
         <div className="min-w-0">
-          <h1 className="font-heading font-bold text-brand-dark text-[clamp(2.25rem,3vw+1.5rem,3.5rem)] leading-tight mb-4">
+          {/* 2. Nombre */}
+          <h1 className="font-heading font-bold text-brand-dark text-[clamp(2.25rem,3vw+1.5rem,3.5rem)] leading-tight mb-1">
             {place.name}
           </h1>
+          <p className="font-label uppercase tracking-wide text-xs mb-6 opacity-70">
+            {countryLabel}
+            {place.elevation_m ? ` · ${place.elevation_m} msnm` : ''}
+          </p>
 
-          <dl className={`border-t mb-6 ${accent.dark ? 'border-gallery-white/25' : 'border-graphite/20'}`}>
-            {specs.map(([label, value, valueClassName]) => (
-              <div
-                key={label}
-                className={`grid grid-cols-2 border-b py-2 font-label uppercase tracking-wide text-xs ${
-                  accent.dark ? 'border-gallery-white/25' : 'border-graphite/20'
-                }`}
-              >
-                <dt className={accent.dark ? 'text-gallery-white/65' : 'text-graphite/60'}>{label}</dt>
-                <dd className={`break-words ${valueClassName ?? ''}`}>{value}</dd>
-              </div>
-            ))}
-          </dl>
-
-          {/* Pulled out of the selector card and pinned near the top of the
-              column instead of after every selector (was ~8 scrolls down) —
-              stays visible via `sticky` while the user configures the piece
-              below. RollingPrice still reacts to sizeCode/frameCode/addons
-              exactly as before; only its position in the DOM changed. */}
-          <div className="sticky top-4 z-10 bg-gallery-white text-graphite rounded-[9px] p-4 mb-6 shadow-md">
-            <RollingPrice
-              cents={unitPriceCents ?? place.base_price}
-              className="font-label text-2xl font-bold block mb-1"
-            />
-            <p className="font-label uppercase tracking-wide text-[11px] text-graphite/60 mb-3">
-              Se fabrica en {PRODUCTION_DAYS} días hábiles · llega {SHIPPING_DAYS} días después
+          {/* 3. Gancho emocional */}
+          {hookText && (
+            <p className="font-heading font-bold text-2xl leading-snug mb-6 max-w-[38ch]">
+              {hookText}
             </p>
-            {place.status === 'soldout' ? (
-              <WaitlistDialog placeSlug={place.slug} />
-            ) : (
-              <Button onClick={handleAddToCart}>Encargar mi pieza</Button>
+          )}
+
+          {place.status === 'preorder' && (
+            <span className="inline-block mb-4 px-4 py-1 rounded-full border border-current font-label uppercase tracking-wide text-xs animate-pulse">
+              Pre-order
+            </span>
+          )}
+
+          {/* 4. "¿Para quién es esta pieza?" — la pregunta fija ya vive en
+              el legend del selector de tamaño (ver §19); se sube aquí,
+              cerca del gancho, en vez de quedar enterrada más abajo. */}
+          <fieldset className="mb-8">
+            <legend className="font-label uppercase tracking-wide text-xs mb-2">
+              ¿Para quién es esta pieza — para ti, o para presumirla?
+            </legend>
+            <div className="flex flex-wrap gap-2">
+              {availableSizes.map((s) => (
+                <button
+                  key={s.code}
+                  onClick={() => setSizeCode(s.code)}
+                  className={`px-3 py-1 rounded-full border text-sm font-heading font-bold ${
+                    sizeCode === s.code
+                      ? 'bg-brand-dark text-dark-bg border-brand-dark'
+                      : s.featured
+                        ? 'border-brand-dark border-2'
+                        : 'border-current'
+                  }`}
+                >
+                  {s.label} <span className="opacity-70">· {s.dims}</span>
+                  {s.featured && <span className="ml-1 text-xs opacity-70">· el más elegido para regalar</span>}
+                </button>
+              ))}
+            </div>
+            {selectedSize?.tagline && (
+              <p className="mt-2 text-xs opacity-70">{selectedSize.tagline}</p>
             )}
-            <p className="text-[11px] text-graphite/60 mt-2">
-              Pieza hecha por encargo — no aplican cambios ni devoluciones salvo defecto.{' '}
-              <a href="#detalles" className="underline">Ver detalles</a>
-            </p>
-          </div>
+          </fieldset>
 
-          {place.story && <p className="mb-8 leading-relaxed max-w-[46ch]">{place.story}</p>}
+          {/* 5. Historia del lugar */}
+          {storyBody && <p className="mb-10 leading-relaxed max-w-[46ch]">{storyBody}</p>}
 
-          {/* Everything below is the real purchase flow (selectors, live
-              price, cart, specs/accordion/reviews) — kept on its own
-              neutral card so the site's existing navy-accent selection
-              styling (bg-sello-navy on the active size/frame/color chip,
-              border-line elsewhere) stays exactly as legible as before,
-              regardless of which accent the page landed on above. */}
+          {/* Todo lo demás vive en su propia card neutral, para que el
+              estilo navy de selección existente (bg-sello-navy en el chip
+              activo, border-line el resto) siga siendo legible sin
+              importar el accent de fondo de arriba. */}
           <div className="bg-gallery-white text-graphite rounded-[9px] p-6">
             <div className="flex flex-wrap gap-3 mb-6">
               <BaggageTag label="Ubicación" value={place.name} />
               <BaggageTag label="Tamaño" value={selectedSize.label} />
               {!isPuzzle && <BaggageTag label="Marco" value={selectedFrame.label} />}
             </div>
-
-            {place.status === 'preorder' && (
-              <span className="inline-block mb-4 px-4 py-1 rounded-full border border-sello-navy text-sello-navy font-label uppercase tracking-wide text-xs animate-pulse">
-                Pre-order
-              </span>
-            )}
-
-            <fieldset className="mb-4">
-              <legend className="font-label uppercase tracking-wide text-xs mb-2">
-                ¿Para quién es esta pieza — para ti, o para presumirla?
-              </legend>
-              <div className="flex flex-wrap gap-2">
-                {availableSizes.map((s) => (
-                  <button
-                    key={s.code}
-                    onClick={() => setSizeCode(s.code)}
-                    className={`px-3 py-1 rounded-full border text-sm font-heading font-bold ${
-                      sizeCode === s.code
-                        ? 'bg-brand-dark text-dark-bg border-brand-dark'
-                        : s.featured
-                          ? 'border-brand-dark border-2'
-                          : 'border-line'
-                    }`}
-                  >
-                    {s.label} <span className="opacity-70">· {s.dims}</span>
-                    {s.featured && <span className="ml-1 text-xs opacity-70">· el más elegido para regalar</span>}
-                  </button>
-                ))}
-              </div>
-              {selectedSize?.tagline && (
-                <p className="mt-2 text-xs text-graphite/70">{selectedSize.tagline}</p>
-              )}
-            </fieldset>
 
             {!isPuzzle && (
               <>
@@ -398,11 +376,11 @@ export default function Product() {
                     ))}
                   </div>
                   <p className="mt-2 text-xs text-graphite/70">
-                    {COLORS.find((c) => c.code === colorCode)?.label}
+                    {selectedColor?.label}
                   </p>
                 </fieldset>
 
-                <fieldset className="mb-4">
+                <fieldset className="mb-6">
                   <legend className="font-label uppercase tracking-wide text-xs mb-2">Orientación</legend>
                   <div className="flex gap-2">
                     {['horizontal', 'vertical'].map((o) => (
@@ -421,6 +399,25 @@ export default function Product() {
               </>
             )}
 
+            {/* 6. Ficha técnica — refleja la selección real de arriba */}
+            <div className="mb-10">
+              <h2 className="font-heading font-bold text-brand-dark uppercase tracking-wide text-xs mb-2">
+                Ficha técnica
+              </h2>
+              <FichaTecnica
+                pieceNumber={null}
+                editionNumber={null}
+                collectionName={isPuzzle ? 'Juego' : 'Ciudades del Mundo'}
+                series={place.series}
+                placeName={place.name}
+                country={countryLabel}
+                sizeCode={sizeCode}
+                frameCode={isPuzzle ? undefined : frameCode}
+                colorCode={isPuzzle ? undefined : colorCode}
+              />
+            </div>
+
+            {/* 7. "En una frase, ¿por qué este lugar?" */}
             <div className="mb-4">
               <label htmlFor="memoryNote" className="font-label uppercase tracking-wide text-xs block mb-1">
                 En una frase, ¿por qué este lugar?
@@ -438,6 +435,7 @@ export default function Product() {
               </p>
             </div>
 
+            {/* 8. Personalización (mensaje trasero del marco + capelo) */}
             {!isPuzzle && (
               <div className="mb-4 flex items-center gap-2">
                 <input
@@ -454,7 +452,7 @@ export default function Product() {
               </div>
             )}
 
-            <div className="mb-2">
+            <div className="mb-6">
               <label className="font-label uppercase tracking-wide text-xs block mb-1">
                 Placa grabada (opcional) <span className="normal-case text-graphite/60">{addonPrice(ADDONS.placa)}</span>
               </label>
@@ -467,33 +465,37 @@ export default function Product() {
               />
             </div>
 
-            {/* brand-brief.md sección 5/10 punto 9 — único punto de entrada
-                a /metodo-relieve desde la ficha de producto: un link, no
-                contenido inline/colapsable. */}
+            {/* 9. Link "Cómo se hizo esta pieza" — único punto de entrada
+                a /metodo-relieve desde la ficha de producto (sección 5/10
+                punto 9): un link, no contenido inline/colapsable. */}
             <Link
               to="/metodo-relieve"
-              className="inline-block mb-6 text-sm underline text-brand-dark hover:opacity-70 transition-opacity"
+              className="inline-block mb-10 text-sm underline text-brand-dark hover:opacity-70 transition-opacity"
             >
               Cómo se hizo esta pieza
             </Link>
 
-            <div className="mt-10">
-              <h2 className="font-heading font-bold text-brand-dark uppercase tracking-wide text-xs mb-2">
-                Ficha técnica
-              </h2>
-              <FichaTecnica
-                pieceNumber={null}
-                editionNumber={null}
-                collectionName={isPuzzle ? 'Juego' : 'Ciudades del Mundo'}
-                series={place.series}
-                placeName={place.name}
-                country={countryLabel}
-                sizeCode={sizeCode}
-                frameCode={isPuzzle ? undefined : frameCode}
-                colorCode={isPuzzle ? undefined : colorCode}
+            {/* 10. Precio + CTA · 11. Tiempos · 14. micro-línea de trust */}
+            <div className="rounded-[9px] border border-line p-4 mb-10">
+              <RollingPrice
+                cents={unitPriceCents ?? place.base_price}
+                className="font-label text-2xl font-bold block mb-1"
               />
+              <p className="font-label uppercase tracking-wide text-[11px] text-graphite/60 mb-3">
+                Se fabrica en {PRODUCTION_DAYS} días hábiles · llega {SHIPPING_DAYS} días después
+              </p>
+              {place.status === 'soldout' ? (
+                <WaitlistDialog placeSlug={place.slug} />
+              ) : (
+                <Button onClick={handleAddToCart}>Encargar mi pieza</Button>
+              )}
+              <p className="text-[11px] text-graphite/60 mt-2">
+                Pieza hecha por encargo — no aplican cambios ni devoluciones salvo defecto.{' '}
+                <a href="#detalles" className="underline">Ver detalles</a>
+              </p>
             </div>
 
+            {/* 13. Cómo llega */}
             <div className="mt-10">
               <h2 className="font-heading font-bold text-brand-dark uppercase tracking-wide text-xs mb-3">
                 Cómo llega

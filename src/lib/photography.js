@@ -34,8 +34,16 @@ const pieceMainThumbs = import.meta.glob(
 // committed (king.jpg, vista.jpg, top-view-2.jpg, en-contexto.jpg, etc.)
 // that main/detail-1-only globs were leaving on disk unused. The product
 // page carousel wants all of them.
+//
+// brand-brief.md sección 10/16 decisión 10 — un video de unboxing (mp4/
+// webm/mov) puede vivir en la misma carpeta pieces/<slug>/ que las fotos;
+// se detecta por extensión (VIDEO_EXTENSIONS abajo), no por un glob
+// aparte, así que sigue siendo "una sola carpeta por pieza, sin
+// convención de nombre nueva". Ningún video real está subido todavía —
+// el glob simplemente no matchea nada hasta que uno exista, igual que
+// pasa hoy con pieces/ vacío.
 const piecePhotosGlob = import.meta.glob(
-  '../assets/photography/pieces/*/*.{jpg,jpeg,png,webp}',
+  '../assets/photography/pieces/*/*.{jpg,jpeg,png,webp,mp4,webm,mov}',
   {
     eager: true,
     import: 'default',
@@ -53,12 +61,18 @@ const howItArrivesSteps = import.meta.glob(
   },
 );
 
+const VIDEO_EXTENSIONS = new Set(['mp4', 'webm', 'mov']);
+
 function slugFromPath(path) {
   return path.match(/pieces\/([^/]+)\//)?.[1];
 }
 
 function fileNameFromPath(path) {
   return path.match(/\/([^/]+)\.[^./]+$/)?.[1] ?? '';
+}
+
+function extFromPath(path) {
+  return path.match(/\.([^./]+)$/)?.[1]?.toLowerCase() ?? '';
 }
 
 function stepNumberFromPath(path) {
@@ -73,18 +87,23 @@ const mainThumbBySlug = Object.fromEntries(
 );
 
 // Groups every matched file by slug, `main` first (matching mainBySlug
-// above) then the rest alphabetically by filename — a stable, predictable
-// order for the carousel regardless of glob/filesystem ordering.
+// above), then the rest of the photos alphabetically by filename, then any
+// video last regardless of filename — brand-brief.md sección 10 quiere el
+// carrusel en un orden fijo (2-3 fotos hero → 1 foto de contexto → video
+// de unboxing al final); ordenar por tipo en vez de exigir un nombre de
+// archivo específico logra ese orden sin inventar una convención nueva.
 const photosBySlug = {};
 for (const [path, url] of Object.entries(piecePhotosGlob)) {
   const slug = slugFromPath(path);
   if (!slug) continue;
-  (photosBySlug[slug] ??= []).push({ file: fileNameFromPath(path), url });
+  const type = VIDEO_EXTENSIONS.has(extFromPath(path)) ? 'video' : 'image';
+  (photosBySlug[slug] ??= []).push({ file: fileNameFromPath(path), url, type });
 }
 for (const slug of Object.keys(photosBySlug)) {
   photosBySlug[slug].sort((a, b) => {
     if (a.file === 'main') return -1;
     if (b.file === 'main') return 1;
+    if (a.type !== b.type) return a.type === 'video' ? 1 : -1;
     return a.file.localeCompare(b.file);
   });
 }
@@ -109,11 +128,13 @@ export function pieceMainThumb(slug) {
   return mainThumbBySlug[slug] ?? mainBySlug[slug] ?? null;
 }
 
-// All bundled photos for a piece, main first — [] (not null) when the
-// piece has none yet, so callers can map over it directly without a
-// separate null check.
+// All bundled photos (and, per decisión 10, the unboxing video if one
+// exists) for a piece, main first — [] (not null) when the piece has none
+// yet, so callers can map over it directly without a separate null check.
+// Shape: {url, type: 'image' | 'video'}[] — was a plain string[] of URLs;
+// callers need `type` to know whether to render <img> or <video>.
 export function piecePhotos(slug) {
-  return (photosBySlug[slug] ?? []).map((p) => p.url);
+  return (photosBySlug[slug] ?? []).map((p) => ({ url: p.url, type: p.type }));
 }
 
 export function howItArrivesPhoto(stepNumber) {

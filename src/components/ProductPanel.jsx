@@ -63,8 +63,13 @@ export default function ProductPanel() {
     return () => window.removeEventListener('keydown', onKeydown);
   }, [closeProduct]);
 
-  const photos = place ? piecePhotos(place.slug) : [];
-  const mainPhoto = photos[activePhoto];
+  // piecePhotos() ahora devuelve {url, type}[] (sección 16 decisión 10, para
+  // soportar video en el carrusel de Product.jsx) — este panel se mantiene
+  // separado y sin cambios de arquitectura (decisión 6), así que filtra los
+  // videos en vez de aprender a reproducirlos: sigue siendo un preview de
+  // solo fotos.
+  const photos = place ? piecePhotos(place.slug).filter((p) => p.type !== 'video') : [];
+  const mainPhoto = photos[activePhoto]?.url;
 
   // Effect #3 per PRD table: one gsap.timeline(), four .fromTo() calls at
   // exact durations/delays/eases (ver panelOpenTimeline en
@@ -137,9 +142,9 @@ export default function ProductPanel() {
                 // .focus-thumbs: flex-col, gap 8px; button 42x42, border-radius 2px,
                 // bg-stone, opacity 0.6 -> 1 + border-color on active/hover
                 <div className="flex flex-col gap-2 shrink-0">
-                  {photos.map((src, i) => (
+                  {photos.map((p, i) => (
                     <button
-                      key={src}
+                      key={p.url}
                       onClick={() => setActivePhoto(i)}
                       className={`w-[42px] h-[42px] p-0 border rounded-[2px] overflow-hidden bg-stone cursor-pointer transition-[opacity,border-color] duration-200 ${
                         i === activePhoto
@@ -147,7 +152,7 @@ export default function ProductPanel() {
                           : 'opacity-60 border-line hover:opacity-100 hover:border-graphite'
                       }`}
                     >
-                      <img src={src} alt="" className="w-full h-full object-cover block" />
+                      <img src={p.url} alt="" className="w-full h-full object-cover block" />
                     </button>
                   ))}
                 </div>

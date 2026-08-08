@@ -1,7 +1,7 @@
 // PRD "Relieve: Fix de carga + paridad de efectos con Palmer" sección 2.4 —
-// fullscreen photo viewer with TEXT navigation controls (prev · next ·
-// close), not icon buttons. Reusable wherever a photo carousel needs a
-// "view larger" expansion (the product panel's carousel today).
+// fullscreen photo/video viewer with TEXT navigation controls (prev · next
+// · close), not icon buttons. Reusable wherever PhotoCarousel needs a
+// "view larger" expansion.
 import { useEffect } from 'react';
 
 export default function Lightbox({ photos, index, onIndexChange, onClose }) {
@@ -16,17 +16,34 @@ export default function Lightbox({ photos, index, onIndexChange, onClose }) {
     return () => window.removeEventListener('keydown', onKeydown);
   }, [index, photos.length, onIndexChange, onClose]);
 
+  const photo = photos[index];
+
   return (
     <div
       className="fixed inset-0 z-[150] bg-dark-bg/95 flex items-center justify-center"
       onClick={onClose}
     >
-      <img
-        src={photos[index]}
-        alt=""
-        onClick={(e) => e.stopPropagation()}
-        className="max-w-[90vw] max-h-[80vh] object-contain"
-      />
+      {photo.type === 'video' ? (
+        // Native controls here (unlike the muted carousel preview) — the
+        // Lightbox is where sección 10/16 decisión 10's "opción de sonido"
+        // actually lives.
+        <video
+          src={photo.url}
+          controls
+          autoPlay
+          loop
+          playsInline
+          onClick={(e) => e.stopPropagation()}
+          className="max-w-[90vw] max-h-[80vh] object-contain"
+        />
+      ) : (
+        <img
+          src={photo.url}
+          alt=""
+          onClick={(e) => e.stopPropagation()}
+          className="max-w-[90vw] max-h-[80vh] object-contain"
+        />
+      )}
 
       <div
         className="absolute bottom-6 left-6 font-label uppercase tracking-wide text-xs text-gallery-white/80"
