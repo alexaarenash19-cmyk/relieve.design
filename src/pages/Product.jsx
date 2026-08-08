@@ -250,10 +250,13 @@ export default function Product() {
 
   return (
     <main className={`${accent.bg} ${accent.text} transition-colors`}>
-      {/* grid-cols-[3fr_2fr]: el carrusel domina visualmente sobre el
+      {/* grid-cols-[11fr_9fr]: el carrusel domina visualmente sobre el
           texto (sección 10 — "las imágenes dominan, el texto no compite
-          en tamaño"), en vez del 50/50 anterior. */}
-      <div className="grid md:grid-cols-[3fr_2fr] gap-8 p-8 max-w-6xl mx-auto items-start">
+          en tamaño"), en vez del 50/50 anterior — pero no tan angosto
+          como 3fr/2fr, que rompía los chips de tamaño (rounded-full con
+          texto largo) al forzarlos a envolver dentro de una columna
+          demasiado angosta. */}
+      <div className="grid md:grid-cols-[11fr_9fr] gap-8 p-8 max-w-6xl mx-auto items-start">
         {/* 1. Carrusel */}
         <div key={place.slug} className="warp-reveal md:sticky md:top-8">
           <PhotoCarousel
