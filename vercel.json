@@ -7,6 +7,7 @@
     { "source": "/api/places/:slug", "destination": "/api/catalog?resource=places&slug=:slug" },
     { "source": "/api/orders/by-session/:sessionId", "destination": "/api/catalog?resource=orders_by_session&session_id=:sessionId" },
     { "source": "/api/orders/:token", "destination": "/api/catalog?resource=orders&token=:token" },
+    { "source": "/api/admin/:resource/:id", "destination": "/api/admin/[...path]?path=:resource&path=:id" },
     { "source": "/((?!api/).*)", "destination": "/index.html" }
   ],
   "headers": [
