@@ -14,7 +14,7 @@
 const ITEMS = [
   'Envío gratis',
   'Envíos a toda la República',
-  'Devolución gratuita — 30 días',
+  'Devolución gratuita — 7 días',
   'Hecho a mano en México',
 ];
 
