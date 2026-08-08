@@ -12,7 +12,7 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { createClient } from '@supabase/supabase-js';
-import { CATEGORIES } from '../src/lib/categories.js';
+import { SERIES } from '../src/lib/categories.js';
 import { DUMMY_PLACES } from '../lib/dummyCatalog.js';
 
 // Real bug found while testing this: SITE_URL was never actually set as a
@@ -45,7 +45,7 @@ const STATIC_PAGES = {
   },
   '/colecciones': {
     title: 'Colecciones — Relieve',
-    description: 'Todos los mapas en relieve de Relieve, o explóralos por categoría: ciudades, montañas, estadios y circuitos de México.',
+    description: 'Todos los mapas en relieve de Relieve, o explóralos por serie: Origen, Travesía y Cumbre.',
   },
   '/faq': {
     title: 'Preguntas frecuentes — Relieve',
@@ -189,7 +189,9 @@ async function main() {
 
   const dynamicPaths = [
     ...places.map((p) => `/pieza/${p.slug}`),
-    ...CATEGORIES.map((c) => `/coleccion/${c.value}`),
+    // /coleccion/:slug is series-keyed now (Collection.jsx), not
+    // type-keyed — see src/lib/categories.js.
+    ...SERIES.map((s) => `/coleccion/${s.value}`),
   ];
   await fs.writeFile(path.join(DIST, 'sitemap.xml'), buildSitemap(siteUrl, dynamicPaths));
 
