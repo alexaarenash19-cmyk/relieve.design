@@ -6,7 +6,7 @@ import crypto from 'node:crypto';
 import Stripe from 'stripe';
 import { supabase } from '../../lib/supabase.js';
 import { calcUnitPriceCents } from '../../lib/pricing.js';
-import { sendAlert } from '../../lib/alerts.js';
+import { sendAlert, sendOrderPaidNotification, sendOrderConfirmation } from '../../lib/alerts.js';
 
 export const config = { api: { bodyParser: false } };
 
@@ -57,17 +57,24 @@ async function createOrderFromSession(session) {
         addons,
       });
 
+      // name selected here (not just id) so the order-notification emails
+      // below don't need a second round-trip per item to show a real place
+      // name instead of a slug — not persisted, order_items has no
+      // place_name column (name comes from the places FK join at read time,
+      // see api/catalog.js's getOrder).
       let place_id = null;
+      let place_name = null;
       if (item.place_slug) {
         const { data: place } = await supabase
           .from('places')
-          .select('id')
+          .select('id, name')
           .eq('slug', item.place_slug)
           .maybeSingle();
         place_id = place?.id ?? null;
+        place_name = place?.name ?? null;
       }
 
-      return { ...item, place_id, unit_price_cents };
+      return { ...item, place_id, place_name, unit_price_cents };
     })
   );
 
@@ -116,6 +123,28 @@ async function createOrderFromSession(session) {
     .update({ purchase_completed: true })
     .eq('stripe_session_id', session.id);
   if (cartError) console.error('[carts] failed to mark purchase_completed', cartError);
+
+  // Handoff 8 ago 2026 sección 3.1/3.2 — Ale necesita la dirección +
+  // descripción del pedido de inmediato para sacar la guía, y el cliente
+  // espera una confirmación automática. Ambos correos son best-effort (un
+  // fallo no debe tumbar el webhook — Stripe ya cobró y la orden ya existe
+  // en Supabase, lo único en juego aquí es la notificación).
+  const orderForEmail = {
+    number: order.number,
+    status_token: order.status_token,
+    email: session.customer_details?.email ?? session.customer_email,
+    subtotal_cents,
+    shipping_cents,
+    total_cents: subtotal_cents + shipping_cents,
+    is_gift,
+    gift_message,
+  };
+  const phone = session.customer_details?.phone || null;
+  const address = session.shipping_details?.address ?? null;
+  await Promise.allSettled([
+    sendOrderPaidNotification(orderForEmail, pricedItems, { phone, address }),
+    sendOrderConfirmation(orderForEmail, pricedItems),
+  ]);
 
   if (process.env.N8N_WEBHOOK_URL) {
     await fetch(`${process.env.N8N_WEBHOOK_URL}/order-paid`, {
