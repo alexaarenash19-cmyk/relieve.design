@@ -253,10 +253,19 @@ async function getOrder(req, res) {
   if (error) return sendError(res, 500, 'db_error', error.message);
   if (!order) return sendError(res, 404, 'not_found', 'Order not found');
 
+  // brand-brief.md §16 decisión (numeración de pieza, 8 ago 2026): piece_number
+  // se asigna por default de columna (nextval de piece_number_seq) en el
+  // momento en que se crea el order_item — es decir, solo en pedidos ya
+  // pagados (checkout.session.completed en api/webhooks/stripe.js es el
+  // único lugar que inserta en order_items). No requirió tocar el webhook.
+  // "edición N.º" y "pieza N.º" son el mismo número (misma secuencia global),
+  // por eso FichaTecnica recibe piece_number para ambos props.
+  // places(...) embebe el lugar vía la FK place_id -> places.id, para no
+  // hacer una consulta aparte por cada item en el frontend.
   const { data: items, error: itemsError } = await supabase
     .from('order_items')
     .select(
-      'place_id, custom_place, size_code, frame_code, color_code, qty, unit_price_cents',
+      'place_id, custom_place, size_code, frame_code, color_code, qty, unit_price_cents, piece_number, places(name, series, country, type)',
     )
     .eq('order_id', order.id);
 

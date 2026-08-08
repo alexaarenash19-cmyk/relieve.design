@@ -14,6 +14,7 @@ import {
   SHIPPING_DAYS,
   HOW_IT_ARRIVES_STEPS,
   PUZZLE_HOW_IT_ARRIVES_STEPS,
+  COUNTRY_NAMES,
 } from '../lib/catalog.js';
 import { useDocumentHead } from '../lib/useDocumentHead.js';
 import RollingPrice from '../components/RollingPrice.jsx';
@@ -28,18 +29,6 @@ import PhotoCarousel from '../components/PhotoCarousel.jsx';
 import FichaTecnica from '../components/FichaTecnica.jsx';
 import { piecePhotos } from '../lib/photography.js';
 import { fetchJson } from '../lib/fetchJsonArray.js';
-
-// brand-brief.md sección 6 — la ficha técnica necesita "Ciudad, País" en
-// texto real. `places.country` (default 'MX') ya existía en la DB pero no
-// se seleccionaba hasta ahora (api/catalog.js) — son los 5 códigos reales
-// del catálogo actual, no una lista inventada.
-const COUNTRY_NAMES = {
-  MX: 'México',
-  FR: 'Francia',
-  GB: 'Reino Unido',
-  CN: 'China',
-  ES: 'España',
-};
 
 // Full-bleed color backdrop behind the title/photo/spec area — exact
 // per-piece mapping from the "Explorar (preview)" artifact's mock PIECES
