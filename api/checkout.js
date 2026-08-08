@@ -131,6 +131,10 @@ export default async function handler(req, res) {
       customer_email: email,
       payment_method_types: ['card', 'oxxo'],
       shipping_address_collection: { allowed_countries: ['MX'] },
+      // Handoff 8 ago 2026 sección 2 — el Aviso de Privacidad ya promete que
+      // se recaba teléfono, y Ale lo necesita para coordinar el envío
+      // manual. shipping_details no trae phone salvo que se pida así.
+      phone_number_collection: { enabled: true },
       line_items,
       metadata: {
         ...encodeItemsMetadata(items),

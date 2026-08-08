@@ -5,9 +5,16 @@
 import { supabase } from '../../lib/supabase.js';
 import { sendError } from '../../lib/errors.js';
 import { requireAdmin } from '../../lib/adminAuth.js';
+import { sendShippingNotice } from '../../lib/alerts.js';
 
 const ORDER_STATUSES = ['paid', 'in_production', 'shipped', 'delivered', 'cancelled'];
 
+// Handoff 8 ago 2026 sección 3.3, opción (a): sin panel de admin visual,
+// Ale marca un pedido enviado llamando este mismo PATCH (ya existía para
+// status/tracking_number) con Postman/curl — { tracking_number }. Cuando
+// esa llamada trae un tracking_number nuevo, el cliente recibe el correo
+// de rastreo automáticamente en ese momento, en vez de depender del cron
+// de n8n/workflows/order-shipped.json (nunca conectado a un n8n en vivo).
 async function patchOrder(req, res, id) {
   if (req.method !== 'PATCH') {
     res.setHeader('Allow', 'PATCH');
@@ -30,12 +37,23 @@ async function patchOrder(req, res, id) {
     .from('orders')
     .update(updates)
     .eq('id', id)
-    .select('id, number, status, tracking_number')
+    .select('id, number, status, tracking_number, email, status_token')
     .maybeSingle();
 
   if (error) return sendError(res, 500, 'db_error', error.message);
   if (!data) return sendError(res, 404, 'not_found', 'Order not found');
-  return res.status(200).json(data);
+
+  // Best-effort, same as the order-paid emails in api/webhooks/stripe.js —
+  // the order is already updated either way, a failed notification email
+  // must not turn into a 500 for what was otherwise a successful PATCH.
+  if (tracking_number) {
+    await sendShippingNotice(data).catch((err) =>
+      console.error('[admin] failed to send shipping notice', err),
+    );
+  }
+
+  const { email, status_token, ...publicData } = data;
+  return res.status(200).json(publicData);
 }
 
 async function patchReview(req, res, id) {
