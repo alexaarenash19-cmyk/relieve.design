@@ -116,7 +116,7 @@ export default function Search() {
             No tenemos “{query}” en el catálogo todavía.
           </p>
           <a
-            href={`mailto:hola@relieve.mx?subject=${encodeURIComponent(`Solicito: ${query}`)}&body=${encodeURIComponent(`Me gustaría un mapa en relieve de: ${query}`)}`}
+            href={`mailto:contacto@relieve.design?subject=${encodeURIComponent(`Solicito: ${query}`)}&body=${encodeURIComponent(`Me gustaría un mapa en relieve de: ${query}`)}`}
             className="font-label uppercase tracking-wide text-xs text-passport-ink underline"
           >
             Solicita tu lugar →
