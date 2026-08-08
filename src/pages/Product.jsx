@@ -14,6 +14,7 @@ import {
   sizesForType,
   FRAMES,
   COLORS,
+  formatDims,
   PRODUCTION_DAYS,
   SHIPPING_DAYS,
   HOW_IT_ARRIVES_STEPS,
@@ -312,7 +313,7 @@ export default function Product() {
                         : 'border-current'
                   }`}
                 >
-                  {s.label} <span className="opacity-70">· {s.dims}</span>
+                  {s.label} <span className="opacity-70">· {formatDims(s.dims)}</span>
                   {s.featured && <span className="ml-1 text-xs opacity-70">· el más elegido para regalar</span>}
                 </button>
               ))}

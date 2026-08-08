@@ -6,7 +6,7 @@
 // Public labels per Rayo X brief (jul 2026), sección 2 — reframe de eje de
 // decisión de tamaño físico a contexto emocional/social de uso. `code`
 // stays stable (DB/Stripe/CFDI/n8n key on it), only `label`/`tagline` are
-// customer-facing. Dims are the REAL physical measurements Ale confirmed
+// customer-facing. Dims are the REAL physical measurements Ale confirmó
 // for the 5 wall pieces (20260727010001_catalog_cleanup_and_puzzle.sql) —
 // 'grande' is still provisional, marked below.
 export const WALL_SIZES = [
@@ -31,6 +31,17 @@ export const SIZES = [...WALL_SIZES, ...PUZZLE_SIZES];
 // repeated `place.type === 'juego' ? ... : ...` checks.
 export function sizesForType(type) {
   return type === 'juego' ? PUZZLE_SIZES : WALL_SIZES;
+}
+
+// '15x15 cm' -> '15 × 15 cm' — purely typographic (real × sign instead of
+// the literal 'x' stored above), not a change to the underlying
+// measurement. Single source of truth so every place dims get shown
+// (size selector buttons in Product.jsx, FichaTecnica's spec row) uses the
+// same formatting — handoff 8 ago 2026 sección 4: dims was only formatted
+// inside FichaTecnica, so the size buttons above it on the same page still
+// showed the raw '64x64 cm'.
+export function formatDims(dims) {
+  return dims ? dims.replace(/(\d+)\s*x\s*(\d+)/i, '$1 × $2') : dims;
 }
 
 // PLACEHOLDER — Ale to confirm real production/shipping timelines. One

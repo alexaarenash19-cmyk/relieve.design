@@ -74,7 +74,7 @@
 //   sizeCode="puzzle"
 // />
 
-import { SIZES, FRAMES, COLORS } from '../lib/catalog.js';
+import { SIZES, FRAMES, COLORS, formatDims } from '../lib/catalog.js';
 
 const SERIES_LABELS = {
   origen: 'Serie Origen',
@@ -94,13 +94,6 @@ function SpecRow({ label, value }) {
       <dd className="break-words normal-case">{value}</dd>
     </div>
   );
-}
-
-// '15x15 cm' -> '15 × 15 cm' — purely typographic (real × sign instead of
-// the literal 'x' stored in catalog.js), not a change to the underlying
-// measurement.
-function formatDims(dims) {
-  return dims ? dims.replace(/(\d+)\s*x\s*(\d+)/i, '$1 × $2') : dims;
 }
 
 // Fase 4 (Product.jsx integration) — pieceNumber/editionNumber are still
