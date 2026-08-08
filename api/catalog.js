@@ -18,10 +18,13 @@ import { calcUnitPriceCents, PricingError } from '../lib/pricing.js';
 import { DUMMY_PLACES, findDummyPlace } from '../lib/dummyCatalog.js';
 import { checkRateLimit } from '../lib/rateLimit.js';
 
-// Issue #23/#24: GET /api/places?q=&type= and GET /api/places/:slug
-// `type` doubles as the category (src/lib/categories.js) — the collections
-// table/endpoint was a separate taxonomy for the same grouping and was
-// removed rather than kept in parallel.
+// Issue #23/#24: GET /api/places?q=&type=&series= and GET /api/places/:slug
+// `type` (ciudad/juego, wall piece vs. puzzle) and `series` (origen/
+// travesia/cumbre, src/lib/categories.js SERIES) are independent columns —
+// see 20260806020001_add_places_series.sql for why series can't be derived
+// from type. `series` added for /coleccion/:slug and /colecciones' "por
+// categoría" view (handoff 8 ago 2026 sección 1), mirroring the existing
+// `type` filter rather than a new endpoint.
 async function getPlaces(req, res) {
   if (req.method !== 'GET') {
     res.setHeader('Allow', 'GET');
@@ -31,7 +34,7 @@ async function getPlaces(req, res) {
   const { slug } = req.query;
   if (slug) return getPlaceDetail(req, res, slug);
 
-  const { q, type } = req.query;
+  const { q, type, series } = req.query;
 
   let query = supabase
     .from('places')
@@ -44,6 +47,7 @@ async function getPlaces(req, res) {
 
   if (q) query = query.ilike('name', `%${q}%`);
   if (type) query = query.eq('type', type);
+  if (series) query = query.eq('series', series);
 
   const { data, error } = await query.order('name');
 
@@ -52,7 +56,8 @@ async function getPlaces(req, res) {
     const places = DUMMY_PLACES.filter(
       (p) =>
         (!q || p.name.toLowerCase().includes(q.toLowerCase())) &&
-        (!type || p.type === type),
+        (!type || p.type === type) &&
+        (!series || p.series === series),
     ).map(
       ({
         id,

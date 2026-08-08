@@ -1,13 +1,12 @@
 // "Colecciones" index — two views: a flat alphabetical list of every piece,
-// and the same pieces grouped by category (src/lib/categories.js, the same
-// taxonomy the experience view's "tipo" filter and /buscar use — no
-// separate collections taxonomy). Reviews aggregated across all places live
-// at the bottom, since there's no longer a single catch-all collection to
-// hang them off of.
+// and the same pieces grouped by series (src/lib/categories.js SERIES —
+// the real places.series column: Origen/Travesía/Cumbre, brand-brief.md
+// sección 3). Reviews aggregated across all places live at the bottom,
+// since there's no longer a single catch-all collection to hang them off.
 import { useEffect, useState } from 'react';
 import { GalleryCard } from '../components/Gallery.jsx';
 import { fetchJsonArray } from '../lib/fetchJsonArray.js';
-import { CATEGORIES } from '../lib/categories.js';
+import { SERIES } from '../lib/categories.js';
 import { useDocumentHead } from '../lib/useDocumentHead.js';
 
 function byName(a, b) {
@@ -21,7 +20,7 @@ export default function Collections() {
 
   useDocumentHead({
     title: 'Colecciones — Relieve',
-    description: 'Todos los mapas en relieve de Relieve, o explóralos por categoría: ciudades, montañas, estadios y circuitos de México.',
+    description: 'Todos los mapas en relieve de Relieve, o explóralos por serie: Origen, Travesía y Cumbre.',
     canonicalPath: '/colecciones',
   });
 
@@ -40,10 +39,10 @@ export default function Collections() {
     };
   }, []);
 
-  const byCategory = CATEGORIES.map((cat) => ({
-    ...cat,
-    places: places.filter((p) => p.type === cat.value).sort(byName),
-  })).filter((cat) => cat.places.length > 0);
+  const bySeries = SERIES.map((s) => ({
+    ...s,
+    places: places.filter((p) => p.series === s.value).sort(byName),
+  })).filter((s) => s.places.length > 0);
 
   return (
     <main className="p-8">
@@ -76,17 +75,27 @@ export default function Collections() {
         </div>
       ) : (
         <div className="flex flex-col gap-10">
-          {byCategory.map((cat) => (
-            <section key={cat.value}>
+          {bySeries.map((s) => (
+            <section key={s.value}>
               <a
-                href={`/coleccion/${cat.value}`}
+                href={`/coleccion/${s.value}`}
                 className="block font-label uppercase tracking-wide text-sm mb-3 border-b border-line pb-2 hover:text-passport-ink"
               >
-                {cat.label}
+                {s.label}
               </a>
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-px bg-line">
-                {cat.places.map((place) => (
-                  <GalleryCard key={place.slug} place={place} />
+                {s.places.map((place) => (
+                  <div key={place.slug} className="relative">
+                    <GalleryCard place={place} />
+                    {/* El puzzle vive dentro de Serie Cumbre, no como categoría
+                        aparte — solo distinguido con esta etiqueta (handoff
+                        8 ago 2026, sección 1). */}
+                    {s.value === 'cumbre' && place.type === 'juego' && (
+                      <span className="absolute top-2 left-2 rounded-full bg-brand-dark text-gallery-white px-2 py-1 font-label uppercase tracking-wide text-[10px]">
+                        Edición Puzzle
+                      </span>
+                    )}
+                  </div>
                 ))}
               </div>
             </section>

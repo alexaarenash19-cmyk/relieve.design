@@ -3,14 +3,16 @@
 // results styled as a departures-board manifest.
 // Fetches the (small, pilot-sized) catalog once and filters client-side —
 // no network round-trip per keystroke. size/frame/orientation aren't place
-// attributes in the schema (they're per-order personalization), so the only
-// real place filter is category (`type`) — same taxonomy as the experience
-// view's "tipo" chip and /colecciones, not a separate collections list.
+// attributes in the schema (they're per-order personalization), so the real
+// place filter is series (places.series — Origen/Travesía/Cumbre), same
+// taxonomy as /colecciones' "por categoría" view (src/lib/categories.js
+// SERIES). Distinct from `type` (ciudad/juego), which the Explorar canvas
+// still uses for its own separate "tipo" filter.
 import { useEffect, useMemo, useRef, useState } from 'react';
 import TopoLines from '../components/TopoLines.jsx';
 import DeparturesBoard from '../components/DeparturesBoard.jsx';
 import { fetchJsonArray } from '../lib/fetchJsonArray.js';
-import { CATEGORIES, categoryLabel } from '../lib/categories.js';
+import { SERIES, seriesLabel } from '../lib/categories.js';
 import { useDocumentHead } from '../lib/useDocumentHead.js';
 
 const ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
@@ -18,11 +20,11 @@ const ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
 export default function Search() {
   const [places, setPlaces] = useState([]);
   const [query, setQuery] = useState('');
-  const [type, setType] = useState('');
+  const [series, setSeries] = useState('');
   const [letter, setLetter] = useState(null);
   const inputRef = useRef(null);
 
-  // Canonicalizes to the bare path regardless of query/type/letter filters
+  // Canonicalizes to the bare path regardless of query/series/letter filters
   // so filtered views don't read as duplicate content.
   useDocumentHead({
     title: 'Buscar un lugar — Relieve',
@@ -52,7 +54,7 @@ export default function Search() {
 
   const filtered = places.filter((p) => {
     if (query && !p.name.toLowerCase().includes(query.toLowerCase())) return false;
-    if (type && p.type !== type) return false;
+    if (series && p.series !== series) return false;
     if (letter && p.name[0].toUpperCase() !== letter) return false;
     return true;
   });
@@ -92,11 +94,11 @@ export default function Search() {
 
       <div className="flex gap-3 mb-6 font-label uppercase tracking-wide text-xs">
         <div className="baggage-tag border border-dashed border-line rounded pr-3 py-1">
-          <select value={type} onChange={(e) => setType(e.target.value)} className="bg-transparent">
-            <option value="">Todas las categorías</option>
-            {CATEGORIES.map((c) => (
-              <option key={c.value} value={c.value}>
-                {c.label}
+          <select value={series} onChange={(e) => setSeries(e.target.value)} className="bg-transparent">
+            <option value="">Todas las series</option>
+            {SERIES.map((s) => (
+              <option key={s.value} value={s.value}>
+                {s.label}
               </option>
             ))}
           </select>
@@ -132,12 +134,8 @@ export default function Search() {
                 className="flex items-center justify-between py-3 hover:bg-line/40 px-1"
               >
                 <span className="font-display font-light text-lg normal-case">{p.name}</span>
-                <span
-                  className={`uppercase tracking-wide text-xs ${
-                    p.type === 'montana' ? 'text-walnut' : 'text-explorer-blue'
-                  }`}
-                >
-                  {categoryLabel(p.type)}
+                <span className="uppercase tracking-wide text-xs text-explorer-blue">
+                  {seriesLabel(p.series)}
                 </span>
               </a>
             ),
