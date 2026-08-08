@@ -1,6 +1,8 @@
 // Issue #57 — /pedido/:token departures-board status page. No login, magic link only.
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
+import FichaTecnica from '../components/FichaTecnica.jsx';
+import { COUNTRY_NAMES } from '../lib/catalog.js';
 
 const STAGES = [
   { code: 'paid', label: 'Confirmado' },
@@ -123,16 +125,38 @@ export default function OrderStatus() {
         </p>
       )}
 
-      <ul className="mt-8 divide-y divide-line font-label uppercase tracking-wide text-xs">
-        {order.items?.map((item, i) => (
-          <li key={i} className="py-2 flex justify-between">
-            <span>
-              {item.custom_place ?? item.place_id} · {item.size_code} · {item.frame_code}
-            </span>
-            <span>×{item.qty}</span>
-          </li>
-        ))}
-      </ul>
+      {/* brand-brief.md — cada pieza pagada ya tiene un piece_number real
+          (asignado en el momento del pago, ver api/catalog.js getOrder).
+          Antes esta lista mostraba el place_id crudo en vez del nombre del
+          lugar — bug preexistente, corregido de paso al integrar
+          FichaTecnica aquí. Piezas con custom_place (lugar no catalogado,
+          sin fila en `places`) no tienen datos para una ficha completa —
+          se quedan con la línea simple anterior, no se inventa una ficha. */}
+      <div className="mt-8 space-y-6">
+        {order.items?.map((item, i) =>
+          item.places ? (
+            <FichaTecnica
+              key={i}
+              pieceNumber={item.piece_number}
+              editionNumber={item.piece_number}
+              collectionName={item.places.type === 'juego' ? 'Juego' : 'Ciudades del Mundo'}
+              series={item.places.series}
+              placeName={item.places.name}
+              country={COUNTRY_NAMES[item.places.country] ?? item.places.country}
+              sizeCode={item.size_code}
+              frameCode={item.places.type === 'juego' ? undefined : item.frame_code}
+              colorCode={item.places.type === 'juego' ? undefined : item.color_code}
+            />
+          ) : (
+            <div key={i} className="py-2 flex justify-between font-label uppercase tracking-wide text-xs border-b border-line">
+              <span>
+                {item.custom_place} · {item.size_code} · {item.frame_code}
+              </span>
+              <span>×{item.qty}</span>
+            </div>
+          ),
+        )}
+      </div>
     </main>
   );
 }

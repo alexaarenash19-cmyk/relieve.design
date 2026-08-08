@@ -92,3 +92,15 @@ export const PUZZLE_HOW_IT_ARRIVES_STEPS = [
 // vivo en este repo todavía) — cambiar a `true` y hacer deploy en cuanto
 // lleguen las primeras reseñas.
 export const SHOW_SOCIAL_PROOF = false;
+
+// brand-brief.md sección 6 — nombres de país para la ficha técnica. Son los
+// 5 códigos ISO reales del catálogo actual (places.country), no una lista
+// inventada. Compartido entre Product.jsx y OrderStatus.jsx para no
+// duplicar el mapeo.
+export const COUNTRY_NAMES = {
+  MX: 'México',
+  FR: 'Francia',
+  GB: 'Reino Unido',
+  CN: 'China',
+  ES: 'España',
+};
