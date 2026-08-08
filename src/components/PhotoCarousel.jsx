@@ -1,11 +1,11 @@
-// Shared photo carousel: big photo (click to open the Lightbox) + a
-// thumbnail strip to jump between shots. Used by both the full product
-// page (Product.jsx) and the quick-view panel (ProductPanel.jsx) — was
-// previously duplicated inline in ProductPanel only, and Product.jsx had
-// no real carousel at all (just main+detail-1, no lightbox). Takes a plain
-// array of photo URLs (src/lib/photography.js's piecePhotos) instead of
-// assuming a fixed main/detail shape, so a piece with any number of bundled
-// photos (or zero, before Ale uploads any) works the same way.
+// Shared photo/video carousel: big media (click to open the Lightbox) + a
+// thumbnail strip to jump between shots. Used by the full product page
+// (Product.jsx) — ProductPanel.jsx has its own separate inline photo strip
+// by design (brand-brief.md sección 16 decisión 6: "no se fusiona, sin
+// cambios de arquitectura") and does not use this component. Takes
+// src/lib/photography.js's piecePhotos() shape, {url, type}[], instead of
+// a plain URL array, so a piece with any number of bundled photos (or a
+// trailing unboxing video, sección 10/16 decisión 10) works the same way.
 import { useState } from 'react';
 import Lightbox from './Lightbox.jsx';
 
@@ -17,7 +17,11 @@ export default function PhotoCarousel({ photos, alt = '', placeholderLabel, over
   // bg-stone block with zero loading feedback (looked broken, not loading).
   const [loadedUrls, setLoadedUrls] = useState(() => new Set());
   const photo = photos[active];
-  const photoLoaded = photo && loadedUrls.has(photo);
+  const photoLoaded = photo && loadedUrls.has(photo.url);
+
+  function markLoaded(url) {
+    setLoadedUrls((prev) => (prev.has(url) ? prev : new Set(prev).add(url)));
+  }
 
   return (
     <div>
@@ -30,12 +34,26 @@ export default function PhotoCarousel({ photos, alt = '', placeholderLabel, over
         }`}
       >
         {photo ? (
-          <img
-            src={photo}
-            alt={alt}
-            onLoad={() => setLoadedUrls((prev) => (prev.has(photo) ? prev : new Set(prev).add(photo)))}
-            className={`w-full h-full object-cover transition-opacity duration-300 ${photoLoaded ? 'opacity-100' : 'opacity-0'}`}
-          />
+          photo.type === 'video' ? (
+            // Sección 10/16 decisión 10: loop, mudo por defecto — el
+            // sonido se activa en el Lightbox (controls nativos), no aquí.
+            <video
+              src={photo.url}
+              autoPlay
+              loop
+              muted
+              playsInline
+              onLoadedData={() => markLoaded(photo.url)}
+              className={`w-full h-full object-cover transition-opacity duration-300 ${photoLoaded ? 'opacity-100' : 'opacity-0'}`}
+            />
+          ) : (
+            <img
+              src={photo.url}
+              alt={alt}
+              onLoad={() => markLoaded(photo.url)}
+              className={`w-full h-full object-cover transition-opacity duration-300 ${photoLoaded ? 'opacity-100' : 'opacity-0'}`}
+            />
+          )
         ) : (
           <span className="font-label uppercase tracking-wide text-xs px-3 py-1">
             {placeholderLabel}
@@ -45,15 +63,22 @@ export default function PhotoCarousel({ photos, alt = '', placeholderLabel, over
       </button>
       {photos.length > 1 && (
         <div className="flex gap-2 mt-3">
-          {photos.map((url, i) => (
+          {photos.map((p, i) => (
             <button
-              key={url}
+              key={p.url}
               onClick={() => setActive(i)}
-              className={`w-16 h-16 rounded-[6px] overflow-hidden border-2 ${
+              className={`relative w-16 h-16 rounded-[6px] overflow-hidden border-2 ${
                 active === i ? 'border-sello-navy' : 'border-line'
               }`}
             >
-              <img src={url} alt="" className="warm-photo w-full h-full object-cover" />
+              {p.type === 'video' ? (
+                <>
+                  <video src={p.url} muted loop autoPlay playsInline className="warm-photo w-full h-full object-cover" />
+                  <span className="absolute inset-0 flex items-center justify-center text-gallery-white text-xs drop-shadow">▶</span>
+                </>
+              ) : (
+                <img src={p.url} alt="" className="warm-photo w-full h-full object-cover" />
+              )}
             </button>
           ))}
         </div>
