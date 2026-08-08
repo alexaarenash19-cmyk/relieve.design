@@ -250,13 +250,18 @@ export default function Product() {
 
   return (
     <main className={`${accent.bg} ${accent.text} transition-colors`}>
-      {/* grid-cols-[11fr_9fr]: el carrusel domina visualmente sobre el
-          texto (sección 10 — "las imágenes dominan, el texto no compite
-          en tamaño"), en vez del 50/50 anterior — pero no tan angosto
-          como 3fr/2fr, que rompía los chips de tamaño (rounded-full con
-          texto largo) al forzarlos a envolver dentro de una columna
-          demasiado angosta. */}
-      <div className="grid md:grid-cols-[11fr_9fr] gap-8 p-8 max-w-6xl mx-auto items-start">
+      {/* grid-cols-[minmax(0,11fr)_minmax(0,9fr)]: el carrusel domina
+          visualmente sobre el texto (sección 10 — "las imágenes dominan,
+          el texto no compite en tamaño"), en vez del 50/50 anterior. El
+          minmax(0,…) es obligatorio, no cosmético: sin él, un valor
+          arbitrario de Tailwind genera "grid-template-columns: 11fr 9fr"
+          a secas, y el tamaño mínimo automático de cada track vuelve a
+          respetar el min-content del carrusel (una foto aspect-square sin
+          min-w-0) — eso fue lo que rompió los chips de tamaño la primera
+          vez (928px/128px reales en vez de ~55/45%). grid-cols-2 de
+          Tailwind ya usa minmax(0,1fr) por default; aquí hay que
+          escribirlo a mano porque el valor es arbitrario. */}
+      <div className="grid md:grid-cols-[minmax(0,11fr)_minmax(0,9fr)] gap-8 p-8 max-w-6xl mx-auto items-start">
         {/* 1. Carrusel */}
         <div key={place.slug} className="warp-reveal md:sticky md:top-8">
           <PhotoCarousel
