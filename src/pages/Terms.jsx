@@ -43,8 +43,8 @@ export default function Terms() {
         Por ser piezas hechas por encargo, de fabricación bajo pedido, no
         aplican cambios ni devoluciones salvo defecto de fabricación.
         Escríbenos a{' '}
-        <a className="text-passport-ink underline" href="mailto:hola@relieve.mx">
-          hola@relieve.mx
+        <a className="text-passport-ink underline" href="mailto:contacto@relieve.design">
+          contacto@relieve.design
         </a>{' '}
         dentro de los 7 días posteriores a la entrega.
       </p>
