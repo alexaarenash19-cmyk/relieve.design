@@ -14,7 +14,6 @@ import {
   sizesForType,
   FRAMES,
   COLORS,
-  ADDONS,
   PRODUCTION_DAYS,
   SHIPPING_DAYS,
   HOW_IT_ARRIVES_STEPS,
@@ -64,11 +63,6 @@ function accentFor(slug) {
   return ACCENT_CLASSES[ACCENT_BY_SLUG[slug] ?? 'stone'];
 }
 
-// Same $X,XXX MXN format as CartDrawer.jsx's money() / RollingPrice.jsx.
-function addonPrice(cents) {
-  return `+$${(cents / 100).toLocaleString('es-MX')} MXN`;
-}
-
 export default function Product() {
   const { slug } = useParams();
   const { addItem } = useCart();
@@ -79,8 +73,6 @@ export default function Product() {
   const [frameCode, setFrameCode] = useState(FRAMES[0].code);
   const [colorCode, setColorCode] = useState(COLORS[0].code);
   const [orientation, setOrientation] = useState('horizontal');
-  const [plateText, setPlateText] = useState('');
-  const [capelo, setCapelo] = useState(false);
   const [memoryNote, setMemoryNote] = useState('');
   const [unitPriceCents, setUnitPriceCents] = useState(null);
 
@@ -108,11 +100,13 @@ export default function Product() {
 
   useEffect(() => {
     let cancelled = false;
-    const addons = [capelo && 'capelo', plateText && 'placa'].filter(Boolean);
+    // No addons selector in the customer UI anymore (capelo/placa
+    // discontinued, brand-brief.md sección 16 decisión 5) — /api/pricing
+    // defaults addons to [] when omitted.
     fetchJson('/api/pricing', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ size_code: sizeCode, frame_code: frameCode, addons }),
+      body: JSON.stringify({ size_code: sizeCode, frame_code: frameCode }),
     })
       .then((data) => {
         if (!cancelled && data.unit_price != null) setUnitPriceCents(data.unit_price);
@@ -123,7 +117,7 @@ export default function Product() {
     return () => {
       cancelled = true;
     };
-  }, [sizeCode, frameCode, capelo, plateText]);
+  }, [sizeCode, frameCode]);
 
   const productDescription = place
     ? (place.story?.slice(0, 155) ?? `Mapa en relieve de ${place.name}, enmarcado en parota.`)
@@ -242,8 +236,6 @@ export default function Product() {
       frame_code: frameCode,
       color_code: colorCode,
       orientation,
-      plate_text: plateText || null,
-      capelo,
       memory_note: memoryNote || null,
     });
   }
@@ -443,35 +435,11 @@ export default function Product() {
               </p>
             </div>
 
-            {/* 8. Personalización (mensaje trasero del marco + capelo) */}
-            {!isPuzzle && (
-              <div className="mb-4 flex items-center gap-2">
-                <input
-                  id="capelo"
-                  type="checkbox"
-                  checked={capelo}
-                  onChange={(e) => setCapelo(e.target.checked)}
-                  className="appearance-none w-5 h-5 rounded border border-line bg-gallery-white relative cursor-pointer checked:bg-sello-navy checked:border-sello-navy after:content-[''] after:absolute after:inset-0 after:flex after:items-center after:justify-center checked:after:content-['✓'] after:text-dark-bg after:text-xs"
-                />
-                <label htmlFor="capelo" className="text-sm">
-                  Agregar capelo de vidrio{' '}
-                  <span className="text-graphite/60">{addonPrice(ADDONS.capelo)}</span>
-                </label>
-              </div>
-            )}
-
-            <div className="mb-6">
-              <label className="font-label uppercase tracking-wide text-xs block mb-1">
-                Placa grabada (opcional) <span className="normal-case text-graphite/60">{addonPrice(ADDONS.placa)}</span>
-              </label>
-              <input
-                value={plateText}
-                onChange={(e) => setPlateText(e.target.value)}
-                maxLength={40}
-                placeholder="Texto a grabar"
-                className="w-full border border-line rounded px-3 py-2"
-              />
-            </div>
+            {/* Capelo de vidrio y placa grabada se descontinuaron de la
+                interfaz de cliente — brand-brief.md sección 16 decisión 5.
+                order_items.capelo/plate_text se quedan en el esquema (igual
+                que 'nogal' en FRAMES/terracota en COLORS) por integridad de
+                FK de pedidos ya existentes; simplemente ya no se piden aquí. */}
 
             {/* 9. Link "Cómo se hizo esta pieza" — único punto de entrada
                 a /metodo-relieve desde la ficha de producto (sección 5/10
