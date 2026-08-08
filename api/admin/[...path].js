@@ -9,12 +9,12 @@ import { sendShippingNotice } from '../../lib/alerts.js';
 
 const ORDER_STATUSES = ['paid', 'in_production', 'shipped', 'delivered', 'cancelled'];
 
-// Handoff 8 ago 2026 sección 3.3, opción (a): sin panel de admin visual,
-// Ale marca un pedido enviado llamando este mismo PATCH (ya existía para
-// status/tracking_number) con Postman/curl — { tracking_number }. Cuando
-// esa llamada trae un tracking_number nuevo, el cliente recibe el correo
-// de rastreo automáticamente en ese momento, en vez de depender del cron
-// de n8n/workflows/order-shipped.json (nunca conectado a un n8n en vivo).
+// Handoff 8 ago 2026 sección 3.3, opción (a) + upgrade a (b): Ale marca un
+// pedido enviado desde /admin/envios (src/pages/AdminShip.jsx), que llama
+// este mismo PATCH — sin curl, sin Postman. Cuando trae un tracking_number
+// nuevo, el cliente recibe el correo de rastreo automáticamente en ese
+// momento, en vez de depender del cron de n8n/workflows/order-shipped.json
+// (nunca conectado a un n8n en vivo).
 async function patchOrder(req, res, id) {
   if (req.method !== 'PATCH') {
     res.setHeader('Allow', 'PATCH');
@@ -28,15 +28,28 @@ async function patchOrder(req, res, id) {
 
   const updates = {};
   if (status) updates.status = status;
-  if (tracking_number) updates.tracking_number = tracking_number;
+  if (tracking_number) {
+    updates.tracking_number = tracking_number;
+    // Entrar un número de guía ES la señal de "esto se envió" — sin este
+    // default, /pedido/:token se quedaba mostrando la etapa anterior
+    // (confirmado / en producción) aunque ya tuviera número de rastreo,
+    // que es justo el bug que Ale reportó al probar en vivo.
+    if (!status) updates.status = 'shipped';
+  }
   if (Object.keys(updates).length === 0) {
     return sendError(res, 400, 'invalid_request', 'Provide status and/or tracking_number');
   }
 
+  // Acepta el id numérico o el número humano (RLV-YYYY-NNNNNN) — Ale tiene
+  // el número a la mano (asunto del correo), no el id de Supabase.
+  const numericId = Number(id);
+  const filterColumn = Number.isInteger(numericId) ? 'id' : 'number';
+  const filterValue = Number.isInteger(numericId) ? numericId : id;
+
   const { data, error } = await supabase
     .from('orders')
     .update(updates)
-    .eq('id', id)
+    .eq(filterColumn, filterValue)
     .select('id, number, status, tracking_number, email, status_token')
     .maybeSingle();
 

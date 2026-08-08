@@ -33,6 +33,7 @@ const Faq = lazy(() => import('./pages/Faq.jsx'));
 const OrderStatus = lazy(() => import('./pages/OrderStatus.jsx'));
 const PrivacyNotice = lazy(() => import('./pages/PrivacyNotice.jsx'));
 const Terms = lazy(() => import('./pages/Terms.jsx'));
+const AdminShip = lazy(() => import('./pages/AdminShip.jsx'));
 const NotFound = lazy(() => import('./pages/NotFound.jsx'));
 
 function RouteFallback() {
@@ -95,6 +96,10 @@ export default function App() {
           <Route path="/pedido/:token" element={<OrderStatus />} />
           <Route path="/aviso-privacidad" element={<PrivacyNotice />} />
           <Route path="/terminos" element={<Terms />} />
+          {/* Sin link en la nav — Ale la usa directo por URL guardada,
+              handoff 8 ago 2026 sección 3.3 opción (b). Protegida por
+              ADMIN_TOKEN server-side (lib/adminAuth.js), no por esta ruta. */}
+          <Route path="/admin/envios" element={<AdminShip />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </Suspense>
