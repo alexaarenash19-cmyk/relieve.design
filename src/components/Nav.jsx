@@ -5,20 +5,13 @@
 // gallery's floating menu/filter buttons), same as `(pointer: fine)` hides
 // the native cursor for a hover-driven pill elsewhere. Coarse pointers
 // (touch) have no hover concept, so the bar just stays visible there.
-// New logo (2026-07-25): the old lockup (mountain icon + "RELIEVE MÉXICO")
-// was a single flattened PNG. Replaced with the new topographic mark (SVG,
-// cropped to its own bounding box so it isn't mostly empty canvas) composed
-// with real DOM text instead — an <img> of baked-in text would render in a
-// generic fallback serif (images don't inherit the page's @font-face), so
-// "RELIEVE"/"DESIGN" are actual text, which also makes future wordmark copy
-// changes a text edit instead of a re-export.
-// Full wordmark (2026-08-09): Ale supplied a vectorized full "relieve"
-// logotype (src/assets/brand/wordmark.svg) and asked for it site-wide,
-// replacing the icon+text lockup above with a single image — this
-// reverses the "keep text as real DOM text" reasoning above on purpose,
-// per Ale's explicit direction. Color is whatever's baked into her SVG
-// (a fixed dark gray), not `text-passport-ink` like the old text was —
-// flagged to her; revisit if it reads wrong against any background.
+// Full wordmark (2026-08-09): Ale's vectorized "relieve" logotype
+// (src/assets/brand/wordmark.svg), site-wide, replacing the old icon+text
+// lockup. Sized much larger per her follow-up ("hazlo mucho mas grande") —
+// h-14 instead of the original h-7. Page containers need enough top
+// padding to clear the taller bar now (see Collections.jsx) — the nav
+// stays `fixed`/translucent-until-scroll on purpose (floats over the
+// hero), so content has to leave room for it, not the other way around.
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useCart } from '../context/CartContext.jsx';
@@ -73,7 +66,7 @@ export default function Nav() {
       } ${visible ? 'translate-y-0 opacity-100' : '-translate-y-full opacity-0 pointer-events-none'}`}
     >
       <Link to="/" className="flex items-center">
-        <img src={wordmark} alt="Relieve Design" className="h-7 w-auto" />
+        <img src={wordmark} alt="Relieve Design" className="h-14 w-auto" />
       </Link>
       <div className="flex items-center gap-6 font-label uppercase tracking-wide text-xs">
         <Link

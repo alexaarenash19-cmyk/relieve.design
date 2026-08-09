@@ -3,6 +3,10 @@
 // the real places.series column: Origen/Travesía/Cumbre, brand-brief.md
 // sección 3). Reviews aggregated across all places live at the bottom,
 // since there's no longer a single catch-all collection to hang them off.
+// pt-32 (not p-8) — the nav's wordmark logo grew to h-14 (2026-08-09) and
+// visibly overlapped this page's H1 at the old p-8 top padding; nav is
+// `fixed`/out of flow on purpose (floats over the hero elsewhere), so
+// content has to leave room for it instead.
 import { useEffect, useState } from 'react';
 import { GalleryCard } from '../components/Gallery.jsx';
 import { fetchJsonArray } from '../lib/fetchJsonArray.js';
@@ -45,7 +49,7 @@ export default function Collections() {
   })).filter((s) => s.places.length > 0);
 
   return (
-    <main className="p-8">
+    <main className="pt-32 px-8 pb-8">
       <h1 className="font-heading font-bold text-brand-dark text-3xl mb-6">Colecciones</h1>
 
       <div className="flex gap-2 mb-8 font-label uppercase tracking-wide text-xs">
