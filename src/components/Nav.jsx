@@ -11,20 +11,18 @@
 // with real DOM text instead — an <img> of baked-in text would render in a
 // generic fallback serif (images don't inherit the page's @font-face), so
 // "RELIEVE"/"DESIGN" are actual text, which also makes future wordmark copy
-// changes a text edit instead of a re-export. Icon recolored to `#B9CCD8`
-// (blue, ui-ux.md's palette — Ale's call, the one reserved for
-// details/accents, not primary text) — at nav size (~28px) that reads
-// intentionally subtle against the cream bg, not a mistake; the wordmark
-// stays in passport-ink so it's actually legible.
-// Wordmark typeface (2026-07-25, same day): Ale didn't like Fraunces/Courier
-// Prime here, wants this one spot to match a reference ("Palmer") — bold
-// geometric sans. Uses `font-wordmark` (Poppins, index.css's @theme), a
-// token scoped to exactly this lockup — not `font-display`, so this doesn't
-// touch Fraunces anywhere else on the site.
+// changes a text edit instead of a re-export.
+// Full wordmark (2026-08-09): Ale supplied a vectorized full "relieve"
+// logotype (src/assets/brand/wordmark.svg) and asked for it site-wide,
+// replacing the icon+text lockup above with a single image — this
+// reverses the "keep text as real DOM text" reasoning above on purpose,
+// per Ale's explicit direction. Color is whatever's baked into her SVG
+// (a fixed dark gray), not `text-passport-ink` like the old text was —
+// flagged to her; revisit if it reads wrong against any background.
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useCart } from '../context/CartContext.jsx';
-import markIcon from '../assets/brand/mark.svg';
+import wordmark from '../assets/brand/wordmark.svg';
 
 // Was 72px — too easy to miss on a normal-sized viewport, effectively
 // hiding the only way back to the catalog/cart from every product page.
@@ -74,16 +72,8 @@ export default function Nav() {
           : 'bg-transparent'
       } ${visible ? 'translate-y-0 opacity-100' : '-translate-y-full opacity-0 pointer-events-none'}`}
     >
-      <Link to="/" className="flex items-center gap-2">
-        <img src={markIcon} alt="" className="h-7 w-auto" />
-        <span className="flex flex-col leading-none">
-          <span className="font-wordmark font-bold text-lg tracking-tight text-passport-ink">
-            RELIEVE
-          </span>
-          <span className="font-wordmark font-semibold text-[9px] tracking-[0.15em] text-passport-ink/70 mt-0.5">
-            DESIGN
-          </span>
-        </span>
+      <Link to="/" className="flex items-center">
+        <img src={wordmark} alt="Relieve Design" className="h-7 w-auto" />
       </Link>
       <div className="flex items-center gap-6 font-label uppercase tracking-wide text-xs">
         <Link
