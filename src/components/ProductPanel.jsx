@@ -93,6 +93,14 @@ export default function ProductPanel() {
       role="dialog"
       aria-label="Detalle de pieza"
       aria-hidden={!isOpen}
+      // Hallazgo (auditoría 10 ago 2026): aria-hidden con hijos tabulables
+      // detrás (botones de miniatura, CTA) es justo el patrón que las
+      // WAI-ARIA Authoring Practices prohíben — className ya usa
+      // `invisible` cuando está cerrado, que en la práctica ya saca el
+      // contenido del tab order en la mayoría de navegadores, pero inert
+      // lo hace explícito y a prueba de que ese detalle de CSS cambie más
+      // adelante, mismo tratamiento que CartDrawer.jsx.
+      inert={!isOpen}
       className={`fixed inset-0 z-50 flex ${isOpen ? '' : 'invisible'}`}
     >
       {/* .focus-left: flex:1 1 50%, max-width:50%, bg gallery-white,
@@ -200,7 +208,12 @@ export default function ProductPanel() {
               ref={ctaRef}
               href={`/pieza/${place.slug}`}
               onClick={closeProduct}
-              className="group self-start inline-flex items-center gap-2 rounded-full bg-graphite text-gallery-white px-[18px] py-[10px] font-body font-medium text-[0.82rem]"
+              // Hallazgo (auditoría 10 ago 2026): bg-graphite/font-body
+              // font-medium no seguía el tratamiento estándar de botón del
+              // resto del sitio — bg-brand-dark/font-heading font-bold,
+              // igual que el propio botón de cerrar de este componente
+              // (línea de abajo, ya migrado en un pase anterior).
+              className="group self-start inline-flex items-center gap-2 rounded-full bg-brand-dark text-gallery-white px-[18px] py-[10px] font-heading font-bold text-[0.82rem]"
             >
               Ver pieza completa{' '}
               <span className="inline-block transition-transform duration-[350ms] group-hover:-rotate-45">

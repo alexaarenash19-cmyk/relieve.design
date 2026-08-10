@@ -340,7 +340,11 @@ function ExperienceToggle({ view, onChange }) {
     <div className="sticky top-20 z-30 flex justify-center">
       <button
         onClick={() => onChange(view === 'scattered' ? 'grid' : 'scattered')}
-        className="flex items-center gap-2 rounded-full border border-graphite px-4 py-[7px] font-body text-xs bg-transparent"
+        // Hallazgo (auditoría 10 ago 2026): graphite fragmentaba el acento
+        // frente a GHOST_PILL/DARK_PILL (definidos más abajo en este mismo
+        // archivo), que ya fijan brand-dark como el único acento de pill
+        // post-rebrand.
+        className="flex items-center gap-2 rounded-full border border-brand-dark text-brand-dark px-4 py-[7px] font-body text-xs bg-transparent"
       >
         <svg viewBox="0 0 12 12" width="10" height="10" aria-hidden="true">
           {[0, 1, 2].flatMap((r) =>
@@ -470,7 +474,8 @@ function MenuButton({ open, onToggle }) {
       onClick={onToggle}
       onMouseEnter={onEnter}
       onMouseLeave={onLeave}
-      className="rounded-full border border-graphite bg-transparent text-graphite pl-[10px] pr-4 py-2 font-label uppercase tracking-wide text-xs inline-flex items-center gap-2 overflow-hidden"
+      // Hallazgo (auditoría 10 ago 2026): mismo fix de acento que ExperienceToggle arriba.
+      className="rounded-full border border-brand-dark bg-transparent text-brand-dark pl-[10px] pr-4 py-2 font-label uppercase tracking-wide text-xs inline-flex items-center gap-2 overflow-hidden"
     >
       <span ref={boxRef} className="explorar-menu-icon-box">
         <span ref={lineTopRef} className="explorar-menu-line explorar-line-top" />
@@ -622,7 +627,7 @@ function BottomControlBar({
                 onClick={() => setType(opt.value)}
                 className={`rounded-full px-3 py-1.5 font-label uppercase tracking-wide text-[10px] ${
                   type === opt.value
-                    ? 'bg-graphite text-gallery-white'
+                    ? 'bg-brand-dark text-gallery-white' // Hallazgo (auditoría 10 ago 2026): mismo fix de acento fragmentado
                     : 'border border-line text-graphite'
                 }`}
               >
@@ -639,7 +644,7 @@ function BottomControlBar({
                 onClick={() => setColor(opt.value)}
                 className={`rounded-full px-3 py-1.5 font-label uppercase tracking-wide text-[10px] ${
                   color === opt.value
-                    ? 'bg-graphite text-gallery-white'
+                    ? 'bg-brand-dark text-gallery-white' // Hallazgo (auditoría 10 ago 2026): mismo fix de acento fragmentado
                     : 'border border-line text-graphite'
                 }`}
               >
@@ -656,7 +661,7 @@ function BottomControlBar({
                 onClick={() => setSize(opt.value)}
                 className={`rounded-full px-3 py-1.5 font-label uppercase tracking-wide text-[10px] ${
                   size === opt.value
-                    ? 'bg-graphite text-gallery-white'
+                    ? 'bg-brand-dark text-gallery-white' // Hallazgo (auditoría 10 ago 2026): mismo fix de acento fragmentado
                     : 'border border-line text-graphite'
                 }`}
               >
@@ -726,6 +731,7 @@ function useZoomIn(zoomIn) {
 
 export default function Gallery({ zoomIn = false }) {
   const [places, setPlaces] = useState([]);
+  const [loadFailed, setLoadFailed] = useState(false);
   const [type, setType] = useState('');
   // size/color are a browsing preview only — every piece is made to order
   // in any size/color, so these don't touch the /api/places query.
@@ -737,7 +743,13 @@ export default function Gallery({ zoomIn = false }) {
 
   useEffect(() => {
     const query = type ? `?type=${type}` : '';
-    fetchJsonArray(`/api/places${query}`).then(setPlaces);
+    // Hallazgo (auditoría 10 ago 2026): antes no había forma de distinguir
+    // "no hay piezas con ese filtro" de "la petición falló" — ambos daban
+    // un lienzo vacío en silencio.
+    fetchJsonArray(`/api/places${query}`).then(({ data, failed }) => {
+      setPlaces(data);
+      setLoadFailed(failed);
+    });
   }, [type]);
 
   function resetFilters() {
@@ -764,6 +776,12 @@ export default function Gallery({ zoomIn = false }) {
         }}
       >
         <ExperienceToggle view={view} onChange={setView} />
+
+        {loadFailed && places.length === 0 && (
+          <p className="text-center font-label uppercase tracking-wide text-xs text-graphite/60 py-8">
+            No pudimos cargar el catálogo. Intenta recargar la página.
+          </p>
+        )}
 
         {view === 'scattered' ? (
           <>

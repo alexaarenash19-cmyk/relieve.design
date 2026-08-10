@@ -33,7 +33,13 @@ export default function CustomCursor() {
       className="fixed z-[100] pointer-events-none -translate-x-1/2 -translate-y-1/2"
       style={{ left: pos.x, top: pos.y }}
     >
-      <span className="flex items-center justify-center h-9 px-4 rounded-full bg-sello-navy text-dark-bg font-label uppercase tracking-wide text-xs whitespace-nowrap">
+      {/* Hallazgo (auditoría 10 ago 2026): acento de pill fragmentado
+          (Gallery.jsx fija bg-brand-dark/text-gallery-white como el único
+          acento post-rebrand vía sus constantes DARK_PILL/GHOST_PILL) —
+          además, bg-sello-navy + text-dark-bg medía ~1.61:1, texto casi
+          invisible sobre el cursor en cualquier target con
+          data-cursor-label. */}
+      <span className="flex items-center justify-center h-9 px-4 rounded-full bg-brand-dark text-gallery-white font-label uppercase tracking-wide text-xs whitespace-nowrap">
         {label}
       </span>
     </div>

@@ -19,6 +19,7 @@ const ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
 
 export default function Search() {
   const [places, setPlaces] = useState([]);
+  const [loadFailed, setLoadFailed] = useState(false);
   const [query, setQuery] = useState('');
   const [series, setSeries] = useState('');
   const [letter, setLetter] = useState(null);
@@ -33,7 +34,13 @@ export default function Search() {
   });
 
   useEffect(() => {
-    fetchJsonArray('/api/places').then(setPlaces);
+    // Hallazgo (auditoría 10 ago 2026): antes era imposible distinguir "no
+    // hay resultados para tu búsqueda" (mensaje correcto) de "la petición
+    // de /api/places falló" (mismo mensaje, engañoso).
+    fetchJsonArray('/api/places').then(({ data, failed }) => {
+      setPlaces(data);
+      setLoadFailed(failed);
+    });
   }, []);
 
   useEffect(() => {
@@ -119,7 +126,14 @@ export default function Search() {
         </div>
       </div>
 
-      {query && filtered.length === 0 ? (
+      {loadFailed && places.length === 0 ? (
+        <div className="border border-line rounded-[9px] p-6 text-center">
+          <p className="font-label uppercase tracking-wide text-xs text-graphite/60 mb-2">
+            Error de conexión
+          </p>
+          <p>No pudimos cargar el catálogo. Intenta recargar la página.</p>
+        </div>
+      ) : query && filtered.length === 0 ? (
         // Business differentiator is "si no tenemos el dato real, lo
         // dejamos en blanco" — someone searching for a place we don't have
         // needs to know that clearly, with a way to ask for it, instead of

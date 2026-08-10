@@ -1,12 +1,16 @@
 // P2 — cart as a slide-out drawer, boarding-pass styled (Courier Prime,
 // perforated edge), per ui-ux.md "Carrito: drawer estilo boarding pass".
 // Replaces the old full-page /carrito.
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useCart } from '../context/CartContext.jsx';
 import { useEscapeKey } from '../lib/useEscapeKey.js';
 import Button from './Button.jsx';
 
 const FREE_SHIPPING_THRESHOLD_CENTS = 250000; // $2,500 MXN — api.md checkout rule
+// Hallazgo (auditoría 10 ago 2026): storage propio, separado de
+// CartContext's STORAGE_KEY — ver el comentario en CartContext.jsx sobre
+// por qué giftMessage salió del contexto compartido.
+const GIFT_MESSAGE_KEY = 'relieve_cart_gift_message';
 
 function money(cents) {
   return `$${(cents / 100).toLocaleString('es-MX')} MXN`;
@@ -17,17 +21,34 @@ export default function CartDrawer() {
     items,
     subtotal_cents,
     isGift,
-    giftMessage,
     removeItem,
     updateQty,
     setIsGift,
-    setGiftMessage,
     isOpen,
     closeCart,
   } = useCart();
 
   const remaining = Math.max(0, FREE_SHIPPING_THRESHOLD_CENTS - subtotal_cents);
   const progress = Math.min(100, (subtotal_cents / FREE_SHIPPING_THRESHOLD_CENTS) * 100);
+
+  // Solo este componente lee/escribe giftMessage — sacarlo de CartContext
+  // (auditoría 10 ago 2026) es lo que de verdad evita que cada tecla acá
+  // re-renderice a Nav.jsx y al resto de consumidores de useCart().
+  const [giftMessage, setGiftMessage] = useState(() => {
+    try {
+      return localStorage.getItem(GIFT_MESSAGE_KEY) ?? '';
+    } catch {
+      return '';
+    }
+  });
+  useEffect(() => {
+    try {
+      localStorage.setItem(GIFT_MESSAGE_KEY, giftMessage);
+    } catch {
+      // Same "private mode disables storage" tolerance as loadInitial in
+      // CartContext.jsx — a lost draft note isn't worth a crash.
+    }
+  }, [giftMessage]);
 
   const [email, setEmail] = useState('');
   const [checkoutError, setCheckoutError] = useState(null);
@@ -77,6 +98,15 @@ export default function CartDrawer() {
         role="dialog"
         aria-label="Carrito"
         aria-hidden={!isOpen}
+        // Hallazgo (auditoría 10 ago 2026): aria-hidden solo no basta —
+        // las WAI-ARIA Authoring Practices lo prohíben explícitamente
+        // cuando el contenido oculto sigue teniendo elementos tabulables
+        // (los botones +/-/Quitar/Pagar de aquí adentro). inert (soportado
+        // nativamente, React lo pasa como boolean prop) saca todo el
+        // subárbol del orden de tabulación y de la búsqueda de foco
+        // mientras el drawer está cerrado, sin tener que desmontar el
+        // contenido.
+        inert={!isOpen}
         className={`fixed inset-y-0 right-0 z-50 w-full max-w-sm bg-gallery-white overflow-y-auto transition-transform duration-300 ${
           isOpen ? 'translate-x-0' : 'translate-x-full'
         }`}

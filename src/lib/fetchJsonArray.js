@@ -22,14 +22,22 @@ async function fetchWithTimeout(url, options, timeoutMs) {
   }
 }
 
+// Hallazgo (auditoría 10 ago 2026): devolvía siempre un array plano — un
+// [] por "no hay resultados" y un [] por "la petición falló" eran
+// indistinguibles para quien llama, así que ningún consumidor podía
+// mostrar un estado de error real en vez de una lista vacía silenciosa.
+// { data, failed } es la forma nueva: `data` sigue siendo siempre un
+// array (nunca undefined, para no romper ningún .map() existente),
+// `failed` es true solo cuando la petición en sí falló (timeout, red,
+// respuesta no-ok, JSON inválido) — nunca por una lista genuinamente vacía.
 export async function fetchJsonArray(url, timeoutMs = DEFAULT_TIMEOUT_MS) {
   try {
     const res = await fetchWithTimeout(url, undefined, timeoutMs);
-    if (!res.ok) return [];
+    if (!res.ok) return { data: [], failed: true };
     const data = await res.json();
-    return Array.isArray(data) ? data : [];
+    return Array.isArray(data) ? { data, failed: false } : { data: [], failed: true };
   } catch {
-    return [];
+    return { data: [], failed: true };
   }
 }
 

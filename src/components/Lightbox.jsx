@@ -4,7 +4,7 @@
 // "view larger" expansion.
 import { useEffect } from 'react';
 
-export default function Lightbox({ photos, index, onIndexChange, onClose }) {
+export default function Lightbox({ photos, index, onIndexChange, onClose, alt = '' }) {
   useEffect(() => {
     function onKeydown(e) {
       if (e.key === 'Escape') onClose();
@@ -19,7 +19,15 @@ export default function Lightbox({ photos, index, onIndexChange, onClose }) {
   const photo = photos[index];
 
   return (
+    // Hallazgo (auditoría 10 ago 2026): sin role="dialog"/aria-modal, a
+    // diferencia de ProductPanel.jsx/CartDrawer.jsx — mismo tratamiento
+    // ahora. (Ninguno de esos dos componentes tiene un focus trap real de
+    // Tab tampoco, así que no se inventó uno aquí que no exista ya en el
+    // codebase; Escape/flechas ya funcionaban vía el listener de abajo.)
     <div
+      role="dialog"
+      aria-modal="true"
+      aria-label={alt || 'Foto ampliada'}
       className="fixed inset-0 z-[150] bg-dark-bg/95 flex items-center justify-center"
       onClick={onClose}
     >
@@ -39,7 +47,7 @@ export default function Lightbox({ photos, index, onIndexChange, onClose }) {
       ) : (
         <img
           src={photo.url}
-          alt=""
+          alt={alt}
           onClick={(e) => e.stopPropagation()}
           className="max-w-[90vw] max-h-[80vh] object-contain"
         />

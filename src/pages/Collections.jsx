@@ -21,6 +21,7 @@ function byName(a, b) {
 
 export default function Collections() {
   const [places, setPlaces] = useState([]);
+  const [loadFailed, setLoadFailed] = useState(false);
   const [view, setView] = useState('todos'); // 'todos' | 'categoria'
 
   useDocumentHead({
@@ -31,9 +32,12 @@ export default function Collections() {
 
   useEffect(() => {
     let cancelled = false;
-    fetchJsonArray('/api/places').then((data) => {
+    // Hallazgo (auditoría 10 ago 2026): distingue "no hay piezas" de "la
+    // petición falló".
+    fetchJsonArray('/api/places').then(({ data, failed }) => {
       if (cancelled) return;
       setPlaces([...data].sort(byName));
+      setLoadFailed(failed);
     });
     return () => {
       cancelled = true;
@@ -48,6 +52,12 @@ export default function Collections() {
   return (
     <main className="pt-32 px-8 pb-8">
       <h1 className="font-heading font-bold text-brand-dark text-3xl mb-6">Colecciones</h1>
+
+      {loadFailed && places.length === 0 && (
+        <p className="font-label uppercase tracking-wide text-xs text-graphite/60 mb-6">
+          No pudimos cargar el catálogo. Intenta recargar la página.
+        </p>
+      )}
 
       <div className="flex gap-2 mb-8 font-label uppercase tracking-wide text-xs">
         <button
