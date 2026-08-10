@@ -8,6 +8,17 @@ export default function RollingPrice({ cents, className = '' }) {
   useEffect(() => {
     const from = fromRef.current;
     const to = cents;
+
+    // Hallazgo (auditoría 10 ago 2026): único componente animado del sitio
+    // que no respetaba prefers-reduced-motion, a diferencia de CSS y del
+    // resto de JS (LoadingReveal, lib/animations.js). Salta directo al
+    // valor final en vez de correr los ~400ms de rAF.
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      setDisplay(to);
+      fromRef.current = to;
+      return;
+    }
+
     const start = performance.now();
     const duration = 400;
 

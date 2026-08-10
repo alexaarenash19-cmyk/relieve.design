@@ -6,7 +6,7 @@
 // gancho → pregunta → historia → ficha técnica → personalización → link
 // de método → precio/CTA → tiempos → cómo llega → trust). Ver §16
 // decisión 10 (video de unboxing) y §20 (registro de esta ejecución).
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useCart } from '../context/CartContext.jsx';
 import {
@@ -63,6 +63,17 @@ const ACCENT_BY_SLUG = {
 function accentFor(slug) {
   return ACCENT_CLASSES[ACCENT_BY_SLUG[slug] ?? 'stone'];
 }
+
+// Same shape as scripts/prerender.mjs's buildPlaceHtml() — that version
+// covers the first request (crawlers, direct loads), this one keeps it
+// live once React Router navigates here client-side, and reflects the
+// real-time price/status instead of whatever was true at last build.
+// Hoisted to module scope (was recreated every render for no reason) —
+// static lookup table, doesn't depend on anything in the component.
+const JSONLD_AVAILABILITY = {
+  soldout: 'https://schema.org/OutOfStock',
+  preorder: 'https://schema.org/PreOrder',
+};
 
 export default function Product() {
   const { slug } = useParams();
@@ -124,29 +135,30 @@ export default function Product() {
     ? (place.story?.slice(0, 155) ?? `Mapa en relieve de ${place.name}, enmarcado en parota.`)
     : undefined;
 
-  // Same shape as scripts/prerender.mjs's buildPlaceHtml() — that version
-  // covers the first request (crawlers, direct loads), this one keeps it
-  // live once React Router navigates here client-side, and reflects the
-  // real-time price/status instead of whatever was true at last build.
-  const JSONLD_AVAILABILITY = {
-    soldout: 'https://schema.org/OutOfStock',
-    preorder: 'https://schema.org/PreOrder',
-  };
-  const productJsonLd = place
-    ? {
-        '@context': 'https://schema.org',
-        '@type': 'Product',
-        name: `Relieve · ${place.name}`,
-        description: productDescription,
-        image: place.thumb_url ?? undefined,
-        offers: {
-          '@type': 'Offer',
-          priceCurrency: 'MXN',
-          price: ((unitPriceCents ?? place.base_price) / 100).toFixed(2),
-          availability: JSONLD_AVAILABILITY[place.status] ?? 'https://schema.org/InStock',
-        },
-      }
-    : undefined;
+  // Bug found in audit 10 ago 2026: this was a plain object literal
+  // rebuilt on every render — since memoryNote is state on this same
+  // component, every keystroke in "En una frase, ¿por qué este lugar?"
+  // re-ran this and gave useDocumentHead's effect below a new object
+  // reference (even though the actual JSON-LD content hadn't changed),
+  // which re-wrote document.title/meta/JSON-LD on every single keystroke.
+  // useMemo keys off the real inputs, so this only recomputes when the
+  // piece, its price, or its description actually change.
+  const productJsonLd = useMemo(() => {
+    if (!place) return undefined;
+    return {
+      '@context': 'https://schema.org',
+      '@type': 'Product',
+      name: `Relieve · ${place.name}`,
+      description: productDescription,
+      image: place.thumb_url ?? undefined,
+      offers: {
+        '@type': 'Offer',
+        priceCurrency: 'MXN',
+        price: ((unitPriceCents ?? place.base_price) / 100).toFixed(2),
+        availability: JSONLD_AVAILABILITY[place.status] ?? 'https://schema.org/InStock',
+      },
+    };
+  }, [place, unitPriceCents, productDescription]);
 
   useDocumentHead({
     title: place ? `${place.name} — Mapa en relieve | Relieve` : undefined,
@@ -336,9 +348,11 @@ export default function Product() {
           {storyBody && <p className="mb-10 leading-relaxed max-w-[46ch]">{storyBody}</p>}
 
           {/* Todo lo demás vive en su propia card neutral, para que el
-              estilo navy de selección existente (bg-sello-navy en el chip
-              activo, border-line el resto) siga siendo legible sin
-              importar el accent de fondo de arriba. */}
+              estilo de selección existente (bg-brand-dark en el chip
+              activo — corregido de un "bg-sello-navy" desactualizado que
+              ya no coincidía con el código, auditoría 10 ago 2026 —,
+              border-line el resto) siga siendo legible sin importar el
+              accent de fondo de arriba. */}
           <div className="bg-gallery-white text-graphite rounded-[9px] p-6">
             <div className="flex flex-wrap gap-3 mb-6">
               <BaggageTag label="Ubicación" value={place.name} />

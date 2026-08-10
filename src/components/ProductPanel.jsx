@@ -12,6 +12,7 @@ import { useProductPanel } from '../context/ProductPanelContext.jsx';
 import { fetchJson } from '../lib/fetchJsonArray.js';
 import { piecePhotos } from '../lib/photography.js';
 import { categoryLabel } from '../lib/categories.js';
+import { useEscapeKey } from '../lib/useEscapeKey.js';
 // Función pura de animación (spec table + fuente en el propio archivo) —
 // ver src/lib/animations.js. Esa misma importación ya registra GSAP's
 // CustomEase y crea 'relieveEase', así que este archivo no necesita
@@ -55,13 +56,7 @@ export default function ProductPanel() {
     setActivePhoto(0);
   }, [slug]);
 
-  useEffect(() => {
-    function onKeydown(e) {
-      if (e.key === 'Escape') closeProduct();
-    }
-    window.addEventListener('keydown', onKeydown);
-    return () => window.removeEventListener('keydown', onKeydown);
-  }, [closeProduct]);
+  useEscapeKey(closeProduct);
 
   // piecePhotos() ahora devuelve {url, type}[] (sección 16 decisión 10, para
   // soportar video en el carrusel de Product.jsx) — este panel se mantiene
@@ -146,6 +141,10 @@ export default function ProductPanel() {
                     <button
                       key={p.url}
                       onClick={() => setActivePhoto(i)}
+                      // Hallazgo (auditoría 10 ago 2026): sin aria-label ni
+                      // alt real, este botón no tenía nombre accesible.
+                      aria-label={`Ver foto ${i + 1} de ${place?.name ?? 'esta pieza'}`}
+                      aria-pressed={i === activePhoto}
                       className={`w-[42px] h-[42px] p-0 border rounded-[2px] overflow-hidden bg-stone cursor-pointer transition-[opacity,border-color] duration-200 ${
                         i === activePhoto
                           ? 'opacity-100 border-graphite'
