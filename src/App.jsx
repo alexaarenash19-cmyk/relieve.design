@@ -2,6 +2,7 @@ import { Suspense, lazy } from 'react';
 import { Routes, Route, Link } from 'react-router-dom';
 import Nav from './components/Nav.jsx';
 import TrustBar from './components/TrustBar.jsx';
+import LoadingReveal from './components/LoadingReveal.jsx';
 import CustomCursor from './components/CustomCursor.jsx';
 import PageStamp from './components/PageStamp.jsx';
 import CartDrawer from './components/CartDrawer.jsx';
@@ -74,6 +75,7 @@ export default function App() {
       <CustomCursor />
       <TrustBar />
       <Nav />
+      <LoadingReveal />
       <CartDrawer />
       <ProductPanel />
       <Suspense fallback={<RouteFallback />}>

@@ -23,6 +23,7 @@ import {
 import { usePageWipe } from '../context/PageWipeContext.jsx';
 import Gallery from '../components/Gallery.jsx';
 import CurvaDeNivel from '../components/CurvaDeNivel.jsx';
+import CanvasBottomStrip from '../components/CanvasBottomStrip.jsx';
 import { useDocumentHead } from '../lib/useDocumentHead.js';
 
 const HERO_SEEN_KEY = 'relieve_hero_seen';
@@ -117,11 +118,17 @@ export default function Home() {
   // (Gallery ya no es fixed full-screen, ver Gallery.jsx); Footer se
   // renderiza en App.jsx fuera de <Routes>, así que cae después de lo que
   // sea que esta página pinte al final, sin tocar App.jsx por ruta.
+  // 2026-08-09 rebrand hand-off §3/§4 — CanvasBottomStrip mirrors
+  // TrustBar.jsx's Home-only top-strip swap: present across all three
+  // branches below (same unconditional "Home chrome" treatment as Nav,
+  // not gated to only-when-canvas-is-showing), for the same simplicity
+  // Ale's own confirmed decision picked for the top strip.
   if (pastHero) {
     return (
       <>
         <Gallery zoomIn={justArrived} />
         <CurvaDeNivel />
+        <CanvasBottomStrip />
       </>
     );
   }
@@ -132,6 +139,7 @@ export default function Home() {
         <HeroReducedMotion />
         <Gallery />
         <CurvaDeNivel />
+        <CanvasBottomStrip />
       </>
     );
   }
@@ -147,6 +155,7 @@ export default function Home() {
           setPastHero(true);
         }}
       />
+      <CanvasBottomStrip />
     </HeroScrollProvider>
   );
 }
