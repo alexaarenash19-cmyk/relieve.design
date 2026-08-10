@@ -1,0 +1,64 @@
+// Hallazgo #5 (auditoría 10 ago 2026) — memory_note/custom_place/gift_message
+// (and email/phone/address) come straight from the client and must never
+// reach the transactional emails as raw HTML. Run: node tests/alerts.test.mjs
+import assert from 'node:assert';
+
+process.env.RESEND_API_KEY = 'dummy_resend_key';
+
+const sentEmails = [];
+const realFetch = globalThis.fetch;
+globalThis.fetch = async (input, init = {}) => {
+  const url = typeof input === 'string' ? input : input.url;
+  if (url.startsWith('https://api.resend.com/')) {
+    sentEmails.push(JSON.parse(init.body));
+    return new Response(JSON.stringify({ id: 'email_test' }), { status: 200 });
+  }
+  return realFetch(input, init);
+};
+
+const { sendOrderPaidNotification, sendOrderConfirmation } = await import('../lib/alerts.js');
+
+const XSS = '<script>alert(1)</script>';
+const order = {
+  number: 'RLV-2026-000001',
+  email: `cliente${XSS}@example.com`,
+  status_token: 'tok123',
+  subtotal_cents: 129900,
+  shipping_cents: 0,
+  total_cents: 129900,
+  is_gift: true,
+  gift_message: XSS,
+};
+const items = [
+  {
+    custom_place: XSS,
+    size_code: 'chico',
+    frame_code: 'parota',
+    qty: 1,
+    unit_price_cents: 129900,
+    memory_note: XSS,
+  },
+];
+
+// 1. Internal "pedido pagado" notification to Ale.
+{
+  sentEmails.length = 0;
+  await sendOrderPaidNotification(order, items, { phone: XSS, address: { line1: XSS, city: 'CDMX' } });
+  assert.strictEqual(sentEmails.length, 1);
+  const html = sentEmails[0].html;
+  assert.ok(!html.includes('<script>'), `raw <script> leaked into sendOrderPaidNotification html:\n${html}`);
+  assert.ok(html.includes('&lt;script&gt;'), 'expected the XSS payload to appear escaped');
+}
+
+// 2. Customer-facing "pedido confirmado" email.
+{
+  sentEmails.length = 0;
+  await sendOrderConfirmation(order, items);
+  assert.strictEqual(sentEmails.length, 1);
+  const html = sentEmails[0].html;
+  assert.ok(!html.includes('<script>'), `raw <script> leaked into sendOrderConfirmation html:\n${html}`);
+  assert.ok(html.includes('&lt;script&gt;'), 'expected the XSS payload to appear escaped');
+}
+
+globalThis.fetch = realFetch;
+console.log('alerts HTML-escaping checks: OK');

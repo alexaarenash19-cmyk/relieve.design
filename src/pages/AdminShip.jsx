@@ -5,14 +5,24 @@
 // falta una interfaz más amigable. No agrega seguridad propia: sigue
 // protegido por el mismo ADMIN_TOKEN que ya exige el backend
 // (lib/adminAuth.js) — esta página solo evita que Ale tenga que abrir una
-// terminal. El token se pide una vez y se guarda en localStorage del
-// navegador, nunca en el código ni en el repo.
+// terminal.
+//
+// Hallazgo #2 (auditoría 10 ago 2026): el token vivía en localStorage,
+// legible por JS desde cualquier página del sitio (no solo /admin) y
+// persistente entre sesiones — un XSS futuro en cualquier componente
+// tendría control total sobre las rutas /api/admin/*. sessionStorage es la
+// mitigación mínima (mismo problema de "JS puede leerlo" si hay XSS, pero
+// ya no sobrevive a cerrar la pestaña, y no se comparte entre pestañas
+// nuevas). El fix robusto de verdad — cookie httpOnly seteada por un login
+// del servidor, para que JS nunca toque el valor — es un cambio de
+// arquitectura más grande (necesita un endpoint de login dedicado) y queda
+// fuera de este PR.
 import { useState } from 'react';
 
 const TOKEN_KEY = 'relieve_admin_token';
 
 export default function AdminShip() {
-  const [token, setToken] = useState(() => localStorage.getItem(TOKEN_KEY) ?? '');
+  const [token, setToken] = useState(() => sessionStorage.getItem(TOKEN_KEY) ?? '');
   const [orderId, setOrderId] = useState('');
   const [trackingNumber, setTrackingNumber] = useState('');
   const [result, setResult] = useState(null); // { ok, message }
@@ -20,7 +30,12 @@ export default function AdminShip() {
 
   function saveToken(value) {
     setToken(value);
-    localStorage.setItem(TOKEN_KEY, value);
+    sessionStorage.setItem(TOKEN_KEY, value);
+  }
+
+  function logout() {
+    setToken('');
+    sessionStorage.removeItem(TOKEN_KEY);
   }
 
   async function handleSubmit(e) {
@@ -69,9 +84,14 @@ export default function AdminShip() {
           type="password"
           value={token}
           onChange={(e) => saveToken(e.target.value)}
-          placeholder="Se guarda en este navegador — solo lo pides una vez"
+          placeholder="Se guarda solo mientras esta pestaña está abierta"
           className="w-full border border-line rounded px-3 py-2"
         />
+        {token && (
+          <button type="button" onClick={logout} className="mt-2 text-xs text-graphite/60 underline">
+            Cerrar sesión
+          </button>
+        )}
       </div>
 
       <form onSubmit={handleSubmit}>
