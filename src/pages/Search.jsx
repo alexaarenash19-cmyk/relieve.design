@@ -60,10 +60,18 @@ export default function Search() {
   });
 
   return (
-    <main className="max-w-3xl mx-auto p-8">
+    // Hallazgo #8 (auditoría 10 ago 2026): pt-32 (no p-8), mismo fix que
+    // Collections.jsx ya tiene.
+    <main className="max-w-3xl mx-auto pt-32 px-8 pb-8">
       <div className="relative mb-6 rounded-[9px] bg-dark-bg text-dark-fg px-6 py-8 overflow-hidden">
         <TopoLines className="absolute inset-0 w-full h-full text-dark-fg/30" />
-        <h1 className="relative font-heading font-bold text-brand-dark text-3xl">Encuentra tu lugar</h1>
+        {/* Encontrado de paso al revisar hallazgo #4 en este mismo archivo:
+            text-brand-dark sobre bg-dark-bg medía ~2.33:1 (WCAG AA pide
+            3:1 mínimo incluso para texto grande) — mismo bug de fondo/texto
+            fijo que el h1 de Product.jsx, aquí sobre un bloque oscuro en
+            vez de un accent de color. text-dark-fg (~14:1) es el token que
+            ya usa el párrafo justo debajo. */}
+        <h1 className="relative font-heading font-bold text-dark-fg text-3xl">Encuentra tu lugar</h1>
         <p className="relative font-label uppercase tracking-wide text-xs text-dark-fg/60 mt-2">
           {places.length} destinos en catálogo
         </p>
@@ -134,7 +142,12 @@ export default function Search() {
                 className="flex items-center justify-between py-3 hover:bg-line/40 px-1"
               >
                 <span className="font-display font-light text-lg normal-case">{p.name}</span>
-                <span className="uppercase tracking-wide text-xs text-explorer-blue">
+                {/* Hallazgo #4 (auditoría 10 ago 2026): text-explorer-blue
+                    sobre el fondo gallery-white de esta página medía
+                    ~1.49:1 (WCAG AA pide 4.5:1) — casi invisible. Cambiado a
+                    text-passport-ink (~6.61:1), el mismo token que ya usa
+                    el link "Solicita tu lugar →" un poco más arriba. */}
+                <span className="uppercase tracking-wide text-xs text-passport-ink">
                   {seriesLabel(p.series)}
                 </span>
               </a>

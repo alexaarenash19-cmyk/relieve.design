@@ -7,7 +7,8 @@ import Button from '../components/Button.jsx';
 
 export default function Gift() {
   return (
-    <main className="max-w-2xl mx-auto p-8 text-center">
+    // Hallazgo #8 (auditoría 10 ago 2026): pt-32 (no p-8) — mismo fix que Collections.jsx.
+    <main className="max-w-2xl mx-auto pt-32 px-8 pb-8 text-center">
       <h1 className="font-heading font-bold text-brand-dark text-3xl md:text-4xl mb-4">
         El regalo que demuestra que sí prestaste atención.
       </h1>
