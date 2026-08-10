@@ -42,7 +42,8 @@ export default function OrderSuccess() {
 
   if (gaveUp) {
     return (
-      <main className="max-w-2xl mx-auto p-8 text-center">
+      // Hallazgo #8 (auditoría 10 ago 2026): pt-32 (no p-8) — mismo fix que Collections.jsx.
+      <main className="max-w-2xl mx-auto pt-32 px-8 pb-8 text-center">
         <p className="font-label uppercase tracking-wide text-sm mb-2">Tu pago se confirmó</p>
         <p className="text-graphite/60">
           Estamos terminando de registrar tu pedido — revisa tu correo en unos minutos para el

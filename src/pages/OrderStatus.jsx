@@ -64,7 +64,8 @@ export default function OrderStatus() {
 
   if (order.status === 'cancelled') {
     return (
-      <main className="max-w-2xl mx-auto p-8">
+      // Hallazgo #8 (auditoría 10 ago 2026): pt-32 (no p-8) — mismo fix que Collections.jsx.
+    <main className="max-w-2xl mx-auto pt-32 px-8 pb-8">
         <h1 className="font-heading font-bold text-brand-dark uppercase tracking-wide text-lg mb-4">
           Pedido {order.number}
         </h1>
@@ -77,7 +78,8 @@ export default function OrderStatus() {
   const stateCopy = STATE_COPY[order.status];
 
   return (
-    <main className="max-w-2xl mx-auto p-8">
+    // Hallazgo #8 (auditoría 10 ago 2026): pt-32 (no p-8) — mismo fix que Collections.jsx.
+    <main className="max-w-2xl mx-auto pt-32 px-8 pb-8">
       <p className="font-label uppercase tracking-wide text-xs text-graphite/60 mb-2">
         Pedido {order.number}
       </p>

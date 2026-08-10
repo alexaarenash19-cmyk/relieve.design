@@ -254,7 +254,10 @@ export default function Product() {
           vez (928px/128px reales en vez de ~55/45%). grid-cols-2 de
           Tailwind ya usa minmax(0,1fr) por default; aquí hay que
           escribirlo a mano porque el valor es arbitrario. */}
-      <div className="grid md:grid-cols-[minmax(0,11fr)_minmax(0,9fr)] gap-8 p-8 max-w-6xl mx-auto items-start">
+      {/* Hallazgo #8 (auditoría 10 ago 2026): pt-32 (no p-8) en vez de solo
+          en Collections.jsx — el nav fixed tapaba el <h1> del nombre de la
+          pieza en móvil. */}
+      <div className="grid md:grid-cols-[minmax(0,11fr)_minmax(0,9fr)] gap-8 pt-32 px-8 pb-8 max-w-6xl mx-auto items-start">
         {/* 1. Carrusel */}
         <div key={place.slug} className="warp-reveal md:sticky md:top-8">
           <PhotoCarousel
@@ -272,7 +275,13 @@ export default function Product() {
             half of the same fix. */}
         <div className="min-w-0">
           {/* 2. Nombre */}
-          <h1 className="font-heading font-bold text-brand-dark text-[clamp(2.25rem,3vw+1.5rem,3.5rem)] leading-tight mb-1">
+          {/* Hallazgo #4 (auditoría 10 ago 2026): forzar text-brand-dark aquí
+              ignoraba accent.text del <main> — medido a mano contra los hex
+              reales, Shanghái/París/Ciudad de México caían a ~1.0-1.45:1 de
+              contraste (WCAG AA pide 4.5:1). Sin color propio, hereda
+              accent.text del <main>, el mismo mecanismo que ya usa
+              correctamente el párrafo del gancho emocional debajo. */}
+          <h1 className="font-heading font-bold text-[clamp(2.25rem,3vw+1.5rem,3.5rem)] leading-tight mb-1">
             {place.name}
           </h1>
           <p className="font-label uppercase tracking-wide text-xs mb-6 opacity-70">

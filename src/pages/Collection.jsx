@@ -31,7 +31,9 @@ export default function Collection() {
   }, [slug]);
 
   return (
-    <main className="p-8">
+    // Hallazgo #8 (auditoría 10 ago 2026) — pt-32 (no p-8), mismo fix que
+    // Collections.jsx ya tiene: el nav fixed/wordmark h-14 tapaba el H1.
+    <main className="pt-32 px-8 pb-8">
       <h1 className="font-heading font-bold text-brand-dark text-3xl mb-6">{seriesLabel(slug)}</h1>
 
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-px bg-line">

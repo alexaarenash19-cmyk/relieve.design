@@ -70,7 +70,8 @@ export default function AdminShip() {
   }
 
   return (
-    <main className="max-w-md mx-auto p-8">
+    // Hallazgo #8 (auditoría 10 ago 2026): pt-32 (no p-8) — mismo fix que Collections.jsx.
+    <main className="max-w-md mx-auto pt-32 px-8 pb-8">
       <h1 className="font-heading font-bold text-brand-dark text-2xl mb-2">Marcar pedido enviado</h1>
       <p className="text-sm text-graphite/70 mb-8">
         Al enviar, el cliente recibe automáticamente el correo con el número de rastreo.
