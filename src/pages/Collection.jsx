@@ -13,16 +13,22 @@ import { seriesLabel } from '../lib/categories.js';
 export default function Collection() {
   const { slug } = useParams();
   const [places, setPlaces] = useState([]);
+  const [loadFailed, setLoadFailed] = useState(false);
   const [reviews, setReviews] = useState([]);
 
   useEffect(() => {
     let cancelled = false;
-    fetchJsonArray(`/api/places?series=${slug}`).then((data) => {
+    // Hallazgo (auditoría 10 ago 2026): distingue catálogo vacío de
+    // petición fallida para esta serie; las reseñas por pieza se quedan
+    // best-effort/silenciosas en fallo (contenido secundario, mismo
+    // criterio que Reviews.jsx).
+    fetchJsonArray(`/api/places?series=${slug}`).then(({ data, failed }) => {
       if (cancelled) return;
       const sorted = [...data].sort((a, b) => a.name.localeCompare(b.name, 'es'));
       setPlaces(sorted);
+      setLoadFailed(failed);
       Promise.all(sorted.map((p) => fetchJsonArray(`/api/reviews?place=${p.slug}`))).then((lists) => {
-        if (!cancelled) setReviews(lists.flat());
+        if (!cancelled) setReviews(lists.flatMap((l) => l.data));
       });
     });
     return () => {
@@ -35,6 +41,12 @@ export default function Collection() {
     // Collections.jsx ya tiene: el nav fixed/wordmark h-14 tapaba el H1.
     <main className="pt-32 px-8 pb-8">
       <h1 className="font-heading font-bold text-brand-dark text-3xl mb-6">{seriesLabel(slug)}</h1>
+
+      {loadFailed && places.length === 0 && (
+        <p className="font-label uppercase tracking-wide text-xs text-graphite/60 mb-6">
+          No pudimos cargar esta colección. Intenta recargar la página.
+        </p>
+      )}
 
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-px bg-line">
         {places.map((place) => (

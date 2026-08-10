@@ -89,6 +89,10 @@ export default function PhotoCarousel({ photos, alt = '', placeholderLabel, over
           index={active}
           onIndexChange={setActive}
           onClose={() => setLightboxOpen(false)}
+          // Hallazgo (auditoría 10 ago 2026): Lightbox nunca recibía el alt
+          // descriptivo real que este componente ya tiene disponible (line
+          // 52 arriba) — su <img> quedaba con alt="" hardcodeado.
+          alt={alt}
         />
       )}
     </div>

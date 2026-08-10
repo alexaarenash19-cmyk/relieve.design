@@ -53,8 +53,16 @@ export default function Reviews({ slug }) {
 
   useEffect(() => {
     let cancelled = false;
-    fetchJsonArray(`/api/reviews?place=${slug}`).then((data) => {
-      if (!cancelled) setReviews(data);
+    fetchJsonArray(`/api/reviews?place=${slug}`).then(({ data, failed }) => {
+      if (cancelled) return;
+      setReviews(data);
+      // Hallazgo (auditoría 10 ago 2026): antes era imposible distinguir
+      // "esta pieza no tiene reseñas" (silencio correcto — no hace falta
+      // un mensaje) de "la petición falló" (silencio incorrecto — nadie se
+      // entera). Reseñas es contenido secundario, así que la UI se queda
+      // igual (no mostrar nada), pero el fallo real ahora es visible en
+      // consola en vez de indistinguible de "cero reseñas".
+      if (failed) console.warn('[reviews] failed to load reviews for', slug);
     });
     return () => {
       cancelled = true;

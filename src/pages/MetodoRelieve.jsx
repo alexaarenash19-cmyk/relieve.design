@@ -56,13 +56,17 @@ export default function MetodoRelieve() {
   // list first, it's just no longer rendered alongside the catalog grid.
   useEffect(() => {
     let cancelled = false;
-    fetchJsonArray('/api/places').then((data) => {
+    // Hallazgo (auditoría 10 ago 2026): fetchJsonArray ahora devuelve
+    // {data, failed} en vez de un array plano — solo se usa data.data aquí
+    // (esta sección de testimonios ya era silenciosa en fallo/vacío, mismo
+    // criterio que Reviews.jsx, contenido secundario).
+    fetchJsonArray('/api/places').then(({ data }) => {
       if (cancelled) return;
       const sorted = [...data].sort(byName);
       Promise.all(
         sorted.map((p) => fetchJsonArray(`/api/reviews?place=${p.slug}`)),
       ).then((lists) => {
-        if (!cancelled) setReviews(lists.flat());
+        if (!cancelled) setReviews(lists.flatMap((l) => l.data));
       });
     });
     return () => {
