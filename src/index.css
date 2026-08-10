@@ -23,18 +23,43 @@
      --color-passport-ink (#355A75) even though visually close; do not alias. */
   --color-brand-dark: #355974;
 
+  /* 2026-08-09 landing rebrand hand-off §2 — Piedra/Grafito/Cempasúchil.
+     Landing-scoped only: does not replace graphite/sello-navy/walnut/etc
+     above, which stay in use elsewhere (product accent hashing, /sobre-
+     turned-/metodo-relieve passport styling). --color-grafito is
+     deliberately its own token, not aliased to the existing
+     --color-graphite (#232323) even though both are near-black — same
+     non-aliasing precedent as --color-brand-dark/--color-passport-ink. */
+  --color-piedra: #e8e3d9;
+  --color-grafito: #1e1c19;
+  /* The one color accent anywhere on the landing (hand-off §2/§4) — the
+     infinite canvas's top strip only. Not used on buttons, tags, or the
+     logo. */
+  --color-cempasuchil: #e86a1c;
+
   --font-display: "Fraunces", serif;
   --font-label: "Courier Prime", monospace;
-  --font-body: "Inter", sans-serif;
-  /* Nav wordmark only (2026-07-25, Ale's call) — geometric bold sans to
-     match a reference ("Palmer") she pointed to, deliberately NOT the same
-     token as --font-display. Scoped to Nav.jsx; the rest of the site's
-     type system (Fraunces/Courier Prime/Inter) is untouched. */
-  --font-wordmark: "Poppins", sans-serif;
-  /* Rebranding tipográfico (brand-brief.md §15/§16) — headings + buttons only.
-     @font-face pending: Ale hasn't delivered the Agrandir .woff2 file yet,
-     so this falls back to plain sans-serif until then (expected, tracked separately). */
-  --font-heading: "Agrandir", sans-serif;
+  /* 2026-08-09 rebrand hand-off §1 — General Sans (Fontshare, free) is now
+     the site's base grotesque for body copy, nav, buttons, UI, and
+     footer. Replaces Inter (dropped from index.html's font links). Future
+     upgrade path: PP Neue Montreal, if budget allows (not this pass). */
+  --font-body: "General Sans", sans-serif;
+  /* 2026-08-09 — Nav wordmark is a vectorized SVG image now (2026-07-25
+     swap superseded by the 2026-08 wordmark port, PR #160), so nothing
+     renders text in this font anymore. Poppins link dropped from
+     index.html; token removed as dead weight. */
+  /* 2026-08-09 rebrand hand-off §1 — headings/buttons temporarily share
+     General Sans as an interim fix: Agrandir's @font-face was never
+     wired (blocked on a personal-use-only file, see PR #148, now
+     abandoned) so --font-heading was silently falling back to default
+     browser sans-serif in production. Per the hand-off, H1/H2 (and only
+     H1/H2) should end up on Mardje — the carved logo family — once Ale
+     delivers a licensed Mardje webfont file; buttons/controls stay on
+     General Sans permanently per §1 ("botones, UI" listed alongside
+     nav/body/footer). Splitting the ~25 files currently sharing this one
+     class between H1/H2-only and everything-else is deferred to that
+     follow-up PR so it can be done once, correctly, instead of twice. */
+  --font-heading: "General Sans", sans-serif;
 
   /* Pinned to its literal pixel value, overriding Tailwind's default
      dynamic spacing scale (where mt-96 would otherwise compute to
@@ -389,4 +414,3 @@ body::before {
     animation: none;
   }
 }
-
