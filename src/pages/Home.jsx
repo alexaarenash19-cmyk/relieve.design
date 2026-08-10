@@ -27,10 +27,25 @@ import { useDocumentHead } from '../lib/useDocumentHead.js';
 
 const HERO_SEEN_KEY = 'relieve_hero_seen';
 
-function prefersReducedMotion() {
+// 2026-08-09 rebrand hand-off §5 (mobile hard restriction) — the pinned/
+// scroll-jacked hero (HeroScrollSection, Lenis + GSAP ScrollTrigger pin:
+// true) must never run on touch devices: pinned scroll fights native touch
+// momentum scrolling instead of the mouse-wheel/trackpad input it was built
+// for. Reuses the existing HeroReducedMotion fallback (already a static,
+// non-pinned, fade-in-on-scroll stack — exactly what a "no scroll-jacking"
+// mobile hero needs) instead of building a separate mobile hero from
+// scratch. (pointer: coarse) is the primary signal (matches Nav.jsx's own
+// (pointer: fine) convention for the same fine/coarse input distinction);
+// the width check is a safety net for hybrid devices that misreport
+// pointer capability, using Gallery.jsx's own MOBILE_BREAKPOINT (640) so
+// this stays consistent with the canvas's existing mobile threshold rather
+// than inventing a new one.
+function prefersStaticHero() {
+  if (typeof window === 'undefined') return false;
   return (
-    typeof window !== 'undefined' &&
-    window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    window.matchMedia('(prefers-reduced-motion: reduce)').matches ||
+    window.matchMedia('(pointer: coarse)').matches ||
+    window.innerWidth < 640
   );
 }
 
@@ -82,7 +97,7 @@ function HeroCompletionWatcher({ onDone }) {
 }
 
 export default function Home() {
-  const [reduceMotion] = useState(prefersReducedMotion);
+  const [reduceMotion] = useState(prefersStaticHero);
   const [pastHero, setPastHero] = useState(heroAlreadySeen);
   const [justArrived, setJustArrived] = useState(false);
 
