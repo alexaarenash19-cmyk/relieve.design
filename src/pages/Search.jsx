@@ -77,7 +77,13 @@ export default function Search() {
         </p>
       </div>
 
+      {/* Hallazgo (auditoría 10 ago 2026): solo tenía placeholder, sin
+          nombre accesible para lectores de pantalla. */}
+      <label htmlFor="search-query" className="sr-only">
+        Buscar por nombre
+      </label>
       <input
+        id="search-query"
         ref={inputRef}
         value={query}
         onChange={(e) => setQuery(e.target.value)}

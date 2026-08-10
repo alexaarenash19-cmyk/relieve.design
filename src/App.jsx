@@ -2,13 +2,23 @@ import { Suspense, lazy } from 'react';
 import { Routes, Route, Link } from 'react-router-dom';
 import Nav from './components/Nav.jsx';
 import TrustBar from './components/TrustBar.jsx';
-import LoadingReveal from './components/LoadingReveal.jsx';
 import CustomCursor from './components/CustomCursor.jsx';
 import PageStamp from './components/PageStamp.jsx';
 import CartDrawer from './components/CartDrawer.jsx';
-import ProductPanel from './components/ProductPanel.jsx';
 import SvgFilters from './components/SvgFilters.jsx';
 import SocialLinks from './components/SocialLinks.jsx';
+
+// Hallazgo "gsap se filtra al bundle principal" (auditoría 10 ago 2026):
+// both of these are mounted unconditionally alongside <Routes>, not inside
+// a route, so a plain static import shipped gsap (LoadingReveal directly,
+// ProductPanel via lib/animations.js) in the main entry chunk on every
+// single page — even /faq, which never touches either. Confirmed via a
+// repo-wide grep for `from 'gsap'`/`lib/animations` that Gallery.jsx and
+// HeroScrollSection.jsx (the only other gsap consumers) are already inside
+// routes App.jsx lazy-loads below, so they were never part of this bug —
+// only these two needed the same treatment.
+const LoadingReveal = lazy(() => import('./components/LoadingReveal.jsx'));
+const ProductPanel = lazy(() => import('./components/ProductPanel.jsx'));
 
 // Issue #65 — every route used to be a static import, so every page (even
 // /faq or /terminos, neither of which touches 3D) shipped Home's
@@ -75,9 +85,13 @@ export default function App() {
       <CustomCursor />
       <TrustBar />
       <Nav />
-      <LoadingReveal />
+      <Suspense fallback={null}>
+        <LoadingReveal />
+      </Suspense>
       <CartDrawer />
-      <ProductPanel />
+      <Suspense fallback={null}>
+        <ProductPanel />
+      </Suspense>
       <Suspense fallback={<RouteFallback />}>
         <Routes>
           <Route path="/" element={<Home />} />

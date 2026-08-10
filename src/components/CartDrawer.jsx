@@ -1,8 +1,9 @@
 // P2 — cart as a slide-out drawer, boarding-pass styled (Courier Prime,
 // perforated edge), per ui-ux.md "Carrito: drawer estilo boarding pass".
 // Replaces the old full-page /carrito.
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useCart } from '../context/CartContext.jsx';
+import { useEscapeKey } from '../lib/useEscapeKey.js';
 import Button from './Button.jsx';
 
 const FREE_SHIPPING_THRESHOLD_CENTS = 250000; // $2,500 MXN — api.md checkout rule
@@ -37,15 +38,10 @@ export default function CartDrawer() {
   const [checkoutUnavailable, setCheckoutUnavailable] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    function onKeydown(e) {
-      if (e.key === 'Escape') closeCart();
-    }
-    window.addEventListener('keydown', onKeydown);
-    return () => window.removeEventListener('keydown', onKeydown);
-  }, [closeCart]);
+  useEscapeKey(closeCart);
 
-  async function onCheckout() {
+  async function onCheckout(e) {
+    e.preventDefault();
     setCheckoutError(null);
     setLoading(true);
     try {
@@ -173,8 +169,15 @@ export default function CartDrawer() {
           )}
 
           {items.length > 0 && (
-            <>
+            // Hallazgo (auditoría 10 ago 2026): no había <form>, así que
+            // Enter en el campo de correo no confirmaba el pago, a
+            // diferencia de WaitlistDialog.jsx/AdminShip.jsx.
+            <form onSubmit={onCheckout}>
+              <label htmlFor="cart-email" className="sr-only">
+                Correo electrónico
+              </label>
               <input
+                id="cart-email"
                 type="email"
                 required
                 value={email}
@@ -200,14 +203,14 @@ export default function CartDrawer() {
                 </p>
               ) : (
                 <Button
-                  onClick={onCheckout}
+                  type="submit"
                   disabled={loading || !email}
                   className="w-full mt-3 normal-case"
                 >
                   {loading ? 'Redirigiendo…' : 'Pagar'}
                 </Button>
               )}
-            </>
+            </form>
           )}
         </div>
       </aside>

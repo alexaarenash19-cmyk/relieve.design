@@ -72,6 +72,18 @@ async function createOrderFromSession(session) {
           .maybeSingle();
         place_id = place?.id ?? null;
         place_name = place?.name ?? null;
+        // Hallazgo (auditoría 10 ago 2026): api/checkout.js validates
+        // place_slug at checkout time, but this webhook can run minutes
+        // later — if the place got archived/renamed in between, this
+        // silently wrote place_id: null into order_items with no signal
+        // anywhere. A paid order with an orphaned item needs a human to
+        // look at it, not to sail through unnoticed.
+        if (!place_id) {
+          sendAlert(
+            `order_items place_id resolved to null for session ${session.id}`,
+            `place_slug "${item.place_slug}" no longer resolves to a place — likely archived/renamed between checkout and webhook processing.`
+          );
+        }
       }
 
       return { ...item, place_id, place_name, unit_price_cents };
@@ -99,9 +111,24 @@ async function createOrderFromSession(session) {
     .select('id, number, status_token')
     .single();
 
-  if (error) throw error;
+  if (error) {
+    // Hallazgo #7 (auditoría 10 ago 2026): the `existing` check above is a
+    // fast-path, not a lock — two concurrent deliveries of the same Stripe
+    // event (a normal retry, or two near-simultaneous webhook calls) can
+    // both pass it before either insert lands, which used to create two
+    // orders for one payment. Now that orders.stripe_session_id is unique
+    // (migration 20260810010001_orders_session_id_unique.sql), the losing
+    // invocation gets a 23505 here instead of a duplicate row — that's
+    // success, not failure: the winning invocation already inserts
+    // order_items and sends the emails, so there's nothing left to do.
+    if (error.code === '23505') {
+      console.warn('[stripe] order already created concurrently for session', session.id);
+      return;
+    }
+    throw error;
+  }
 
-  await supabase.from('order_items').insert(
+  const { error: itemsError } = await supabase.from('order_items').insert(
     pricedItems.map((item) => ({
       order_id: order.id,
       place_id: item.place_id,
@@ -117,6 +144,21 @@ async function createOrderFromSession(session) {
       qty: item.qty || 1,
     }))
   );
+
+  if (itemsError) {
+    // The order row above is already committed and Stripe already charged
+    // the customer — if this insert fails (FK violation on frame_code/
+    // color_code/size_code, transient Supabase failure) it MUST throw so the
+    // caller returns 5xx and Stripe retries the event, instead of silently
+    // returning 200 with a paid order that has zero order_items. The alert
+    // carries enough detail (session, places, total) that Ale doesn't have
+    // to go dig through Supabase to know what to look for.
+    await sendAlert(
+      `order_items insert failed for order ${order.number} (session ${session.id})`,
+      `${itemsError.message}\nplaces: ${pricedItems.map((i) => i.place_slug ?? i.custom_place ?? 'unknown').join(', ')}\ntotal: $${((subtotal_cents + shipping_cents) / 100).toFixed(2)} MXN`
+    );
+    throw itemsError;
+  }
 
   const { error: cartError } = await supabase
     .from('carts')

@@ -29,7 +29,10 @@ function mockRes() {
 }
 
 function mockReq(method, query) {
-  return { method, query };
+  // headers added (audit 10 ago 2026, same gap already found/fixed in
+  // tests/checkout.test.mjs): handleGet now calls checkRateLimit, whose
+  // clientIp() throws on req.headers[...] without this.
+  return { method, query, headers: {} };
 }
 
 // place query param required.
