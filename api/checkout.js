@@ -26,6 +26,32 @@ const SITE_URL = process.env.SITE_URL || 'http://localhost:5173';
 // outright. Split across multiple keys instead of one; the webhook
 // (api/webhooks/stripe.js) reassembles them the same way.
 const METADATA_CHUNK_SIZE = 450; // margin under Stripe's 500-char limit
+
+// Hallazgo #6 (auditoría 10 ago 2026, cubre también #5): estos campos de
+// texto libre llegan del cliente sin sanitizar y hoy no tienen ningún tope
+// server-side (memory_note sí tiene un maxLength=140 en Product.jsx, pero
+// eso es solo cosmético — nada impide una llamada directa a la API con
+// texto arbitrariamente largo). Límites conservadores, no confirmados por
+// Ale — ajustar si define algo distinto. gift_message se queda bien debajo
+// del límite duro de 500 caracteres por valor que Stripe impone en
+// metadata (ver encodeItemsMetadata arriba), para fallar aquí con un 400
+// claro en vez de con el 502 genérico de stripe_error.
+const FREE_TEXT_LIMITS = {
+  memory_note: 140,
+  custom_place: 80,
+  plate_text: 60,
+  gift_message: 300,
+};
+
+function assertFreeTextLength(field, value) {
+  if (value && String(value).length > FREE_TEXT_LIMITS[field]) {
+    throw new PricingError(
+      'text_too_long',
+      `${field} exceeds ${FREE_TEXT_LIMITS[field]} characters`,
+    );
+  }
+}
+
 function encodeItemsMetadata(items) {
   const json = JSON.stringify(items);
   const chunks = [];
@@ -39,12 +65,23 @@ function encodeItemsMetadata(items) {
   return metadata;
 }
 
+// Hallazgo #6 (auditoría 10 ago 2026) — mismo criterio que getPlaces
+// (api/catalog.js) usa para el catálogo público, pero invertido: 'draft'
+// está archivada (nunca vendible) y 'soldout' se muestra en el sitio
+// precisamente para empujar al visitante hacia WaitlistDialog en vez de
+// comprarla — dejarla pasar aquí saltaría esa regla de negocio por una
+// llamada directa a la API. 'preorder' sí es vendible por definición.
+const SELLABLE_STATUSES = new Set(['active', 'preorder']);
+
 async function priceItem(item) {
-  const { place_slug, custom_place, size_code, frame_code, color_code, capelo, plate_text, qty } = item;
+  const { place_slug, custom_place, size_code, frame_code, color_code, capelo, plate_text, memory_note, qty } = item;
 
   if (!place_slug && !custom_place) {
     throw new PricingError('invalid_item', 'Each item needs place_slug or custom_place');
   }
+  assertFreeTextLength('custom_place', custom_place);
+  assertFreeTextLength('plate_text', plate_text);
+  assertFreeTextLength('memory_note', memory_note);
 
   const addons = [];
   if (capelo) addons.push('capelo');
@@ -56,7 +93,7 @@ async function priceItem(item) {
   // critical path between the customer clicking "pagar" and reaching Stripe.
   const [placeResult, colorResult, unit_price_cents] = await Promise.all([
     place_slug
-      ? supabase.from('places').select('id, name').eq('slug', place_slug).maybeSingle()
+      ? supabase.from('places').select('id, name, status').eq('slug', place_slug).maybeSingle()
       : Promise.resolve({ data: null }),
     color_code
       ? supabase.from('colors').select('code').eq('code', color_code).maybeSingle()
@@ -66,6 +103,9 @@ async function priceItem(item) {
 
   if (place_slug && !placeResult.data) {
     throw new PricingError('invalid_place', `Unknown place_slug: ${place_slug}`);
+  }
+  if (place_slug && !SELLABLE_STATUSES.has(placeResult.data.status)) {
+    throw new PricingError('not_available', `${place_slug} is not currently sellable (status: ${placeResult.data.status})`);
   }
   if (color_code && !colorResult.data) {
     throw new PricingError('invalid_color', `Unknown color_code: ${color_code}`);
@@ -96,6 +136,9 @@ export default async function handler(req, res) {
   const { items, is_gift = false, gift_message = null, email } = req.body ?? {};
   if (!Array.isArray(items) || items.length === 0 || !email) {
     return sendError(res, 400, 'invalid_request', 'items (non-empty) and email are required');
+  }
+  if (gift_message && gift_message.length > FREE_TEXT_LIMITS.gift_message) {
+    return sendError(res, 400, 'text_too_long', `gift_message exceeds ${FREE_TEXT_LIMITS.gift_message} characters`);
   }
 
   let priced;
