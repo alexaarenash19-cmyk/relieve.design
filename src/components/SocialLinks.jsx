@@ -1,9 +1,9 @@
-// Checkpoint 4 — Instagram/TikTok icons for the footer.
-// PLACEHOLDER — hrefs are "#" until Ale confirms the real account handles.
+// Footer social links. TikTok intentionally omitted for now (Ale, 2026-08-10) —
+// re-add if/when there's an account to link to.
 const LINKS = [
   {
     name: 'Instagram',
-    href: '#',
+    href: 'https://www.instagram.com/relieve.design.mx/',
     icon: (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" width="18" height="18">
         <rect x="3" y="3" width="18" height="18" rx="5" />
@@ -13,18 +13,8 @@ const LINKS = [
     ),
   },
   {
-    name: 'TikTok',
-    href: '#',
-    icon: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" width="18" height="18">
-        <path d="M14 4v10.5a3.5 3.5 0 1 1-3-3.46" />
-        <path d="M14 4c.6 2.4 2.2 4 4.5 4.3" />
-      </svg>
-    ),
-  },
-  {
     name: 'Pinterest',
-    href: '#',
+    href: 'https://pin.it/6JtpPcKIs',
     icon: (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" width="18" height="18">
         <circle cx="12" cy="12" r="9" />
@@ -41,6 +31,8 @@ export default function SocialLinks({ className = '' }) {
         <a
           key={l.name}
           href={l.href}
+          target="_blank"
+          rel="noopener noreferrer"
           aria-label={l.name}
           data-cursor-label={l.name}
           className="hover:text-passport-ink transition-colors"
