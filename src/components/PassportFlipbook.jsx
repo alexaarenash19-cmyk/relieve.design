@@ -17,12 +17,18 @@
 //     on interior pages (not flat vector).
 //  4. Stickers/stamps each read as physically stuck on: their own drop
 //     shadow, individual rotation, varied shapes/ink texture.
+//
+// 2026-08-09 landing rebrand hand-off §6 — extracted out of the old /sobre
+// page (src/pages/About.jsx, now deleted) into a content-only component so
+// it can be mounted inside MetodoRelieve.jsx's #sobre section instead of
+// living on its own route. Everything below is unchanged from About.jsx
+// except the page chrome (<main>/useDocumentHead), which the host page now
+// owns.
 import { useRef, useState, forwardRef } from 'react';
 import HTMLFlipBook from 'react-pageflip';
-import TopoLines from '../components/TopoLines.jsx';
-import Stamp from '../components/Stamp.jsx';
+import TopoLines from './TopoLines.jsx';
+import Stamp from './Stamp.jsx';
 import { ABOUT_PROCESO, ABOUT_IMPRESION } from '../lib/photography.js';
-import { useDocumentHead } from '../lib/useDocumentHead.js';
 import {
   PASSENGER_INFO,
   ABOUT_COPY,
@@ -397,14 +403,7 @@ const PAGE_LABELS = [
   'Visa',
 ];
 
-export default function About() {
-  useDocumentHead({
-    title: 'Sobre Relieve — Mapas en Relieve, Diseñados y Fabricados en México',
-    description:
-      'Relieve transforma información geográfica en objetos tridimensionales de diseño: mapas topográficos y urbanos en relieve, de datos geoespaciales reales a impresión 3D de alta precisión y acabado artesanal en nuestro estudio en México.',
-    canonicalPath: '/sobre',
-  });
-
+export default function PassportFlipbook() {
   const flipRef = useRef(null);
   const [index, setIndex] = useState(0);
 
@@ -413,7 +412,7 @@ export default function About() {
   }
 
   return (
-    <main className="mx-auto max-w-3xl px-4 py-10 flex flex-col items-center">
+    <div className="mx-auto px-4 py-10 flex flex-col items-center">
       <div className="passport-shell">
         <HTMLFlipBook
           width={BOOK_WIDTH}
@@ -487,6 +486,6 @@ export default function About() {
           Siguiente ›
         </button>
       </nav>
-    </main>
+    </div>
   );
 }

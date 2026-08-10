@@ -1,4 +1,7 @@
 {
+  "redirects": [
+    { "source": "/sobre", "destination": "/metodo-relieve#sobre", "permanent": true }
+  ],
   "rewrites": [
     { "source": "/api/pricing", "destination": "/api/catalog?resource=pricing" },
     { "source": "/api/waitlist", "destination": "/api/catalog?resource=waitlist" },

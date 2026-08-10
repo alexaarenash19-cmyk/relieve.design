@@ -1,8 +1,10 @@
-// "Colecciones" index — two views: a flat alphabetical list of every piece,
-// and the same pieces grouped by series (src/lib/categories.js SERIES —
-// the real places.series column: Origen/Travesía/Cumbre, brand-brief.md
-// sección 3). Reviews aggregated across all places live at the bottom,
-// since there's no longer a single catch-all collection to hang them off.
+// "Colecciones" index — dos vistas: lista alfabética plana de cada pieza, y
+// las mismas piezas agrupadas por serie (src/lib/categories.js SERIES — la
+// columna real places.series: Origen/Travesía/Cumbre, brand-brief.md
+// sección 3).
+// 2026-08-09 landing rebrand hand-off §6 — las reseñas agregadas que vivían
+// al fondo de esta página se movieron a MetodoRelieve.jsx (#resenas); esta
+// página vuelve a ser solo el catálogo.
 // pt-32 (not p-8) — the nav's wordmark logo grew to h-14 (2026-08-09) and
 // visibly overlapped this page's H1 at the old p-8 top padding; nav is
 // `fixed`/out of flow on purpose (floats over the hero elsewhere), so
@@ -19,7 +21,6 @@ function byName(a, b) {
 
 export default function Collections() {
   const [places, setPlaces] = useState([]);
-  const [reviews, setReviews] = useState([]);
   const [view, setView] = useState('todos'); // 'todos' | 'categoria'
 
   useDocumentHead({
@@ -32,11 +33,7 @@ export default function Collections() {
     let cancelled = false;
     fetchJsonArray('/api/places').then((data) => {
       if (cancelled) return;
-      const sorted = [...data].sort(byName);
-      setPlaces(sorted);
-      Promise.all(sorted.map((p) => fetchJsonArray(`/api/reviews?place=${p.slug}`))).then((lists) => {
-        if (!cancelled) setReviews(lists.flat());
-      });
+      setPlaces([...data].sort(byName));
     });
     return () => {
       cancelled = true;
@@ -105,24 +102,6 @@ export default function Collections() {
             </section>
           ))}
         </div>
-      )}
-
-      {reviews.length > 0 && (
-        <section id="resenas" className="mt-12 max-w-2xl">
-          <h2 className="font-heading font-bold text-brand-dark uppercase tracking-wide text-sm mb-4">Reseñas</h2>
-          <ul className="space-y-2">
-            {reviews.map((r, i) => (
-              <li key={i} className="border-b border-line pb-2">
-                <details>
-                  <summary className="cursor-pointer font-body">
-                    {r.customer ?? 'Cliente'} · {r.city ?? ''} · {'★'.repeat(r.rating)}
-                  </summary>
-                  <p className="mt-2 text-graphite/80">{r.comment}</p>
-                </details>
-              </li>
-            ))}
-          </ul>
-        </section>
       )}
     </main>
   );

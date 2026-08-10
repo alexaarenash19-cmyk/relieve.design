@@ -166,8 +166,9 @@ export function inlinePanelClose(el, kids) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────
-// EFECTO 5 — Hover de los links dentro del panel inline (colecciones/sobre/
-// reseñas): se levantan 4px. 0.3s power2.out, ida y vuelta.
+// EFECTO 5 — Hover de los links dentro del panel inline (colecciones/
+// método, 2026-08-09 hand-off §6): se levantan 4px. 0.3s power2.out, ida
+// y vuelta.
 // ─────────────────────────────────────────────────────────────────────────
 export function hoverLift(el) {
   gsap.to(el, { y: -4, duration: 0.3, ease: 'power2.out' });
