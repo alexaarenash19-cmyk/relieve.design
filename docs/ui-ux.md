@@ -18,7 +18,7 @@ Galería editorial + aeropuerto, cinematográfico, minimal, premium. **Ritmo luz
 - `/pieza/:slug` — página de producto.
 - `/personaliza` — ubicación personalizada (formulario).
 - `/buscar` — buscador / índice A–Z.
-- `/sobre` — manifiesto + proceso.
+- `/metodo-relieve` — proceso + manifiesto ("Sobre") + reseñas (2026-08-09: `/sobre` retirado, redirige aquí).
 - `/envios`, `/faq`.
 - `/carrito` — (o drawer).
 - `/pedido/:token` — estado del pedido (magic link).

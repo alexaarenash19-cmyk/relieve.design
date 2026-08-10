@@ -30,15 +30,15 @@ const AUTO_SITE_URL =
 // Issue #64 — sitemap.xml covering all indexable routes.
 // /carrito (a drawer, not a route) and /pedido/:token are excluded:
 // transactional/private, no indexable content of their own.
-const STATIC_ROUTES = ['/', '/personaliza', '/buscar', '/sobre', '/envios', '/faq', '/aviso-privacidad', '/terminos', '/colecciones'];
+// 2026-08-09 hand-off §6 — /sobre retirado (fusionado en /metodo-relieve,
+// ver vercel.json redirect); /metodo-relieve no se agrega aquí porque
+// nunca tuvo su propia entrada de prerender antes de este cambio tampoco —
+// gap preexistente, fuera de alcance de este pase.
+const STATIC_ROUTES = ['/', '/personaliza', '/buscar', '/envios', '/faq', '/aviso-privacidad', '/terminos', '/colecciones'];
 
 // Unique <title>/description per static route, per request — not the
 // generic site-wide default repeated everywhere.
 const STATIC_PAGES = {
-  '/sobre': {
-    title: 'Sobre Relieve — Mapas en relieve hechos a mano',
-    description: 'Cómo hacemos cada pieza: datos de elevación reales, impresión 3D, marco de parota armado a mano. Sin coordenadas inventadas.',
-  },
   '/buscar': {
     title: 'Buscar un lugar — Relieve',
     description: 'Encuentra tu ciudad, montaña, estadio o circuito favorito entre las piezas disponibles en Relieve.',

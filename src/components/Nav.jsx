@@ -23,10 +23,12 @@ import wordmark from '../assets/brand/wordmark.svg';
 // with the page content just below it.
 const REVEAL_ZONE_PX = 200;
 
-// brand-brief.md §16 decisión 7 — nav queda exactamente "Colecciones ·
-// Método · Reseñas". Buscar/Regalar se quitan de aquí (las rutas siguen
-// funcionando, solo dejan de estar enlazadas desde el nav superior).
-// "Reseñas" apunta al ancla ya usada por el menú interno de Gallery.jsx.
+// 2026-08-09 landing rebrand hand-off §6 — supersedes brand-brief.md §16
+// decisión 7 ("Colecciones · Método · Reseñas"): "Reseñas" deja de ser un
+// ítem de nav propio y su contenido vive dentro de "Método"
+// (/metodo-relieve#resenas), igual que "Sobre" (#sobre) — ambos ya no
+// tienen ruta ni entrada de menú independiente. Nav queda "Colecciones ·
+// Método".
 
 export default function Nav() {
   const [solid, setSolid] = useState(false);
@@ -80,12 +82,6 @@ export default function Nav() {
           className="hover:text-passport-ink transition-colors"
         >
           Método
-        </Link>
-        <Link
-          to="/colecciones#resenas"
-          className="hover:text-passport-ink transition-colors"
-        >
-          Reseñas
         </Link>
         <button
           onClick={toggleCart}

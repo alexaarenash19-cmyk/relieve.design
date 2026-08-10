@@ -571,21 +571,15 @@ function BottomControlBar({
           <a href="/colecciones" className={DARK_PILL} onMouseEnter={liftOnHover} onMouseLeave={liftOffHover}>
             colecciones
           </a>
-          <a href="/sobre" className={DARK_PILL} onMouseEnter={liftOnHover} onMouseLeave={liftOffHover}>
-            sobre
-          </a>
-          {/* Points at the reviews section on the collections index page.
-            No "contacto" pill: there's no real destination for it yet (no
-            contact page, and a mailto: link launches the visitor's mail
-            app, which read as a broken/unexpected interaction) — removed
-            rather than fake it. */}
-          <a
-            href="/colecciones#resenas"
-            className={DARK_PILL}
-            onMouseEnter={liftOnHover}
-            onMouseLeave={liftOffHover}
-          >
-            reseñas
+          {/* 2026-08-09 hand-off §6 — "sobre" y "reseñas" ya no son pills
+            propios: ambos contenidos viven dentro de /metodo-relieve
+            (#sobre, #resenas), igual que ya pasó en Nav.jsx. No "contacto"
+            pill: no hay destino real para él aún (no hay página de
+            contacto, y un link mailto: abre la app de correo del
+            visitante, lo que se sentía como una interacción rota) —
+            se quitó en vez de fingirlo. */}
+          <a href="/metodo-relieve" className={DARK_PILL} onMouseEnter={liftOnHover} onMouseLeave={liftOffHover}>
+            método
           </a>
         </InlinePanel>
 

@@ -26,7 +26,6 @@ const Collection = lazy(() => import('./pages/Collection.jsx'));
 const Product = lazy(() => import('./pages/Product.jsx'));
 const Personalize = lazy(() => import('./pages/Personalize.jsx'));
 const Search = lazy(() => import('./pages/Search.jsx'));
-const About = lazy(() => import('./pages/About.jsx'));
 const MetodoRelieve = lazy(() => import('./pages/MetodoRelieve.jsx'));
 const Shipping = lazy(() => import('./pages/Shipping.jsx'));
 const Faq = lazy(() => import('./pages/Faq.jsx'));
@@ -86,7 +85,8 @@ export default function App() {
           <Route path="/pieza/:slug" element={<Product />} />
           <Route path="/personaliza" element={<Personalize />} />
           <Route path="/buscar" element={<Search />} />
-          <Route path="/sobre" element={<About />} />
+          {/* 2026-08-09 hand-off §6 — /sobre retirado, se fusionó dentro de
+              /metodo-relieve (#sobre); vercel.json redirige la ruta vieja. */}
           <Route path="/metodo-relieve" element={<MetodoRelieve />} />
           <Route path="/envios" element={<Shipping />} />
           <Route path="/faq" element={<Faq />} />
