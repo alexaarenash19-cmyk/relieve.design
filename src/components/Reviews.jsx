@@ -75,7 +75,10 @@ export default function Reviews({ slug }) {
       </h2>
       <ul className="flex flex-col gap-3">
         {displayable.map((r, i) => (
-          <ReviewCard key={r.customer + i} review={r} />
+          // r.id now comes from api/reviews.js's select (audit 10 ago
+          // 2026) — the `customer + índice` fallback stays only for the
+          // dummyCatalog reviews path, which has no id column.
+          <ReviewCard key={r.id ?? r.customer + i} review={r} />
         ))}
       </ul>
     </section>

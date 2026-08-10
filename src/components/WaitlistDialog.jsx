@@ -60,7 +60,13 @@ export default function WaitlistDialog({ placeSlug }) {
         ) : (
           <form onSubmit={onSubmit} className="flex flex-col gap-3 min-w-[280px]">
             <h2 className="font-heading font-bold text-brand-dark uppercase tracking-wide text-sm">Lista de espera</h2>
+            {/* Hallazgo (auditoría 10 ago 2026): ninguno de los dos campos
+                tenía <label> asociado, solo placeholder en el de correo. */}
+            <label htmlFor="waitlist-size" className="sr-only">
+              Tamaño
+            </label>
             <select
+              id="waitlist-size"
               value={sizeCode}
               onChange={(e) => setSizeCode(e.target.value)}
               className="border border-line rounded px-3 py-2"
@@ -71,7 +77,11 @@ export default function WaitlistDialog({ placeSlug }) {
                 </option>
               ))}
             </select>
+            <label htmlFor="waitlist-email" className="sr-only">
+              Correo electrónico
+            </label>
             <input
+              id="waitlist-email"
               type="email"
               required
               value={email}

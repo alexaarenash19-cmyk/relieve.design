@@ -75,6 +75,21 @@ body {
   position: relative;
 }
 
+/* Hallazgo (auditoría 10 ago 2026): no existía :focus-visible en todo el
+   codebase, así que el sitio dependía por completo del outline nativo del
+   navegador — invisible en varias pills con fondo oscuro (bg-brand-dark,
+   bg-sello-navy). cempasuchil es el único acento de color fuera de los 10
+   tokens base (ver --color-cempasuchil arriba), reservado para esto
+   precisamente porque nunca choca con ningún fondo/texto de marca ya en
+   uso. box-shadow en vez de outline: respeta border-radius en los
+   elementos redondeados (pills, botones) en vez de dibujar un rectángulo
+   recto encima. */
+:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--color-gallery-white), 0 0 0 4px var(--color-cempasuchil);
+  border-radius: 2px;
+}
+
 /* Checkpoint 4 — subtle paper grain across the whole page. Fixed, tiled
    SVG fractal-noise overlay, low opacity, multiply blend so it reads as
    paper texture instead of a dirty screen. */

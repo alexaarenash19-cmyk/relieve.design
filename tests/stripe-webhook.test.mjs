@@ -218,6 +218,16 @@ function mockReq(method, body, headers = {}) {
       sawOrderItemsInsert = true;
       return new Response(JSON.stringify([]), { status: 201 });
     }
+    // Resolve cleanly (not an unmatched throw, which makes postgrest-js's
+    // retry/backoff kick in for no benefit — same lesson as test 6) so
+    // place_id doesn't spuriously come back null and trip the "place_id
+    // resolved to null" alert this test isn't about.
+    if (url.includes('/rest/v1/places')) {
+      return new Response(JSON.stringify({ id: 1, name: 'Barcelona' }), { status: 200 });
+    }
+    if (url.includes('/rest/v1/sizes') || url.includes('/rest/v1/frames') || url.includes('/rest/v1/addons')) {
+      return new Response('Internal Server Error', { status: 500 });
+    }
     throw new Error(`Unexpected fetch to ${url} in test 7`);
   };
 

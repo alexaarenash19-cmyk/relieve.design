@@ -62,6 +62,12 @@ async function parseMultipart(req) {
 }
 
 async function handleGet(req, res) {
+  // Hallazgo (auditoría 10 ago 2026): a diferencia de getPlaces
+  // (api/catalog.js), este GET no tenía rate limit ni Cache-Control —
+  // límite más generoso que el POST de abajo porque es solo lectura de
+  // datos ya públicos, no un límite de seguridad como el de moderación.
+  if (!(await checkRateLimit(req, res, { key: 'reviews-get', limit: 30, windowMs: 60_000 }))) return;
+
   const { place } = req.query;
   if (!place) {
     return sendError(res, 400, 'invalid_request', 'place query param is required');
@@ -74,16 +80,31 @@ async function handleGet(req, res) {
     .maybeSingle();
   // Unreachable, or a dummy-catalog slug with no real DB row — fall back to
   // placeholder reviews (empty for a genuinely unknown/real slug).
-  if (placeError || !placeRow) return res.status(200).json(dummyReviewsFor(place));
+  if (placeError || !placeRow) {
+    res.setHeader('Cache-Control', 'no-store');
+    return res.status(200).json(dummyReviewsFor(place));
+  }
 
   const { data, error } = await supabase
     .from('reviews')
-    .select('customer, city, rating, photo_url, comment')
+    // id added (audit 10 ago 2026) — Reviews.jsx was forced into
+    // `customer + índice` as a React key with no real id available,
+    // risking wrong reconciliation whenever two approved reviews share a
+    // customer name.
+    .select('id, customer, city, rating, photo_url, comment')
     .eq('place_id', placeRow.id)
     .eq('approved', true)
     .order('created_at', { ascending: false });
 
-  if (error) return res.status(200).json(dummyReviewsFor(place));
+  if (error) {
+    res.setHeader('Cache-Control', 'no-store');
+    return res.status(200).json(dummyReviewsFor(place));
+  }
+  // Same policy as getPlaces (api/catalog.js): public, revalidated hourly.
+  // A brand-new approved review can take up to an hour to show up for a
+  // cached visitor — acceptable for reviews, same tradeoff already made
+  // for the catalog itself.
+  res.setHeader('Cache-Control', 'public, s-maxage=3600, stale-while-revalidate=86400');
   return res.status(200).json(data);
 }
 

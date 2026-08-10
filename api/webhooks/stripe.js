@@ -72,6 +72,18 @@ async function createOrderFromSession(session) {
           .maybeSingle();
         place_id = place?.id ?? null;
         place_name = place?.name ?? null;
+        // Hallazgo (auditoría 10 ago 2026): api/checkout.js validates
+        // place_slug at checkout time, but this webhook can run minutes
+        // later — if the place got archived/renamed in between, this
+        // silently wrote place_id: null into order_items with no signal
+        // anywhere. A paid order with an orphaned item needs a human to
+        // look at it, not to sail through unnoticed.
+        if (!place_id) {
+          sendAlert(
+            `order_items place_id resolved to null for session ${session.id}`,
+            `place_slug "${item.place_slug}" no longer resolves to a place — likely archived/renamed between checkout and webhook processing.`
+          );
+        }
       }
 
       return { ...item, place_id, place_name, unit_price_cents };
