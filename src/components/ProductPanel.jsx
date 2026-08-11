@@ -10,7 +10,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useProductPanel } from '../context/ProductPanelContext.jsx';
 import { fetchJson } from '../lib/fetchJsonArray.js';
-import { piecePhotos } from '../lib/photography.js';
+import { piecePhotos, pieceMainThumb } from '../lib/photography.js';
 import { categoryLabel } from '../lib/categories.js';
 import { useEscapeKey } from '../lib/useEscapeKey.js';
 // Función pura de animación (spec table + fuente en el propio archivo) —
@@ -77,7 +77,23 @@ export default function ProductPanel() {
   // videos en vez de aprender a reproducirlos: sigue siendo un preview de
   // solo fotos.
   const photos = place ? piecePhotos(place.slug).filter((p) => p.type !== 'video') : [];
-  const mainPhoto = photos[activePhoto]?.url;
+  // Perf fix (11 ago 2026, "tardan demasiado en cargar" — traced live: this
+  // panel is explicitly a "lightweight preview" (see file header) but was
+  // downloading the full-resolution original of every photo — 200-700KB
+  // each, measured — just to paint a 42x42px thumb button and a <=40vh
+  // preview box. pieceMainThumb() already exists (a real, pre-generated
+  // 480px-long-edge copy) for exactly the 'main' photo every piece has —
+  // it was only ever wired up for Gallery.jsx's canvas tiles. Only 'main'
+  // has a thumb generated (detail-1/top-view/etc. don't), so this only
+  // covers the photo shown by default when the panel opens — but that
+  // default view is what the overwhelming majority of opens actually see
+  // before either closing or clicking through to /pieza/:slug (which still
+  // uses full-res via PhotoCarousel, appropriate for that closer-look page).
+  const mainThumbUrl = place ? pieceMainThumb(place.slug) : null;
+  function displayUrl(photo, index) {
+    return index === 0 && mainThumbUrl ? mainThumbUrl : photo.url;
+  }
+  const mainPhoto = photos[activePhoto] ? displayUrl(photos[activePhoto], activePhoto) : undefined;
 
   // Effect #3 per PRD table: one gsap.timeline(), four .fromTo() calls at
   // exact durations/delays/eases (ver panelOpenTimeline en
@@ -182,7 +198,13 @@ export default function ProductPanel() {
                           : 'opacity-60 border-line hover:opacity-100 hover:border-graphite'
                       }`}
                     >
-                      <img src={p.url} alt="" className="w-full h-full object-cover block" />
+                      <img
+                        src={displayUrl(p, i)}
+                        alt=""
+                        loading="lazy"
+                        decoding="async"
+                        className="w-full h-full object-cover block"
+                      />
                     </button>
                   ))}
                 </div>
@@ -199,6 +221,7 @@ export default function ProductPanel() {
                     <img
                       src={mainPhoto}
                       alt={place.name}
+                      fetchpriority="high"
                       className="max-w-full max-h-full w-auto h-auto"
                     />
                   ) : (
