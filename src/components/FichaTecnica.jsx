@@ -46,7 +46,18 @@
 //
 // Fase 4 — integrado en Product.jsx (reemplaza el bloque "Especificaciones"
 // existente), pasando pieceNumber/editionNumber en null hasta que exista un
-// contador real.
+// contador real. (Nota museográfico, 11 ago 2026: order_items.piece_number
+// SÍ existe ya — ver OrderStatus.jsx, que pasa el valor real ahí. Product.jsx
+// sigue pasando null a propósito: no hay número de pieza antes de pagar.)
+//
+// Museográfico pass (11 ago 2026): hairlines normalizados a `border-line`
+// (antes `border-graphite/20`) para que esta ficha use el mismo token de
+// divisor que el resto del sistema, en vez de un valor de opacidad propio.
+// Sin cambio estructural — el patrón label/value ya coincidía con el
+// principio de "ficha de catálogo, no formulario". Se agrega la fila
+// "Garantía" (hallazgo: el hecho "Garantía de fabricación — 7 días" solo
+// vivía en el ticker de TrustBar.jsx, en ningún lugar de la página de
+// producto misma — copiado verbatim de ahí, no una paráfrasis nueva).
 //
 // --- Ejemplo de uso (representativo, no se ejecuta desde aquí) ---
 //
@@ -89,7 +100,7 @@ const SERIES_LABELS = {
 // of label/value row.
 function SpecRow({ label, value }) {
   return (
-    <div className="grid grid-cols-2 gap-4 border-b border-graphite/20 py-2 font-label uppercase tracking-wide text-xs">
+    <div className="grid grid-cols-2 gap-4 border-b border-line py-2 font-label uppercase tracking-wide text-xs">
       <dt className="text-graphite/60">{label}</dt>
       <dd className="break-words normal-case">{value}</dd>
     </div>
@@ -118,6 +129,7 @@ export default function FichaTecnica({
   colorCode,
   packagingLine = '100% material reciclado',
   provenanceLine = 'Diseñado y hecho a mano en México',
+  warrantyLine = 'Garantía de fabricación — 7 días',
   className = '',
 }) {
   const size = SIZES.find((s) => s.code === sizeCode);
@@ -136,14 +148,14 @@ export default function FichaTecnica({
         Colección {collectionName} — {seriesLabel}
       </p>
 
-      <hr className="border-graphite/20 mb-3" />
+      <hr className="border-line mb-3" />
 
       <p className="normal-case text-sm font-medium mb-0.5">{placeName}</p>
       <p className="uppercase tracking-wide text-graphite/60 mb-3">
         {placeName}, {country}
       </p>
 
-      <hr className="border-graphite/20 mb-1" />
+      <hr className="border-line mb-1" />
 
       <dl>
         {size && <SpecRow label="Dimensiones" value={formatDims(size.dims)} />}
@@ -151,6 +163,7 @@ export default function FichaTecnica({
         {color && <SpecRow label="Color" value={color.label} />}
         <SpecRow label="Empaque" value={packagingLine} />
         <SpecRow label="Procedencia" value={provenanceLine} />
+        <SpecRow label="Garantía" value={warrantyLine} />
         {frame && (
           <SpecRow label="Personalización" value="Mensaje en la parte trasera del marco" />
         )}
@@ -158,7 +171,7 @@ export default function FichaTecnica({
 
       {editionNo && (
         <>
-          <hr className="border-graphite/20 mt-3 mb-1" />
+          <hr className="border-line mt-3 mb-1" />
           <p className="uppercase tracking-wide text-graphite/60 mt-2">
             Edición N.º {editionNo}
           </p>
