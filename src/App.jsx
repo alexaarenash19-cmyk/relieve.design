@@ -13,10 +13,10 @@ import SocialLinks from './components/SocialLinks.jsx';
 // a route, so a plain static import shipped gsap (LoadingReveal directly,
 // ProductPanel via lib/animations.js) in the main entry chunk on every
 // single page — even /faq, which never touches either. Confirmed via a
-// repo-wide grep for `from 'gsap'`/`lib/animations` that Gallery.jsx and
-// HeroScrollSection.jsx (the only other gsap consumers) are already inside
-// routes App.jsx lazy-loads below, so they were never part of this bug —
-// only these two needed the same treatment.
+// repo-wide grep for `from 'gsap'`/`lib/animations` that Gallery.jsx (the
+// only other gsap consumer) is already inside a route App.jsx lazy-loads
+// below, so it was never part of this bug — only these two needed the
+// same treatment.
 const LoadingReveal = lazy(() => import('./components/LoadingReveal.jsx'));
 const ProductPanel = lazy(() => import('./components/ProductPanel.jsx'));
 

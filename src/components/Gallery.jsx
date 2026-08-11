@@ -128,7 +128,18 @@ export function GalleryCard({ place, variant = 'grid', slot, gridIndex = 0 }) {
       style={tileStyle}
     >
       <div
-        className={`warm-photo relative w-full aspect-square bg-stone overflow-hidden flex items-center justify-center ${
+        className={`warm-photo relative w-full aspect-square overflow-hidden flex items-center justify-center ${
+          // apple-design audit (11 ago 2026) — a flat bg-stone swatch with
+          // just a name label sat, same size, right next to fully
+          // photographed tiles in the scattered canvas and read as a
+          // broken image, not an intentional "not photographed yet" state
+          // (which is what it actually is — no real spec/photo invented
+          // here, just a clearer visual for the state that already
+          // exists). The dashed border + soft gradient (vs. flat fill)
+          // and the explicit "Próximamente" caption below do that without
+          // fabricating a photo.
+          photo ? 'bg-stone' : 'bg-gradient-to-br from-stone to-stone/60 border border-dashed border-graphite/25'
+        } ${
           variant === 'scattered'
             ? 'shadow-[0_16px_32px_-16px_rgba(35,35,35,0.35)]'
             : ''
@@ -157,9 +168,12 @@ export function GalleryCard({ place, variant = 'grid', slot, gridIndex = 0 }) {
             decoding="async"
           />
         ) : (
-          <span className="font-label uppercase tracking-wide text-xs text-graphite/60">
-            {place.name}
-          </span>
+          <div className="flex flex-col items-center gap-1.5 text-center px-3">
+            <span className="font-label uppercase tracking-wide text-xs text-graphite/70">
+              {place.name}
+            </span>
+            <span className="text-[10px] text-graphite/45 italic">Próximamente</span>
+          </div>
         )}
         {variant === 'grid' && (
           <Stamp
@@ -201,6 +215,18 @@ function ScatteredCanvas({ items, zoom }) {
   const draggingRef = useRef(false);
   const startRef = useRef({ x: 0, y: 0 });
   const movedRef = useRef(false);
+  // apple-design audit (11 ago 2026) — momentum/inertia on release (§6:
+  // "momentum projection"). historyRef keeps a short rolling window of
+  // {x,y,t} pointer samples so release velocity isn't just noise from the
+  // last single pointermove; inertiaRafRef is the in-flight coast
+  // animation, if any, so a new grab (onPointerDown) or unmount can cancel
+  // it cleanly. This is a live per-frame exponential decay rather than a
+  // precomputed target+tween, so it's trivially interruptible (§3):
+  // grabbing again mid-coast just cancels the rAF loop and hands control
+  // straight back to the pointer, no jump — offset was never anything but
+  // the real on-screen value to begin with.
+  const historyRef = useRef([]);
+  const inertiaRafRef = useRef(null);
 
   useEffect(() => {
     const el = containerRef.current;
@@ -212,10 +238,26 @@ function ScatteredCanvas({ items, zoom }) {
     return () => ro.disconnect();
   }, []);
 
+  useEffect(
+    () => () => {
+      if (inertiaRafRef.current) cancelAnimationFrame(inertiaRafRef.current);
+    },
+    [],
+  );
+
+  function stopInertia() {
+    if (inertiaRafRef.current) {
+      cancelAnimationFrame(inertiaRafRef.current);
+      inertiaRafRef.current = null;
+    }
+  }
+
   function onPointerDown(e) {
+    stopInertia(); // grabbing mid-coast takes over immediately, no jump
     draggingRef.current = true;
     movedRef.current = false;
     startRef.current = { x: e.clientX - offset.x, y: e.clientY - offset.y };
+    historyRef.current = [{ x: e.clientX, y: e.clientY, t: performance.now() }];
   }
   function onPointerMove(e) {
     if (!draggingRef.current) return;
@@ -230,9 +272,47 @@ function ScatteredCanvas({ items, zoom }) {
     if (Math.abs(next.x - offset.x) > 6 || Math.abs(next.y - offset.y) > 6)
       movedRef.current = true;
     setOffset(next);
+    // Keep ~100ms of history — enough to smooth a single noisy sample out
+    // of the release-velocity estimate without dragging in movement from
+    // a moment ago that no longer reflects how fast the pointer is
+    // actually moving right now.
+    const history = historyRef.current;
+    history.push({ x: e.clientX, y: e.clientY, t: performance.now() });
+    while (history.length > 1 && performance.now() - history[0].t > 100) history.shift();
   }
   function onPointerUp() {
     draggingRef.current = false;
+    const history = historyRef.current;
+    if (history.length < 2 || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    const first = history[0];
+    const last = history[history.length - 1];
+    const dt = (last.t - first.t) / 1000; // seconds
+    if (dt <= 0) return;
+    // px/s release velocity, carried straight into the coast below — this
+    // is the "velocity handoff" (§5): no seam between the drag and the
+    // animation that follows it.
+    let vx = (last.x - first.x) / dt;
+    let vy = (last.y - first.y) / dt;
+    if (Math.hypot(vx, vy) < 40) return; // too slow to read as a flick — release stands as the final position
+    let lastFrame = performance.now();
+    function coast(now) {
+      const frameDt = Math.min((now - lastFrame) / 1000, 0.05);
+      lastFrame = now;
+      // Exponential decay, not the physics-textbook v²/(2·decel) stop —
+      // same family as Apple's scroll-projection formula (§6), just
+      // evaluated live frame-by-frame instead of solved for one landing
+      // point up front.
+      const friction = Math.pow(0.055, frameDt);
+      vx *= friction;
+      vy *= friction;
+      setOffset((prev) => ({ x: prev.x + vx * frameDt, y: prev.y + vy * frameDt }));
+      if (Math.hypot(vx, vy) > 4) {
+        inertiaRafRef.current = requestAnimationFrame(coast);
+      } else {
+        inertiaRafRef.current = null;
+      }
+    }
+    inertiaRafRef.current = requestAnimationFrame(coast);
   }
   // Cancel the tile's own link navigation if that pointerup ended a pan,
   // not a click.
