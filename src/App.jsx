@@ -32,7 +32,6 @@ const ProductPanel = lazy(() => import('./components/ProductPanel.jsx'));
 const Home = lazy(() => import('./pages/Home.jsx'));
 const OrderSuccess = lazy(() => import('./pages/OrderSuccess.jsx'));
 const Collections = lazy(() => import('./pages/Collections.jsx'));
-const Gift = lazy(() => import('./pages/Gift.jsx'));
 const Collection = lazy(() => import('./pages/Collection.jsx'));
 const Product = lazy(() => import('./pages/Product.jsx'));
 const Personalize = lazy(() => import('./pages/Personalize.jsx'));
@@ -92,11 +91,14 @@ export default function App() {
       <Suspense fallback={null}>
         <ProductPanel />
       </Suspense>
+      {/* apple-design audit (11 ago 2026) — /regalar (Gift.jsx) removed at
+          Ale's direct request. It didn't share logic with the cart's own
+          gift feature (isGift/giftMessage in CartContext/CartDrawer,
+          untouched) and nothing else in the app linked to it. */}
       <Suspense fallback={<RouteFallback />}>
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/colecciones" element={<Collections />} />
-          <Route path="/regalar" element={<Gift />} />
           <Route path="/coleccion/:slug" element={<Collection />} />
           <Route path="/pieza/:slug" element={<Product />} />
           <Route path="/personaliza" element={<Personalize />} />

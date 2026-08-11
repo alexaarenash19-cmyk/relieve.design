@@ -179,8 +179,15 @@ export default function ProductPanel() {
                       className="max-w-full max-h-full w-auto h-auto"
                     />
                   ) : (
-                    <div className="w-full h-full flex items-center justify-center font-label uppercase tracking-wide text-[0.85rem] text-gallery-white text-center bg-graphite/70">
-                      {place.name.toUpperCase()}
+                    // apple-design audit (11 ago 2026) — same no-photo gap
+                    // already found and fixed on the Gallery.jsx canvas
+                    // tiles and PhotoCarousel.jsx: the name alone read as a
+                    // broken image, not an intentional "not photographed
+                    // yet" state. Adds the explicit caption for the one
+                    // piece this still applies to (nevado-de-toluca).
+                    <div className="w-full h-full flex flex-col items-center justify-center gap-1 font-label uppercase tracking-wide text-[0.85rem] text-gallery-white text-center bg-graphite/70 border border-dashed border-gallery-white/25">
+                      <span>{place.name.toUpperCase()}</span>
+                      <span className="text-[0.65rem] opacity-70 italic normal-case">Próximamente</span>
                     </div>
                   )}
                 </div>
@@ -213,7 +220,10 @@ export default function ProductPanel() {
               // resto del sitio — bg-brand-dark/font-heading font-bold,
               // igual que el propio botón de cerrar de este componente
               // (línea de abajo, ya migrado en un pase anterior).
-              className="group self-start inline-flex items-center gap-2 rounded-full bg-brand-dark text-gallery-white px-[18px] py-[10px] font-heading font-bold text-[0.82rem]"
+              // apple-design audit (11 ago 2026) — Liquid Glass instead of
+              // the flat bg-brand-dark fill, same as every other pill
+              // button site-wide.
+              className="group self-start inline-flex items-center gap-2 rounded-full pill-glass-active text-gallery-white px-[18px] py-[10px] font-heading font-bold text-[0.82rem]"
             >
               Ver pieza completa{' '}
               <span className="inline-block transition-transform duration-[350ms] group-hover:-rotate-45">

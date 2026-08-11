@@ -317,6 +317,15 @@ export default function Product() {
           {/* 4. "¿Para quién es esta pieza?" — la pregunta fija ya vive en
               el legend del selector de tamaño (ver §19); se sube aquí,
               cerca del gancho, en vez de quedar enterrada más abajo. */}
+          {/* apple-design audit (11 ago 2026) — Liquid Glass on this fieldset
+              and the Marco/Orientación ones below: same pill-glass/
+              pill-glass-active swap as Gallery.jsx's GHOST_PILL/DARK_PILL.
+              Dropped the separate "featured size" thicker-border treatment
+              — its own copy badge ("el más elegido para regalar") already
+              carries that emphasis, so a third glass tier wasn't worth the
+              complexity. Color swatches (below) stay untouched on purpose:
+              they show the real frame color, and glass over that would
+              obscure the thing they exist to communicate. */}
           <fieldset className="mb-8">
             <legend className="font-label uppercase tracking-wide text-xs mb-2">
               ¿Para quién es esta pieza — para ti, o para presumirla?
@@ -326,12 +335,8 @@ export default function Product() {
                 <button
                   key={s.code}
                   onClick={() => setSizeCode(s.code)}
-                  className={`px-3 py-1 rounded-full border text-sm font-heading font-bold ${
-                    sizeCode === s.code
-                      ? 'bg-brand-dark text-dark-bg border-brand-dark'
-                      : s.featured
-                        ? 'border-brand-dark border-2'
-                        : 'border-current'
+                  className={`px-3 py-1 rounded-full text-sm font-heading font-bold ${
+                    sizeCode === s.code ? 'pill-glass-active text-gallery-white' : 'pill-glass'
                   }`}
                 >
                   {s.label} <span className="opacity-70">· {formatDims(s.dims)}</span>
@@ -369,8 +374,8 @@ export default function Product() {
                       <button
                         key={f.code}
                         onClick={() => setFrameCode(f.code)}
-                        className={`flex items-center gap-2 px-3 py-1 rounded-full border text-sm font-heading font-bold ${
-                          frameCode === f.code ? 'bg-brand-dark text-dark-bg border-brand-dark' : 'border-line'
+                        className={`flex items-center gap-2 px-3 py-1 rounded-full text-sm font-heading font-bold ${
+                          frameCode === f.code ? 'pill-glass-active text-gallery-white' : 'pill-glass text-graphite'
                         }`}
                       >
                         <span
@@ -411,8 +416,8 @@ export default function Product() {
                       <button
                         key={o}
                         onClick={() => setOrientation(o)}
-                        className={`px-3 py-1 rounded-full border text-sm capitalize font-heading font-bold ${
-                          orientation === o ? 'bg-brand-dark text-dark-bg border-brand-dark' : 'border-line'
+                        className={`px-3 py-1 rounded-full text-sm capitalize font-heading font-bold ${
+                          orientation === o ? 'pill-glass-active text-gallery-white' : 'pill-glass text-graphite'
                         }`}
                       >
                         {o}

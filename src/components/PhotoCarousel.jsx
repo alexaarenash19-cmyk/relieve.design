@@ -29,9 +29,18 @@ export default function PhotoCarousel({ photos, alt = '', placeholderLabel, over
         type="button"
         onClick={() => photo && setLightboxOpen(true)}
         data-cursor={photo ? 'view' : undefined}
-        className={`warm-photo relative w-full aspect-square rounded-[9px] overflow-hidden bg-stone flex items-center justify-center ${
-          photo && !photoLoaded ? 'animate-pulse' : ''
-        }`}
+        className={`warm-photo relative w-full aspect-square rounded-[9px] overflow-hidden flex items-center justify-center ${
+          // apple-design audit (11 ago 2026) — the no-photo fallback was a
+          // flat bg-stone swatch with just a name label, same gap already
+          // found and fixed on the Gallery.jsx canvas tiles: next to real
+          // photography (every other piece has it) it read as broken, not
+          // as an intentional "not photographed yet" state. Same dashed-
+          // border + soft-gradient + explicit caption treatment as there,
+          // for the one piece that still hits this path (nevado-de-toluca)
+          // — no photo or spec invented, only the treatment of an
+          // already-existing empty state.
+          photo ? 'bg-stone' : 'bg-gradient-to-br from-stone to-stone/60 border border-dashed border-graphite/25'
+        } ${photo && !photoLoaded ? 'animate-pulse' : ''}`}
       >
         {photo ? (
           photo.type === 'video' ? (
@@ -55,9 +64,12 @@ export default function PhotoCarousel({ photos, alt = '', placeholderLabel, over
             />
           )
         ) : (
-          <span className="font-label uppercase tracking-wide text-xs px-3 py-1">
-            {placeholderLabel}
-          </span>
+          <div className="flex flex-col items-center gap-1.5 text-center px-3">
+            <span className="font-label uppercase tracking-wide text-xs">
+              {placeholderLabel}
+            </span>
+            <span className="text-[10px] opacity-60 italic">Próximamente</span>
+          </div>
         )}
         {overlay}
       </button>

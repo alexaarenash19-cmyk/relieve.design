@@ -459,7 +459,7 @@ function ExperienceToggle({ view, onChange }) {
         // frente a GHOST_PILL/DARK_PILL (definidos más abajo en este mismo
         // archivo), que ya fijan brand-dark como el único acento de pill
         // post-rebrand.
-        className="flex items-center gap-2 rounded-full border border-brand-dark text-brand-dark px-4 py-[7px] font-body text-xs bg-transparent"
+        className="pill-glass flex items-center gap-2 rounded-full text-brand-dark px-4 py-[7px] font-body text-xs"
       >
         <svg viewBox="0 0 12 12" width="10" height="10" aria-hidden="true">
           {[0, 1, 2].flatMap((r) =>
@@ -485,10 +485,14 @@ function ExperienceToggle({ view, onChange }) {
 // "no background fill, it's an outlined ghost pill" — so they float
 // directly over whatever's behind them (photo or canvas), not a solid
 // panel. Dark pills are the deliberate exception (active-state fill).
+// apple-design audit (11 ago 2026) — Liquid Glass replaces both: ghost's
+// zero-fill outline becomes a clear glass, dark's solid fill becomes a
+// brand-dark-tinted glass. Still two visually distinct states (the whole
+// point of the ghost/dark split), just glass instead of flat/outline.
 const GHOST_PILL =
-  'rounded-full border border-brand-dark bg-transparent text-brand-dark px-3 py-2 font-heading font-bold uppercase tracking-wide text-xs flex items-center gap-1.5';
+  'pill-glass rounded-full text-brand-dark px-3 py-2 font-heading font-bold uppercase tracking-wide text-xs flex items-center gap-1.5';
 const DARK_PILL =
-  'rounded-full bg-brand-dark text-gallery-white px-3 py-2 font-heading font-bold uppercase tracking-wide text-xs flex items-center gap-1.5';
+  'pill-glass-active rounded-full text-gallery-white px-3 py-2 font-heading font-bold uppercase tracking-wide text-xs flex items-center gap-1.5';
 
 // Same taxonomy as /buscar and /colecciones — CATEGORIES is the one
 // source of truth, not a separate list per filter UI.
@@ -590,7 +594,7 @@ function MenuButton({ open, onToggle }) {
       onMouseEnter={onEnter}
       onMouseLeave={onLeave}
       // Hallazgo (auditoría 10 ago 2026): mismo fix de acento que ExperienceToggle arriba.
-      className="rounded-full border border-brand-dark bg-transparent text-brand-dark pl-[10px] pr-4 py-2 font-label uppercase tracking-wide text-xs inline-flex items-center gap-2 overflow-hidden"
+      className="pill-glass rounded-full text-brand-dark pl-[10px] pr-4 py-2 font-label uppercase tracking-wide text-xs inline-flex items-center gap-2 overflow-hidden"
     >
       <span ref={boxRef} className="explorar-menu-icon-box">
         <span ref={lineTopRef} className="explorar-menu-line explorar-line-top" />
@@ -742,8 +746,8 @@ function BottomControlBar({
                 onClick={() => setType(opt.value)}
                 className={`rounded-full px-3 py-1.5 font-label uppercase tracking-wide text-[10px] ${
                   type === opt.value
-                    ? 'bg-brand-dark text-gallery-white' // Hallazgo (auditoría 10 ago 2026): mismo fix de acento fragmentado
-                    : 'border border-line text-graphite'
+                    ? 'pill-glass-active text-gallery-white'
+                    : 'pill-glass text-graphite'
                 }`}
               >
                 {opt.label}
@@ -759,8 +763,8 @@ function BottomControlBar({
                 onClick={() => setColor(opt.value)}
                 className={`rounded-full px-3 py-1.5 font-label uppercase tracking-wide text-[10px] ${
                   color === opt.value
-                    ? 'bg-brand-dark text-gallery-white' // Hallazgo (auditoría 10 ago 2026): mismo fix de acento fragmentado
-                    : 'border border-line text-graphite'
+                    ? 'pill-glass-active text-gallery-white'
+                    : 'pill-glass text-graphite'
                 }`}
               >
                 {opt.label}
@@ -776,8 +780,8 @@ function BottomControlBar({
                 onClick={() => setSize(opt.value)}
                 className={`rounded-full px-3 py-1.5 font-label uppercase tracking-wide text-[10px] ${
                   size === opt.value
-                    ? 'bg-brand-dark text-gallery-white' // Hallazgo (auditoría 10 ago 2026): mismo fix de acento fragmentado
-                    : 'border border-line text-graphite'
+                    ? 'pill-glass-active text-gallery-white'
+                    : 'pill-glass text-graphite'
                 }`}
               >
                 {opt.label}
@@ -809,7 +813,7 @@ function DragHintAndZoom({ setZoom, showHint }) {
             zoomButtonPulse(e.currentTarget);
           }}
           aria-label="Alejar"
-          className="w-6 h-6 rounded-full border border-graphite bg-transparent flex items-center justify-center text-xs text-graphite"
+          className="pill-glass w-6 h-6 rounded-full flex items-center justify-center text-xs text-graphite"
         >
           −
         </button>
@@ -819,7 +823,7 @@ function DragHintAndZoom({ setZoom, showHint }) {
             zoomButtonPulse(e.currentTarget);
           }}
           aria-label="Acercar"
-          className="w-6 h-6 rounded-full border border-graphite bg-transparent flex items-center justify-center text-xs text-graphite"
+          className="pill-glass w-6 h-6 rounded-full flex items-center justify-center text-xs text-graphite"
         >
           +
         </button>
