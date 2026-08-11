@@ -246,6 +246,21 @@ function ScatteredCanvas({ items, zoom }) {
   // the real on-screen value to begin with.
   const historyRef = useRef([]);
   const inertiaRafRef = useRef(null);
+  // apple-design audit follow-up (11 ago 2026) - second pass on the tile-
+  // click bug (first pass: opening from onPointerUp via
+  // document.elementFromPoint instead of the native click event, which
+  // fixed some but not all of it - real clicks via actual hardware/CDP
+  // input still failed intermittently in a way scripted pointer events
+  // mostly didn't). elementFromPoint at pointerup re-hit-tests at that
+  // instant, right after releasePointerCapture - plausible the browser's
+  // hit-testing hasn't settled back to normal (non-captured) state
+  // synchronously at that exact point for real input. Sidestepping the
+  // re-hit-test entirely: the ORIGINAL pointerdown target has been
+  // correct in every single trace taken during this debugging (real or
+  // scripted, success or failure alike) - cache that once, at press-down,
+  // and reuse it at release instead of asking the browser what's at these
+  // coordinates a second time.
+  const downTargetRef = useRef(null);
 
   useEffect(() => {
     const el = containerRef.current;
@@ -277,6 +292,7 @@ function ScatteredCanvas({ items, zoom }) {
     movedRef.current = false;
     startRef.current = { x: e.clientX - offset.x, y: e.clientY - offset.y };
     historyRef.current = [{ x: e.clientX, y: e.clientY, t: performance.now() }];
+    downTargetRef.current = e.target;
     // apple-design audit follow-up (11 ago 2026) — a fast flick routinely
     // exits the container bounds before the browser fires the matching
     // pointerup, since it fires wherever the pointer physically is, not
@@ -333,13 +349,12 @@ function ScatteredCanvas({ items, zoom }) {
   }
   function onPointerUp(e) {
     draggingRef.current = false;
+    if (!movedRef.current) {
+      const tile = downTargetRef.current?.closest?.('a[href^="/pieza/"]');
+      if (tile) openProduct(tile.getAttribute('href').replace('/pieza/', ''));
+    }
     if (e?.currentTarget?.hasPointerCapture?.(e.pointerId)) {
       e.currentTarget.releasePointerCapture(e.pointerId);
-    }
-    if (!movedRef.current) {
-      const hit = document.elementFromPoint(e.clientX, e.clientY);
-      const tile = hit?.closest('a[href^="/pieza/"]');
-      if (tile) openProduct(tile.getAttribute('href').replace('/pieza/', ''));
     }
     const history = historyRef.current;
     if (history.length < 2 || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
