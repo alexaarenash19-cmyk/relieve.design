@@ -13,13 +13,17 @@
 // stays `fixed`/translucent-until-scroll on purpose (floats over the
 // hero), so content has to leave room for it, not the other way around.
 //
-// Museográfico pass (11 ago 2026) — two additions, same file, no change to
-// the reveal/solid logic above: a scroll-progress counter (`NN%`, plain —
-// no cartographic framing, per the direction change away from the earlier
-// passport-themed draft) folded into the existing `onScroll` handler
-// rather than a second scroll listener, and a menu trigger
-// (MenuIconButton, shared with Gallery.jsx's own canvas menu button) that
-// opens a new full-screen "Índice" overlay (MenuOverlay.jsx).
+// Museográfico pass (11 ago 2026) — menu trigger (MenuIconButton, shared
+// with Gallery.jsx's own canvas menu button) that opens a full-screen
+// "Índice" overlay (MenuOverlay.jsx).
+//
+// Addendum (11 ago 2026) — the scroll-progress `NN%` counter added in the
+// same pass was removed per Ale's follow-up addendum (supersedes Fase A1
+// of plan-relieve-museografico.md and the "Header fijo" section of
+// actualizacion-landing-relieve.md): not implemented in any form, plain or
+// "ALT."-prefixed. Header stays two zones (wordmark / links+menu), not
+// three. If a reading-progress indicator is wanted later it's a small,
+// isolated addition — no layout space reserved for it here.
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useCart } from '../context/CartContext.jsx';
@@ -47,7 +51,6 @@ export default function Nav() {
       typeof window !== 'undefined' &&
       !window.matchMedia('(pointer: fine)').matches,
   );
-  const [progress, setProgress] = useState(0);
   const [menuOpen, setMenuOpen] = useState(false);
   const { items, toggleCart } = useCart();
   const count = items.reduce((sum, i) => sum + i.qty, 0);
@@ -57,9 +60,6 @@ export default function Nav() {
 
     function onScroll() {
       setSolid(window.scrollY > 40);
-      const max = document.documentElement.scrollHeight - window.innerHeight;
-      const pct = max > 0 ? Math.round((window.scrollY / max) * 100) : 0;
-      setProgress(Math.min(100, Math.max(0, pct)));
     }
     function onMouseMove(e) {
       setVisible(e.clientY < REVEAL_ZONE_PX);
@@ -88,12 +88,6 @@ export default function Nav() {
           <img src={wordmark} alt="Relieve Design" className="h-14 w-auto" />
         </Link>
         <div className="flex items-center gap-6 font-label uppercase tracking-wide text-xs">
-          <span
-            className="hidden sm:inline text-graphite/50"
-            aria-hidden="true"
-          >
-            {String(progress).padStart(2, '0')}%
-          </span>
           <Link
             to="/colecciones"
             className="hover:text-passport-ink transition-colors"
