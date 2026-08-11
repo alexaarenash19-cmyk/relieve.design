@@ -59,19 +59,21 @@ export default function Collections() {
         </p>
       )}
 
+      {/* apple-design audit (11 ago 2026) — Liquid Glass, same
+          pill-glass/pill-glass-active split as everywhere else. */}
       <div className="flex gap-2 mb-8 font-label uppercase tracking-wide text-xs">
         <button
           onClick={() => setView('todos')}
-          className={`rounded-full px-4 py-2 border font-heading font-bold ${
-            view === 'todos' ? 'bg-brand-dark text-gallery-white border-brand-dark' : 'border-line text-brand-dark'
+          className={`rounded-full px-4 py-2 font-heading font-bold ${
+            view === 'todos' ? 'pill-glass-active text-gallery-white' : 'pill-glass text-brand-dark'
           }`}
         >
           Todos los mapas
         </button>
         <button
           onClick={() => setView('categoria')}
-          className={`rounded-full px-4 py-2 border font-heading font-bold ${
-            view === 'categoria' ? 'bg-brand-dark text-gallery-white border-brand-dark' : 'border-line text-brand-dark'
+          className={`rounded-full px-4 py-2 font-heading font-bold ${
+            view === 'categoria' ? 'pill-glass-active text-gallery-white' : 'pill-glass text-brand-dark'
           }`}
         >
           Por categoría

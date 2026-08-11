@@ -17,10 +17,19 @@
 // a petición directa de Ale ("regresa el banner de confianza azul... quita
 // el banner naranja"). El ticker vuelve a mostrarse igual en todas las
 // páginas, sin excepción de ruta.
+//
+// apple-design audit (11 ago 2026) — "Devolución gratuita — 7 días" era
+// falso: Términos y FAQ dicen explícitamente que no aplican cambios ni
+// devoluciones salvo defecto de fabricación, y los "7 días" ahí son la
+// ventana para REPORTAR un defecto, no un "regresa lo que sea, gratis".
+// Confirmado por Ale como la norma real. El ticker (visible en las 13
+// páginas, incluida Términos misma) contradecía la propia política del
+// sitio. Reescrito para decir la verdad sin perder el tono de trust-bar:
+// una garantía real, no una promesa que el checkout no cumple.
 const ITEMS = [
   'Envío gratis',
   'Envíos a toda la República',
-  'Devolución gratuita — 7 días',
+  'Garantía de fabricación — 7 días',
   'Hecho a mano en México',
 ];
 
