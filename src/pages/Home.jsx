@@ -17,7 +17,6 @@
 import Hero from '../components/Hero.jsx';
 import Gallery from '../components/Gallery.jsx';
 import CurvaDeNivel from '../components/CurvaDeNivel.jsx';
-import CanvasBottomStrip from '../components/CanvasBottomStrip.jsx';
 import { useDocumentHead } from '../lib/useDocumentHead.js';
 
 export default function Home() {
@@ -37,15 +36,16 @@ export default function Home() {
   // (Gallery ya no es fixed full-screen, ver Gallery.jsx); Footer se
   // renderiza en App.jsx fuera de <Routes>, así que cae después de lo que
   // sea que esta página pinte al final, sin tocar App.jsx por ruta.
-  // 2026-08-09 rebrand hand-off §3/§4 — CanvasBottomStrip mirrors
-  // TrustBar.jsx's Home-only top-strip swap: present unconditionally here,
-  // same "Home chrome" treatment as Nav.
+  //
+  // Ale's direct call (11 ago 2026): CanvasBottomStrip — the fixed
+  // "DESIGN" bar pinned to the bottom of the viewport — removed outright,
+  // she never asked for it. Not rendered here anymore; the component file
+  // itself is also deleted in this same change since nothing else used it.
   return (
     <>
       <Hero />
       <Gallery />
       <CurvaDeNivel />
-      <CanvasBottomStrip />
     </>
   );
 }

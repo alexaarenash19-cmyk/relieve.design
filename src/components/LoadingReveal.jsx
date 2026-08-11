@@ -21,13 +21,11 @@
 // After the halves finish separating, the whole overlay fades out and
 // unmounts — it does NOT replace or skip Home's own hero (Hero.jsx, see
 // its history note re: apple-design audit 11 ago 2026); that flow
-// proceeds completely unchanged underneath. The wordmark halves becoming
-// permanent canvas
-// top/bottom borders (rest of §3, all of §4) is handled separately by
-// TrustBar.jsx (top, Home-only) and CanvasBottomStrip.jsx (bottom,
-// Home-only) — kept as their own always-on chrome rather than this
-// one-shot component, since the strips need to persist long after this
-// reveal has unmounted.
+// proceeds completely unchanged underneath. The wordmark-halves-as-
+// permanent-canvas-borders idea (rest of §3, all of §4) was TrustBar.jsx
+// (top) + CanvasBottomStrip.jsx (bottom) — the bottom one removed
+// outright at Ale's direct request (11 ago 2026, never asked for it);
+// TrustBar's top strip stays.
 import { useEffect, useRef, useState } from 'react';
 import gsap from 'gsap';
 import wordmark from '../assets/brand/wordmark.svg';

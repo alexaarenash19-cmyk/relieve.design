@@ -65,9 +65,11 @@ export default function CurvaDeNivel() {
               placeholder="tu@correo.com"
               className="border border-line rounded px-3 py-2"
             />
+            {/* apple-design audit (11 ago 2026) — Liquid Glass, same as
+                every other CTA site-wide (Button.jsx). */}
             <button
               type="submit"
-              className="bg-brand-dark text-dark-bg px-6 py-3 rounded-[9px] font-heading font-bold hover:opacity-90 transition-opacity"
+              className="pill-glass-active text-gallery-white px-6 py-3 rounded-[9px] font-heading font-bold"
             >
               Quiero ser parte
             </button>
