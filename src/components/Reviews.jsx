@@ -32,7 +32,7 @@ function ReviewCard({ review }) {
         </div>
         <p className="leading-relaxed">{review.comment}</p>
         {hasPhoto && (
-          <span className="font-label uppercase tracking-wide text-[10px] text-sello-navy mt-2 inline-block">
+          <span className="font-label uppercase tracking-wide text-[10px] text-brand-dark mt-2 inline-block">
             {open ? 'Ocultar foto ▲' : 'Ver foto del cliente ▼'}
           </span>
         )}

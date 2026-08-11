@@ -68,7 +68,7 @@ export default function PhotoCarousel({ photos, alt = '', placeholderLabel, over
               key={p.url}
               onClick={() => setActive(i)}
               className={`relative w-16 h-16 rounded-[6px] overflow-hidden border-2 ${
-                active === i ? 'border-sello-navy' : 'border-line'
+                active === i ? 'border-brand-dark' : 'border-line'
               }`}
             >
               {p.type === 'video' ? (

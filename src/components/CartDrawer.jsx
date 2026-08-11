@@ -172,7 +172,7 @@ export default function CartDrawer() {
             <p className="normal-case font-body text-xs mt-2 text-sage">Envío incluido en piezas de colección.</p>
           )}
           <div className="h-1 bg-line rounded-full mt-2 overflow-hidden">
-            <div className="h-full bg-sello-navy" style={{ width: `${progress}%` }} />
+            <div className="h-full bg-brand-dark" style={{ width: `${progress}%` }} />
           </div>
 
           <label className="flex items-center gap-2 mt-6 normal-case font-body text-sm">
@@ -180,7 +180,7 @@ export default function CartDrawer() {
               type="checkbox"
               checked={isGift}
               onChange={(e) => setIsGift(e.target.checked)}
-              className="appearance-none w-5 h-5 rounded border border-line bg-gallery-white relative cursor-pointer checked:bg-sello-navy checked:border-sello-navy after:content-[''] after:absolute after:inset-0 after:flex after:items-center after:justify-center checked:after:content-['✓'] after:text-dark-bg after:text-xs"
+              className="appearance-none w-5 h-5 rounded border border-line bg-gallery-white relative cursor-pointer checked:bg-brand-dark checked:border-brand-dark after:content-[''] after:absolute after:inset-0 after:flex after:items-center after:justify-center checked:after:content-['✓'] after:text-dark-bg after:text-xs"
             />
             Es un regalo
           </label>

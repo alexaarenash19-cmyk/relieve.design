@@ -78,10 +78,11 @@ export default function AdminShip() {
       </p>
 
       <div className="mb-6">
-        <label className="font-label uppercase tracking-wide text-xs block mb-1">
+        <label htmlFor="admin-token" className="font-label uppercase tracking-wide text-xs block mb-1">
           Token de administrador
         </label>
         <input
+          id="admin-token"
           type="password"
           value={token}
           onChange={(e) => saveToken(e.target.value)}
@@ -97,10 +98,11 @@ export default function AdminShip() {
 
       <form onSubmit={handleSubmit}>
         <div className="mb-4">
-          <label className="font-label uppercase tracking-wide text-xs block mb-1">
+          <label htmlFor="admin-order-id" className="font-label uppercase tracking-wide text-xs block mb-1">
             Número de pedido
           </label>
           <input
+            id="admin-order-id"
             value={orderId}
             onChange={(e) => setOrderId(e.target.value)}
             placeholder="RLV-2026-169637"
@@ -109,10 +111,11 @@ export default function AdminShip() {
           />
         </div>
         <div className="mb-6">
-          <label className="font-label uppercase tracking-wide text-xs block mb-1">
+          <label htmlFor="admin-tracking-number" className="font-label uppercase tracking-wide text-xs block mb-1">
             Número de guía
           </label>
           <input
+            id="admin-tracking-number"
             value={trackingNumber}
             onChange={(e) => setTrackingNumber(e.target.value)}
             required

@@ -155,8 +155,8 @@ export default function ProductPanel() {
                       aria-pressed={i === activePhoto}
                       className={`w-[42px] h-[42px] p-0 border rounded-[2px] overflow-hidden bg-stone cursor-pointer transition-[opacity,border-color] duration-200 ${
                         i === activePhoto
-                          ? 'opacity-100 border-graphite'
-                          : 'opacity-60 border-line hover:opacity-100 hover:border-graphite'
+                          ? 'opacity-100 border-brand-dark'
+                          : 'opacity-60 border-line hover:opacity-100 hover:border-brand-dark'
                       }`}
                     >
                       <img src={p.url} alt="" className="w-full h-full object-cover block" />

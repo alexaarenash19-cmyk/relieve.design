@@ -106,13 +106,13 @@ export default function OrderStatus() {
         {STAGES.map((stage, i) => (
           <li key={stage.code} className="flex-1 text-center">
             <div
-              className={`h-1 mb-2 ${i <= currentIndex ? 'bg-sello-navy' : 'bg-line'} ${
+              className={`h-1 mb-2 ${i <= currentIndex ? 'bg-brand-dark' : 'bg-line'} ${
                 i === 0 ? 'rounded-l-full' : ''
               } ${i === STAGES.length - 1 ? 'rounded-r-full' : ''}`}
             />
             <span
               className={`font-label uppercase tracking-wide text-xs ${
-                i === currentIndex ? 'font-bold text-sello-navy' : 'text-graphite/60'
+                i === currentIndex ? 'font-bold text-brand-dark' : 'text-graphite/60'
               }`}
             >
               {stage.label}

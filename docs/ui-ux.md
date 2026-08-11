@@ -14,17 +14,24 @@ Galería editorial + aeropuerto, cinematográfico, minimal, premium. **Ritmo luz
 
 ## Rutas
 - `/` — Home (hero scroll 3D → galería infinita → comprar por colección).
+- `/colecciones` — vista "Explorar" (canvas/grid de colecciones).
+- `/regalar` — landing de regalo.
 - `/coleccion/:slug` — colección (piezas + reseñas al fondo).
 - `/pieza/:slug` — página de producto.
 - `/personaliza` — ubicación personalizada (formulario).
 - `/buscar` — buscador / índice A–Z.
 - `/metodo-relieve` — proceso + manifiesto ("Sobre") + reseñas (2026-08-09: `/sobre` retirado, redirige aquí).
 - `/envios`, `/faq`.
-- `/carrito` — (o drawer).
+- `/carrito` — resuelto como **drawer** (`CartDrawer.jsx`), no una ruta de página aparte.
+- `/pedido/success` — retorno de Stripe (`?session_id=`); debe resolver antes que `/pedido/:token` en el router.
 - `/pedido/:token` — estado del pedido (magic link).
+- `/aviso-privacidad`, `/terminos` — páginas legales (agregadas después de v0.2, ver `decisions.md` gap #2).
+- `/admin/envios` — panel interno (agregado 8 ago 2026), protegido por `ADMIN_TOKEN` server-side, sin link en la nav.
 
 ## Tokens de color
-Usar exactamente los de **"Colores de la Marca"**. Claro: bg `#F6F3ED`, text `#232323`, blue `#B9CCD8`, sage `#AEB99E`, walnut `#7A5A43`, stone `#C8C3BC`, ink `#355A75`, navy `#22405C`, line `#E4DED3`. Cinemático oscuro: bg `#14110E`, text `#ECE7DD`. Nada de negro/blanco puros, neón, dorado, degradados.
+Usar exactamente los de **"Colores de la Marca"**. Claro: bg `#F6F3ED`, text `#232323`, blue `#B9CCD8`, sage `#AEB99E`, walnut `#7A5A43`, stone `#C8C3BC`, ink `#355A75`, navy `#22405C`, line `#E4DED3`. Cinemático oscuro: bg `#1A1B19` (corregido 10 ago 2026 — esta doc decía `#14110E`, `src/index.css` ya usa `#1A1B19`), text `#ECE7DD`. Nada de negro/blanco puros, neón, dorado, degradados.
+
+**Tokens agregados después de v0.2** (no estaban en la lista original, ya viven en `src/index.css`): `--color-brand-dark` (`#355974`) — es el **único acento de botón/CTA/pill del sitio hoy** (ver corrección en "Componentes" más abajo: esta doc seguía diciendo Navy/Passport Ink); `--color-piedra` (`#E8E3D9`), `--color-grafito` (`#1E1C19`, distinto de `graphite`/`#232323`, no alias) y `--color-cempasuchil` (`#E86A1C`) del rebrand del landing (9 ago 2026) — `cempasuchil` reservado solo para el anillo de `:focus-visible`, no para botones/tags.
 
 ## Tipografía — escala completa (nuevo en v2)
 
@@ -81,7 +88,7 @@ Sección "pinned" con **R3F + GSAP ScrollTrigger + Lenis**. Ver **storyboard** c
 - **Galería infinita:** piezas (vista superior con marco) sobre hueso; hairlines, sin sombras; radio 9px; **arrastra para rotar** (modelo 3D); controles a los bordes (menú/filtro abajo-centro, zoom abajo-derecha); **buscador "Encuentra tu lugar"** + índice A–Z.
 - **Comprar por colección:** bloque media pantalla; cards con foto; hover zoom lento; clic → transición shared-element.
 - **Card de colección / de pieza:** foto, nombre Fraunces, contador/kicker Courier Prime.
-- **Página de producto (zine + Shupatto):** imagen grande (con **warp sutil al revelar**, estilo Shupatto) + columna de metadata; título Fraunces; **precio/medidas/msnm/coordenadas/SKU en Courier Prime**; selector de **tamaño** (Mediano "el más elegido") con roll numérico del precio; **personalización** (color/marco/orientación/placa/capelo) con **preview en vivo**; **bundle** como paso opcional; **tabla de especificaciones** minimal (hairlines, dos columnas, estilo Shupatto); **"Cómo llega / cómo se cuelga" en 3 pasos** con fotos; **acordeón** de detalles; **reseñas** (Disclosure: foto→clic→comentario); **preventa** → Spinning Text "pre-order"; **agotado** → Dialog waitlist. Un solo acento de acción (Navy/Passport Ink).
+- **Página de producto (zine + Shupatto):** imagen grande (con **warp sutil al revelar**, estilo Shupatto) + columna de metadata; título Fraunces; **precio/medidas/msnm/coordenadas/SKU en Courier Prime**; selector de **tamaño** (Mediano "el más elegido") con roll numérico del precio; **personalización** (color/marco/orientación/placa/capelo) con **preview en vivo**; **bundle** como paso opcional; **tabla de especificaciones** minimal (hairlines, dos columnas, estilo Shupatto); **"Cómo llega / cómo se cuelga" en 3 pasos** con fotos; **acordeón** de detalles; **reseñas** (Disclosure: foto→clic→comentario); **preventa** → Spinning Text "pre-order"; **agotado** → Dialog waitlist. Un solo acento de acción (**Brand Dark**, `#355974` — corregido 10 ago 2026: esta doc decía Navy/Passport Ink, pero el código ya había estandarizado en brand-dark; la doc vieja fue la causa raíz de que el acento se fragmentara en varios componentes, ver auditoría).
 - **Carrito:** drawer estilo boarding pass (Courier Prime, perforados); opción "es un regalo".
 - **Checkout:** redirección a Stripe (tarjeta/OXXO/MSI).
 - **Página de estado:** tablero de salidas (paid→in_production→shipped→delivered).
