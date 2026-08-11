@@ -37,17 +37,24 @@ export default function Hero() {
             adds nothing, which is exactly where the headline was
             unreadable live. This is a light, warm scrim concentrated
             behind the actual text block and fading to fully transparent
-            by ~70% across/down — it guarantees contrast for dark text
+            by ~85% across/down — it guarantees contrast for dark text
             without putting a flat panel over the whole photo (keeping
             the "no solid background" intent HeroSection.jsx's original
             comment described). The per-element textShadow below stays
             as a second, cheap line of defense over whatever of the
-            photo peeks through the scrim's fade. */}
+            photo peeks through the scrim's fade.
+            Widened 11 ago 2026 (apple-design audit follow-up): the copy
+            paragraph's bottom-right corner — over the photo's darkest
+            glass reflection — was still only marginally readable. Pushed
+            the ellipse out to 110%/100%, recentered a touch lower (10%
+            from top, roughly the copy block's vertical middle rather
+            than its top edge), and added a mid-opacity stop at 68% so
+            the tail fades out gradually instead of cutting off hard. */}
         <div
           className="absolute inset-0 pointer-events-none"
           style={{
             background:
-              'radial-gradient(ellipse 85% 75% at 0% 0%, rgba(246,243,237,0.8) 0%, rgba(246,243,237,0.5) 40%, rgba(246,243,237,0) 72%)',
+              'radial-gradient(ellipse 110% 100% at 0% 10%, rgba(246,243,237,0.82) 0%, rgba(246,243,237,0.55) 45%, rgba(246,243,237,0.18) 68%, rgba(246,243,237,0) 85%)',
           }}
         />
         <div className="absolute top-8 left-8 right-8 md:right-auto md:max-w-xl">

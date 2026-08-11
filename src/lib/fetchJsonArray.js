@@ -22,6 +22,20 @@ async function fetchWithTimeout(url, options, timeoutMs) {
   }
 }
 
+// apple-design audit follow-up (11 ago 2026) — Gallery.jsx and
+// CartContext.jsx both call fetchJsonArray('/api/places') independently
+// on every Home mount, firing two concurrent requests at an already-slow
+// backend (~7.2s on preview deploys per an earlier finding). Confirmed
+// live: one came back 200, the other 503, on the same page load — two
+// simultaneous cold connections apparently contend for something the
+// single-request path doesn't. inFlight dedupes by exact URL: a second
+// caller during an outstanding request awaits the SAME promise instead of
+// firing a second one. The entry is deleted the moment the request
+// settles (success or failure) so this only collapses truly concurrent
+// calls — it's not a cache, a fetch a second later still goes to the
+// network and sees fresh data.
+const inFlight = new Map();
+
 // Hallazgo (auditoría 10 ago 2026): devolvía siempre un array plano — un
 // [] por "no hay resultados" y un [] por "la petición falló" eran
 // indistinguibles para quien llama, así que ningún consumidor podía
@@ -31,14 +45,24 @@ async function fetchWithTimeout(url, options, timeoutMs) {
 // `failed` es true solo cuando la petición en sí falló (timeout, red,
 // respuesta no-ok, JSON inválido) — nunca por una lista genuinamente vacía.
 export async function fetchJsonArray(url, timeoutMs = DEFAULT_TIMEOUT_MS) {
-  try {
-    const res = await fetchWithTimeout(url, undefined, timeoutMs);
-    if (!res.ok) return { data: [], failed: true };
-    const data = await res.json();
-    return Array.isArray(data) ? { data, failed: false } : { data: [], failed: true };
-  } catch {
-    return { data: [], failed: true };
-  }
+  const existing = inFlight.get(url);
+  if (existing) return existing;
+
+  const promise = (async () => {
+    try {
+      const res = await fetchWithTimeout(url, undefined, timeoutMs);
+      if (!res.ok) return { data: [], failed: true };
+      const data = await res.json();
+      return Array.isArray(data) ? { data, failed: false } : { data: [], failed: true };
+    } catch {
+      return { data: [], failed: true };
+    } finally {
+      inFlight.delete(url);
+    }
+  })();
+
+  inFlight.set(url, promise);
+  return promise;
 }
 
 // For single-object endpoints (e.g. GET /api/places/:slug) where the caller
