@@ -12,10 +12,20 @@
 // padding to clear the taller bar now (see Collections.jsx) — the nav
 // stays `fixed`/translucent-until-scroll on purpose (floats over the
 // hero), so content has to leave room for it, not the other way around.
+//
+// Museográfico pass (11 ago 2026) — two additions, same file, no change to
+// the reveal/solid logic above: a scroll-progress counter (`NN%`, plain —
+// no cartographic framing, per the direction change away from the earlier
+// passport-themed draft) folded into the existing `onScroll` handler
+// rather than a second scroll listener, and a menu trigger
+// (MenuIconButton, shared with Gallery.jsx's own canvas menu button) that
+// opens a new full-screen "Índice" overlay (MenuOverlay.jsx).
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useCart } from '../context/CartContext.jsx';
 import wordmark from '../assets/brand/wordmark.svg';
+import MenuIconButton from './MenuIconButton.jsx';
+import MenuOverlay from './MenuOverlay.jsx';
 
 // Was 72px — too easy to miss on a normal-sized viewport, effectively
 // hiding the only way back to the catalog/cart from every product page.
@@ -37,6 +47,8 @@ export default function Nav() {
       typeof window !== 'undefined' &&
       !window.matchMedia('(pointer: fine)').matches,
   );
+  const [progress, setProgress] = useState(0);
+  const [menuOpen, setMenuOpen] = useState(false);
   const { items, toggleCart } = useCart();
   const count = items.reduce((sum, i) => sum + i.qty, 0);
 
@@ -45,10 +57,14 @@ export default function Nav() {
 
     function onScroll() {
       setSolid(window.scrollY > 40);
+      const max = document.documentElement.scrollHeight - window.innerHeight;
+      const pct = max > 0 ? Math.round((window.scrollY / max) * 100) : 0;
+      setProgress(Math.min(100, Math.max(0, pct)));
     }
     function onMouseMove(e) {
       setVisible(e.clientY < REVEAL_ZONE_PX);
     }
+    onScroll();
     window.addEventListener('scroll', onScroll, { passive: true });
     if (hoverCapable)
       window.addEventListener('mousemove', onMouseMove, { passive: true });
@@ -59,37 +75,51 @@ export default function Nav() {
   }, []);
 
   return (
-    <nav
-      onFocusCapture={() => setVisible(true)}
-      className={`fixed top-7 inset-x-0 z-40 flex items-center justify-between px-6 py-2 transition-[transform,opacity,background-color] duration-300 ${
-        solid
-          ? 'bg-gallery-white/95 backdrop-blur border-b border-line'
-          : 'bg-transparent'
-      } ${visible ? 'translate-y-0 opacity-100' : '-translate-y-full opacity-0 pointer-events-none'}`}
-    >
-      <Link to="/" className="flex items-center">
-        <img src={wordmark} alt="Relieve Design" className="h-14 w-auto" />
-      </Link>
-      <div className="flex items-center gap-6 font-label uppercase tracking-wide text-xs">
-        <Link
-          to="/colecciones"
-          className="hover:text-passport-ink transition-colors"
-        >
-          Colecciones
+    <>
+      <nav
+        onFocusCapture={() => setVisible(true)}
+        className={`fixed top-7 inset-x-0 z-40 flex items-center justify-between px-6 py-2 transition-[transform,opacity,background-color] duration-300 ${
+          solid
+            ? 'bg-gallery-white/95 backdrop-blur border-b border-line'
+            : 'bg-transparent'
+        } ${visible ? 'translate-y-0 opacity-100' : '-translate-y-full opacity-0 pointer-events-none'}`}
+      >
+        <Link to="/" className="flex items-center">
+          <img src={wordmark} alt="Relieve Design" className="h-14 w-auto" />
         </Link>
-        <Link
-          to="/metodo-relieve"
-          className="hover:text-passport-ink transition-colors"
-        >
-          Método
-        </Link>
-        <button
-          onClick={toggleCart}
-          className="font-label uppercase tracking-wide hover:text-passport-ink transition-colors"
-        >
-          Carrito{count > 0 ? ` (${count})` : ''}
-        </button>
-      </div>
-    </nav>
+        <div className="flex items-center gap-6 font-label uppercase tracking-wide text-xs">
+          <span
+            className="hidden sm:inline text-graphite/50"
+            aria-hidden="true"
+          >
+            {String(progress).padStart(2, '0')}%
+          </span>
+          <Link
+            to="/colecciones"
+            className="hover:text-passport-ink transition-colors"
+          >
+            Colecciones
+          </Link>
+          <Link
+            to="/metodo-relieve"
+            className="hover:text-passport-ink transition-colors"
+          >
+            Método
+          </Link>
+          <button
+            onClick={toggleCart}
+            className="font-label uppercase tracking-wide hover:text-passport-ink transition-colors"
+          >
+            Carrito{count > 0 ? ` (${count})` : ''}
+          </button>
+          <MenuIconButton
+            open={menuOpen}
+            onToggle={() => setMenuOpen((o) => !o)}
+            label="índice"
+          />
+        </div>
+      </nav>
+      <MenuOverlay open={menuOpen} onClose={() => setMenuOpen(false)} />
+    </>
   );
 }

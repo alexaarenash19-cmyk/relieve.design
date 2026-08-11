@@ -10,15 +10,17 @@ import { CATEGORIES, categoryLabel } from '../lib/categories.js';
 import { SIZES } from '../lib/catalog.js';
 import { useProductPanel } from '../context/ProductPanelContext.jsx';
 import Stamp from './Stamp.jsx';
+// Museográfico pass (11 ago 2026) — the menu-icon-morph button (square ->
+// circle/X) is now shared with Nav.jsx's own "Índice" trigger instead of
+// living only here; extracted verbatim to MenuIconButton.jsx, this file
+// just consumes it now like any other component.
+import MenuIconButton from './MenuIconButton.jsx';
 // Funciones puras de animación (spec table + fuente de cada valor en el
 // propio archivo) — ver src/lib/animations.js. gsap se mantiene importado
 // arriba solo para el gsap.set(...) de estado inicial de InlinePanel más
 // abajo (no es una animación en sí, solo fija el estado "oculto" antes del
 // primer open/close).
 import {
-  menuIconMorphTimeline,
-  menuIconHoverEnter,
-  menuIconHoverLeave,
   inlinePanelOpen,
   inlinePanelClose,
   hoverLift,
@@ -595,74 +597,6 @@ function FilterChip({ label, active, onClick }) {
   );
 }
 
-// Menu toggle icon: square -> circle, three lines -> an X, label slides
-// away — a one-shot GSAP timeline (played/reversed on click), ported
-// verbatim from the artifact's menuIconTl. This is a discrete,
-// user-triggered timeline, not tied to the page-load scroll ticker, so it
-// doesn't carry the shared-ticker risk noted for the old tile-entrance
-// GSAP attempt.
-function MenuButton({ open, onToggle }) {
-  const btnRef = useRef(null);
-  const boxRef = useRef(null);
-  const lineTopRef = useRef(null);
-  const lineMidRef = useRef(null);
-  const lineBotRef = useRef(null);
-  const labelRef = useRef(null);
-  const tlRef = useRef(null);
-
-  useEffect(() => {
-    const tl = menuIconMorphTimeline(
-      {
-        btn: btnRef.current,
-        box: boxRef.current,
-        lineTop: lineTopRef.current,
-        lineMid: lineMidRef.current,
-        lineBot: lineBotRef.current,
-        label: labelRef.current,
-      },
-      { mobile: window.innerWidth < MOBILE_BREAKPOINT },
-    );
-    tlRef.current = tl;
-    return () => tl.kill();
-  }, []);
-
-  useEffect(() => {
-    tlRef.current?.[open ? 'play' : 'reverse']();
-  }, [open]);
-
-  const lineRefs = {
-    lineTop: lineTopRef.current,
-    lineMid: lineMidRef.current,
-    lineBot: lineBotRef.current,
-  };
-  function onEnter() {
-    menuIconHoverEnter(lineRefs, open);
-  }
-  function onLeave() {
-    menuIconHoverLeave(lineRefs, open);
-  }
-
-  return (
-    <button
-      ref={btnRef}
-      onClick={onToggle}
-      onMouseEnter={onEnter}
-      onMouseLeave={onLeave}
-      // Hallazgo (auditoría 10 ago 2026): mismo fix de acento que ExperienceToggle arriba.
-      className="pill-glass rounded-full text-brand-dark pl-[10px] pr-4 py-2 font-label uppercase tracking-wide text-xs inline-flex items-center gap-2 overflow-hidden"
-    >
-      <span ref={boxRef} className="explorar-menu-icon-box">
-        <span ref={lineTopRef} className="explorar-menu-line explorar-line-top" />
-        <span ref={lineMidRef} className="explorar-menu-line" />
-        <span ref={lineBotRef} className="explorar-menu-line explorar-line-bot" />
-      </span>
-      <span className="explorar-menu-label-clip">
-        <span ref={labelRef} className="explorar-menu-label">menu</span>
-      </span>
-    </button>
-  );
-}
-
 function liftOnHover(e) {
   hoverLift(e.currentTarget);
 }
@@ -745,7 +679,7 @@ function BottomControlBar({
   return (
     <div className="fixed bottom-5 inset-x-0 z-30 flex justify-center pointer-events-none">
       <div className="relative flex flex-wrap items-center justify-center gap-2 px-4 max-w-[calc(100vw-28rem)] pointer-events-auto">
-        <MenuButton open={menuOpen} onToggle={toggleMenu} />
+        <MenuIconButton open={menuOpen} onToggle={toggleMenu} label="menu" />
         <InlinePanel open={menuOpen}>
           <a href="/colecciones" className={DARK_PILL} onMouseEnter={liftOnHover} onMouseLeave={liftOffHover}>
             colecciones
