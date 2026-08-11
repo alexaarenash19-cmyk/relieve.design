@@ -51,7 +51,6 @@ function priceLabel(cents) {
 }
 
 export function GalleryCard({ place, variant = 'grid', slot, gridIndex = 0 }) {
-  const { openProduct } = useProductPanel();
   const photo = thumbUrlForWidth(
     pieceMainThumb(place.slug) ?? place.thumb_url,
     360,
@@ -101,11 +100,12 @@ export function GalleryCard({ place, variant = 'grid', slot, gridIndex = 0 }) {
   // navigation here would tear down the whole canvas just to preview one
   // piece. Grid tiles (search/collections pages) keep navigating normally;
   // /pieza/:slug stays the real destination either way (panel CTA, direct
-  // links, SEO).
+  // links, SEO). Opening the panel itself moved to ScatteredCanvas's own
+  // onPointerUp (11 ago 2026, see its comment) — this just still needs to
+  // stop the real navigation for scattered tiles.
   function handleClick(e) {
     if (variant !== 'scattered') return;
     e.preventDefault();
-    openProduct(place.slug);
   }
 
   return (
@@ -211,6 +211,23 @@ export function GalleryCard({ place, variant = 'grid', slot, gridIndex = 0 }) {
 // CSS clipping crops whatever geometry lands on the boundary, it can't
 // selectively hide only-partial elements.
 function ScatteredCanvas({ items, zoom }) {
+  // apple-design audit follow-up (11 ago 2026) — opening a tile's panel
+  // used to happen entirely from the tile's own onClick, relying on the
+  // browser's native "click" event bubbling through whatever the DOM
+  // looks like by the time it fires. Reproduced live (and directly, by
+  // reading e.target/composedPath on real clicks): intermittently that
+  // click lands, sees the right target, calls preventDefault — and still
+  // nothing opens. Never pinned the exact trigger, but everything points
+  // at a React re-render landing between pointerup and the click event's
+  // own dispatch (this canvas re-renders on every setOffset call, and the
+  // momentum coast added above means that can still be happening right
+  // as a tap completes) — swapping the DOM node out from under the
+  // click's late dispatch. openProduct is now called straight from
+  // onPointerUp instead, in the same handler that already reliably
+  // tracks the gesture, using document.elementFromPoint at the moment of
+  // release rather than trusting a same DOM reference to still resolve
+  // correctly whenever the click event happens to fire.
+  const { openProduct } = useProductPanel();
   const [offset, setOffset] = useState({ x: 0, y: 0 });
   const [size, setSize] = useState({ w: 0, h: 0 });
   const containerRef = useRef(null);
@@ -318,6 +335,11 @@ function ScatteredCanvas({ items, zoom }) {
     draggingRef.current = false;
     if (e?.currentTarget?.hasPointerCapture?.(e.pointerId)) {
       e.currentTarget.releasePointerCapture(e.pointerId);
+    }
+    if (!movedRef.current) {
+      const hit = document.elementFromPoint(e.clientX, e.clientY);
+      const tile = hit?.closest('a[href^="/pieza/"]');
+      if (tile) openProduct(tile.getAttribute('href').replace('/pieza/', ''));
     }
     const history = historyRef.current;
     if (history.length < 2 || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
