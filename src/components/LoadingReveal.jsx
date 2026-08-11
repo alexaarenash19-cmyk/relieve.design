@@ -26,6 +26,15 @@
 // (top) + CanvasBottomStrip.jsx (bottom) — the bottom one removed
 // outright at Ale's direct request (11 ago 2026, never asked for it);
 // TrustBar's top strip stays.
+//
+// Tightened 11 ago 2026 ("tardan demasiado en cargar" — this overlay is a
+// fixed inset-0 z-300 layer sitting on top of the whole page for every
+// visitor's first pageview per session, on any entry route, so its own
+// runtime *is* the perceived "carga inicial" regardless of how fast the
+// backend/API actually is. Original timeline landed the final fade-out
+// around ~1.6s; cut to ~0.9s (each phase ~35-40% shorter, the closing
+// hold before fade-out almost removed) — still reads as a deliberate
+// brand beat, not a stall.
 import { useEffect, useRef, useState } from 'react';
 import gsap from 'gsap';
 import wordmark from '../assets/brand/wordmark.svg';
@@ -60,8 +69,8 @@ export default function LoadingReveal() {
       // same "respect prefers-reduced-motion" precedent as Home.jsx/Nav.jsx.
       gsap.to(rootRef.current, {
         opacity: 0,
-        duration: 0.4,
-        delay: 0.3,
+        duration: 0.3,
+        delay: 0.15,
         onComplete: () => setVisible(false),
       });
       return;
@@ -71,18 +80,18 @@ export default function LoadingReveal() {
       onComplete: () => setVisible(false),
     });
     tl.set([topRef.current, bottomRef.current], { yPercent: 0 })
-      .to(photoRef.current, { opacity: 1, duration: 0.3, ease: 'power1.out' }, 0.1)
+      .to(photoRef.current, { opacity: 1, duration: 0.2, ease: 'power1.out' }, 0.05)
       .to(
         topRef.current,
-        { yPercent: -12, duration: 0.6, ease: 'power2.inOut' },
-        0.15,
+        { yPercent: -12, duration: 0.4, ease: 'power2.inOut' },
+        0.1,
       )
       .to(
         bottomRef.current,
-        { yPercent: 12, duration: 0.6, ease: 'power2.inOut' },
-        0.15,
+        { yPercent: 12, duration: 0.4, ease: 'power2.inOut' },
+        0.1,
       )
-      .to(rootRef.current, { opacity: 0, duration: 0.35, ease: 'power1.in' }, '+=0.25');
+      .to(rootRef.current, { opacity: 0, duration: 0.25, ease: 'power1.in' }, '+=0.1');
   }, [visible]);
 
   if (!visible) return null;
