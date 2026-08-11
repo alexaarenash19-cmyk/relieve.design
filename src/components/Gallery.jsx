@@ -349,7 +349,23 @@ function ScatteredCanvas({ items, zoom }) {
   }
   function onPointerUp(e) {
     draggingRef.current = false;
-    if (!movedRef.current) {
+    // apple-design audit follow-up (11 ago 2026) - real bug found live
+    // ("every tile opens the same wrong city"): onPointerLeave shares
+    // this exact handler (below, for the fast-flick-exits-bounds case
+    // §2 already documents), and this tap-open logic ran unconditionally
+    // for BOTH event types. onPointerLeave fires just from the pointer
+    // leaving the canvas - moving toward MENU/FILTRAR, scrolling, any
+    // ordinary mouse movement near the edge - with no click involved at
+    // all. Since movedRef only ever gets set true by an actual drag,
+    // "not moved" is also true for plain hover-and-leave, so every one
+    // of those spurious pointerleave firings re-opened whatever
+    // downTargetRef last held from the previous REAL click - and since
+    // opening the panel likely disrupts the canvas enough that the next
+    // genuine pointerdown doesn't land cleanly, downTargetRef could get
+    // stuck on that one tile, reopening it over and over regardless of
+    // what actually got clicked afterward. Only a genuine release should
+    // ever open something.
+    if (e.type === 'pointerup' && !movedRef.current) {
       const tile = downTargetRef.current?.closest?.('a[href^="/pieza/"]');
       if (tile) openProduct(tile.getAttribute('href').replace('/pieza/', ''));
     }
