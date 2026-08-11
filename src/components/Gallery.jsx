@@ -293,13 +293,24 @@ function ScatteredCanvas({ items, zoom }) {
     if (Math.abs(next.x - offset.x) > 6 || Math.abs(next.y - offset.y) > 6)
       movedRef.current = true;
     setOffset(next);
-    // Keep ~100ms of history — enough to smooth a single noisy sample out
-    // of the release-velocity estimate without dragging in movement from
-    // a moment ago that no longer reflects how fast the pointer is
-    // actually moving right now.
+    // apple-design audit follow-up (11 ago 2026) — was a 100ms time-
+    // window trim (shift out any sample older than 100ms). Found a real
+    // bug that way, not a test artifact: reading historyRef directly off
+    // the live React fiber mid-gesture showed it collapsing to a single
+    // sample whenever the gap between pointerdown and the first
+    // pointermove happened to land just over 100ms apart — trimming the
+    // down-sample out and leaving onPointerUp's history.length<2 check
+    // nothing to work with, silently skipping momentum for a release that
+    // absolutely should have gotten it. A fixed two-sample window can't
+    // starve that way: as soon as one pointermove has fired, there are
+    // always exactly two samples (down+move, or prevMove+move) to compute
+    // release velocity from, regardless of how the timing between events
+    // happens to fall. This is also a closer match to Apple's own framing
+    // (§5 velocity handoff wants velocity *at* release, not smoothed over
+    // a window) than the old approach was.
     const history = historyRef.current;
     history.push({ x: e.clientX, y: e.clientY, t: performance.now() });
-    while (history.length > 1 && performance.now() - history[0].t > 100) history.shift();
+    if (history.length > 2) history.shift();
   }
   function onPointerUp(e) {
     draggingRef.current = false;
