@@ -1,12 +1,12 @@
 import { Suspense, lazy } from 'react';
-import { Routes, Route, Link } from 'react-router-dom';
+import { Routes, Route } from 'react-router-dom';
 import Nav from './components/Nav.jsx';
 import TrustBar from './components/TrustBar.jsx';
 import CustomCursor from './components/CustomCursor.jsx';
 import PageStamp from './components/PageStamp.jsx';
 import CartDrawer from './components/CartDrawer.jsx';
 import SvgFilters from './components/SvgFilters.jsx';
-import SocialLinks from './components/SocialLinks.jsx';
+import Footer from './components/Footer.jsx';
 
 // Hallazgo "gsap se filtra al bundle principal" (auditoría 10 ago 2026):
 // both of these are mounted unconditionally alongside <Routes>, not inside
@@ -53,29 +53,10 @@ function RouteFallback() {
   );
 }
 
-function Footer() {
-  // brand-brief.md §16 decisión 11 — reversión explícita de la petición
-  // anterior de nunca mostrar footer en home: la nueva estructura de Home
-  // (Hero → Canvas → Curva de Nivel → Footer) requiere que vuelva a
-  // aparecer en '/', debajo de la nueva sección Curva de Nivel. Footer se
-  // renderiza aquí, fuera de <Routes>, así que cae naturalmente después de
-  // lo que Home.jsx pinte (Gallery + CurvaDeNivel) sin tocar Home.jsx.
-  return (
-    <footer className="font-label uppercase tracking-wide text-xs text-graphite/70 flex items-center justify-center gap-6 p-8">
-      <Link
-        to="/aviso-privacidad"
-        className="hover:text-passport-ink hover:underline"
-      >
-        Aviso de privacidad
-      </Link>
-      <Link to="/terminos" className="hover:text-passport-ink hover:underline">
-        Términos
-      </Link>
-      <SocialLinks />
-    </footer>
-  );
-}
-
+// Museográfico pass (11 ago 2026) — Footer moved to its own file
+// (src/components/Footer.jsx), same mount point (outside <Routes>, so it
+// still falls naturally after whatever each page paints), now with real
+// navigation/contact/legal/social columns instead of a thin 2-link bar.
 export default function App() {
   return (
     <>
