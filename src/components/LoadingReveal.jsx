@@ -1,8 +1,8 @@
 // 2026-08-09 landing rebrand hand-off §3 — loading screen. Plays once per
-// browser session (sessionStorage, same conservative choice as Home.jsx's
-// HERO_SEEN_KEY — resets on a new tab), on whatever route the visitor
-// first lands on, not just '/'. No 0%→100% counter: purely visual, done in
-// under ~1.5s so it reads as "the site opening", not a wait.
+// browser session (sessionStorage — resets on a new tab, the conservative
+// choice), on whatever route the visitor first lands on, not just '/'. No
+// 0%→100% counter: purely visual, done in under ~1.5s so it reads as "the
+// site opening", not a wait.
 //
 // Effect: the existing single wordmark.svg (RELIEVE stacked over DESIGN —
 // exploration confirmed it's one fused compound path, not two separate
@@ -19,9 +19,10 @@
 // needed. Revisit with the real split art if/when she sends it committed.
 //
 // After the halves finish separating, the whole overlay fades out and
-// unmounts — it does NOT replace or skip the existing pinned-scroll hero
-// (HeroScrollSection in Home.jsx); that flow proceeds completely
-// unchanged underneath. The wordmark halves becoming permanent canvas
+// unmounts — it does NOT replace or skip Home's own hero (Hero.jsx, see
+// its history note re: apple-design audit 11 ago 2026); that flow
+// proceeds completely unchanged underneath. The wordmark halves becoming
+// permanent canvas
 // top/bottom borders (rest of §3, all of §4) is handled separately by
 // TrustBar.jsx (top, Home-only) and CanvasBottomStrip.jsx (bottom,
 // Home-only) — kept as their own always-on chrome rather than this
