@@ -72,6 +72,15 @@ export default function PhotoCarousel({ photos, alt = '', placeholderLabel, over
           </div>
         )}
         {overlay}
+        {/* Museográfico pass (11 ago 2026) — light n/N counter, additive
+            only, reuses the `active` state the thumbnail strip below
+            already tracks. Small pill-glass backing so it stays legible
+            over any photo, not just light ones. */}
+        {photos.length > 1 && (
+          <span className="pill-glass absolute bottom-3 right-3 rounded-full px-2.5 py-1 font-label text-[10px] text-graphite/70">
+            {active + 1} / {photos.length}
+          </span>
+        )}
       </button>
       {photos.length > 1 && (
         <div className="flex gap-2 mt-3">
