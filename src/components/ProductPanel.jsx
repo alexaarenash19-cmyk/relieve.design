@@ -26,6 +26,19 @@ function usePlace(slug) {
   useEffect(() => {
     if (!slug) return;
     let cancelled = false;
+    // apple-design audit follow-up (11 ago 2026) - real bug found live
+    // ("every city shows the first one I opened"): place never reset
+    // when slug changed, only ever replaced once the NEW fetch resolved.
+    // Against the ~7s /api/places/:slug latency this backend already has
+    // (documented separately), opening a second piece kept showing the
+    // first one's full data the whole time its own fetch was still in
+    // flight - indistinguishable from "stuck on Barcelona" to anyone who
+    // didn't wait 7+ seconds before looking, which is everyone. Clearing
+    // both here means the panel shows nothing (blank, not wrong) while
+    // the new fetch is in flight instead of silently lying with stale
+    // content - not resolved with a nice loading state, just honest.
+    setPlace(null);
+    setError(null);
     fetchJson(`/api/places/${slug}`)
       .then((data) => {
         if (!cancelled) setPlace(data);
@@ -119,6 +132,16 @@ export default function ProductPanel() {
         </button>
 
         {error && <p className="text-center text-graphite/70">{error}</p>}
+
+        {/* apple-design audit follow-up (11 ago 2026) - blank while
+            fetching read as broken (see usePlace's own note on why place
+            resets to null on every slug change). A plain status line
+            beats silence for the several real seconds this can take. */}
+        {!error && !place && (
+          <p className="text-center font-label uppercase tracking-wide text-xs text-graphite/60">
+            Cargando…
+          </p>
+        )}
 
         {!error && place && (
           <>
