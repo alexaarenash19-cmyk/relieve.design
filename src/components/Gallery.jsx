@@ -16,7 +16,6 @@ import Stamp from './Stamp.jsx';
 // abajo (no es una animación en sí, solo fija el estado "oculto" antes del
 // primer open/close).
 import {
-  tilePopIn,
   menuIconMorphTimeline,
   menuIconHoverEnter,
   menuIconHoverLeave,
@@ -61,22 +60,25 @@ export function GalleryCard({ place, variant = 'grid', slot, gridIndex = 0 }) {
   const [loaded, setLoaded] = useState(false);
   const rootRef = useRef(null);
 
-  // Entrance pop, confirmed 2026-07-27 against the artifact's actual JS
-  // (gsap.set/gsap.to on tile creation) — GSAP, not a CSS keyframe, exact
-  // values: duration 0.5s / ease power1.inOut / delay Math.random()*0.4,
-  // 0.01s duration under prefers-reduced-motion. No rotation or 3D
-  // perspective — confirmed absent from the artifact, not invented here.
-  // Runs once per mount (React mounts/unmounts a tile's DOM node each time
-  // it scrolls in/out of the visible window, unlike the artifact's
-  // plain-DOM version which reused elements and only played this once
-  // ever per element — a reasonable approximation given that difference).
-  // GSAP tweens the inline style directly and then stops touching the
-  // element, so .canvas-tile:hover's own animation/transition (already
-  // ported, untouched here) has nothing to fight afterward.
-  useEffect(() => {
-    if (variant !== 'scattered' || !rootRef.current) return;
-    tilePopIn(rootRef.current);
-  }, [variant]);
+  // Entrance pop — was gsap.set/gsap.to (tilePopIn in lib/animations.js),
+  // confirmed 2026-07-27 against the artifact's actual JS. Moved to a
+  // plain CSS animation (11 ago 2026, apple-design audit follow-up) after
+  // reproducing tiles stuck invisible (opacity/scale frozen near 0) on
+  // live production: GSAP's tween is driven by its own JS-ticked
+  // requestAnimationFrame loop, and this tile remounts on every scroll-
+  // in (React unmounts/remounts as tiles cross the visible window,
+  // unlike the artifact's reused-element version) — the momentum/coast
+  // added to the canvas drag means a single flick can now cause many
+  // tiles to mount in quick succession while still coasting, and enough
+  // of those competing for the main thread was enough to stall GSAP's
+  // ticker mid-tween. A native CSS animation doesn't depend on JS
+  // scheduling to advance, so it can't stall the same way — same
+  // precedent as .canvas-tile:hover already being plain CSS instead of
+  // GSAP for this exact reliability reason (see that keyframe's own
+  // comment). Same visual values preserved: 0.5s, a per-tile random
+  // delay up to 0.4s (stable for this mount via useRef, not re-rolled on
+  // re-render), instant under prefers-reduced-motion (index.css).
+  const popDelay = useRef(Math.random() * 0.4).current;
 
   // NO VERIFICADO — ver spec table en src/lib/animations.js: gridCardStagger.
   useEffect(() => {
@@ -114,7 +116,7 @@ export function GalleryCard({ place, variant = 'grid', slot, gridIndex = 0 }) {
       data-cursor-label={cursorLabel}
       className={
         variant === 'scattered'
-          ? 'group block select-none canvas-tile'
+          ? 'group block select-none canvas-tile tile-pop-in'
           : variant === 'explorarGrid'
             // "vista cuadrícula" toggle only (this file) — the artifact's
             // .grid-card is a flat, borderless tile; the hairline seams
@@ -125,7 +127,7 @@ export function GalleryCard({ place, variant = 'grid', slot, gridIndex = 0 }) {
             ? 'group block bg-gallery-white overflow-hidden select-none'
             : 'group block border border-line rounded-[9px] bg-gallery-white overflow-hidden select-none'
       }
-      style={tileStyle}
+      style={variant === 'scattered' ? { ...tileStyle, animationDelay: `${popDelay}s` } : tileStyle}
     >
       <div
         className={`warm-photo relative w-full aspect-square overflow-hidden flex items-center justify-center ${

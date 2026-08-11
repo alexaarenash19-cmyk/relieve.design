@@ -341,13 +341,18 @@ body::before {
    artifact's .tile / .tile:hover exactly (minus the translate(-50%,-50%)
    centering trick, since these tiles are positioned by top-left, not by
    center) — scale/rotate/lift on hover, a plain transition to revert.
-   The entrance pop itself is GSAP now (Gallery.jsx), matching the
-   artifact's own gsap.set/gsap.to exactly (confirmed 2026-07-27 by
-   reading the artifact's actual JS) — GSAP tweens the inline style once
-   on mount and then stops touching the element, so it never leaves a
-   lingering `animation` declaration to fight this hover keyframe or
-   block `.canvas-tile`'s own `transition` from handling the hover
-   revert. */
+   The entrance pop was GSAP (gsap.set/gsap.to, confirmed 2026-07-27
+   against the artifact's actual JS); moved to the .tile-pop-in animation
+   below (11 ago 2026, apple-design audit follow-up) — same duration and
+   values, but not driven by GSAP's JS-ticked requestAnimationFrame loop,
+   after reproducing tiles stuck invisible (opacity/scale frozen near 0)
+   on live production. Root cause: this tile remounts every time it
+   scrolls into view, and the momentum/coast added to the canvas drag
+   means one flick can now mount many tiles in quick succession while
+   still coasting — enough competing for the main thread stalled GSAP's
+   ticker mid-tween. A native CSS animation doesn't need JS scheduling to
+   advance, so it can't stall the same way — same reasoning that already
+   made .canvas-tile:hover plain CSS instead of GSAP below. */
 .canvas-tile {
   transform: scale(1) translateY(0) rotate(0deg);
   transition: transform 0.3s cubic-bezier(0.2, 0.6, 0.2, 1);
@@ -366,6 +371,31 @@ body::before {
   .canvas-tile:hover {
     animation: none;
     transform: scale(1.04);
+  }
+}
+
+/* Tile entrance — same values as the old GSAP tween (duration 0.5s, a
+   per-tile random delay up to 0.4s set inline via animationDelay in
+   Gallery.jsx, power1.inOut ~= this cubic-bezier). `both` holds the
+   pre-animation state (opacity 0) until the delay elapses and the
+   post-animation state (matches .canvas-tile's own resting transform,
+   so there's no handoff jump) once it finishes. */
+.tile-pop-in {
+  animation: tile-pop-in 0.5s cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+@keyframes tile-pop-in {
+  from {
+    opacity: 0;
+    transform: scale(0);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .tile-pop-in {
+    animation-duration: 0.01s;
   }
 }
 
