@@ -6,13 +6,26 @@
 // 2026-08-09 landing rebrand hand-off §6 — "Reseñas" y "Sobre" dejaron de
 // ser rutas/ítems de nav propios (antes /sobre y /colecciones#resenas) y se
 // fusionaron aquí como secciones #sobre y #resenas: /sobre redirige aquí
-// (vercel.json), y el pasaporte flipbook que antes vivía en pages/About.jsx
-// ahora se monta como components/PassportFlipbook.jsx. La lógica de reseñas
-// (fetch por lugar) se movió tal cual desde pages/Collections.jsx.
+// (vercel.json). "Reseñas" (fetch por lugar) se movió tal cual desde
+// pages/Collections.jsx.
+//
+// Museográfico pass (11 ago 2026) — #sobre ya no monta el flipbook estilo
+// pasaporte (PassportFlipbook.jsx, retirado del sitio como parte del
+// cambio de dirección "Passport" -> "Museográfico minimalista"). Ale,
+// literal: "lo que ya tiene la sección de método" — es decir, la misma
+// tipografía simple y plana que ya usa STEPS más abajo, no una ficha nueva
+// de datos. Se muestra ABOUT_COPY (la historia real de Madrid, ya
+// bloqueada) como párrafos simples; PASSENGER_INFO/TRAVEL_ESSENTIALS/
+// LUGGAGE_STICKERS/AUTHORIZED_DESTINATIONS/STAMP_PLACES no se usan en este
+// pase — passportContent.js se queda intacto (ABOUT_COPY sigue viviendo
+// ahí, el resto de sus exports simplemente ya no se importan desde aquí).
+// Sin cierre decorativo (sello) al final — confirmado con Ale, la sección
+// simplemente termina.
 import { useEffect, useState } from 'react';
 import { useDocumentHead } from '../lib/useDocumentHead.js';
 import { fetchJsonArray } from '../lib/fetchJsonArray.js';
-import PassportFlipbook from '../components/PassportFlipbook.jsx';
+import { useFadeInView } from '../lib/useFadeInView.js';
+import { ABOUT_COPY } from '../lib/passportContent.js';
 
 const STEPS = [
   {
@@ -37,8 +50,37 @@ const STEPS = [
   },
 ];
 
+const ABOUT_PARAGRAPHS = ABOUT_COPY.split('\n\n');
+
 function byName(a, b) {
   return a.name.localeCompare(b.name, 'es');
+}
+
+// Museográfico pass — scroll-reveal per step, mirroring Hero.jsx's exact
+// existing useFadeInView usage (transition-opacity duration-500, plain
+// opacity toggle, no added translate). Each <li> needs its own hook
+// instance (rules of hooks — can't call useFadeInView inside .map()
+// directly), hence this small wrapper instead of inlining the hook in the
+// STEPS.map() below.
+function StepItem({ n, title, detail }) {
+  const [ref, visible] = useFadeInView();
+  return (
+    <li
+      ref={ref}
+      className="flex gap-4 transition-opacity duration-500"
+      style={{ opacity: visible ? 1 : 0 }}
+    >
+      <span className="font-label text-graphite/40 text-sm shrink-0 pt-1">
+        {n}
+      </span>
+      <div>
+        <h2 className="font-heading font-bold text-brand-dark text-lg mb-1">
+          {title}
+        </h2>
+        <p>{detail}</p>
+      </div>
+    </li>
+  );
 }
 
 export default function MetodoRelieve() {
@@ -86,25 +128,24 @@ export default function MetodoRelieve() {
 
       <ol className="space-y-8">
         {STEPS.map((step, i) => (
-          <li key={step.title} className="flex gap-4">
-            <span className="font-label text-graphite/40 text-sm shrink-0 pt-1">
-              {String(i + 1).padStart(2, '0')}
-            </span>
-            <div>
-              <h2 className="font-heading font-bold text-brand-dark text-lg mb-1">
-                {step.title}
-              </h2>
-              <p>{step.detail}</p>
-            </div>
-          </li>
+          <StepItem
+            key={step.title}
+            n={String(i + 1).padStart(2, '0')}
+            title={step.title}
+            detail={step.detail}
+          />
         ))}
       </ol>
 
-      <section id="sobre" className="mt-16 -mx-8">
-        <h2 className="font-heading font-bold text-brand-dark text-2xl mb-2 px-8">
+      <section id="sobre" className="mt-16">
+        <h2 className="font-heading font-bold text-brand-dark text-2xl mb-4">
           Sobre Relieve
         </h2>
-        <PassportFlipbook />
+        {ABOUT_PARAGRAPHS.map((para, i) => (
+          <p key={i} className="text-graphite/80 mb-4 last:mb-0">
+            {para}
+          </p>
+        ))}
       </section>
 
       {reviews.length > 0 && (
