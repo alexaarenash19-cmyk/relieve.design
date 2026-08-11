@@ -258,6 +258,27 @@ function ScatteredCanvas({ items, zoom }) {
     movedRef.current = false;
     startRef.current = { x: e.clientX - offset.x, y: e.clientY - offset.y };
     historyRef.current = [{ x: e.clientX, y: e.clientY, t: performance.now() }];
+    // apple-design audit follow-up (11 ago 2026) — a fast flick routinely
+    // exits the container bounds before the browser fires the matching
+    // pointerup, since it fires wherever the pointer physically is, not
+    // where the drag started. Without capture that lands on
+    // onPointerLeave instead — same handler, but it's an unnecessary risk
+    // to lean on that as the primary path. Capturing to the container
+    // itself (e.currentTarget, not e.target — a tile underneath the
+    // pointer, not the container, would otherwise receive it) is exactly
+    // Apple's §2 guidance: stay glued to the pointer with
+    // setPointerCapture so tracking continues even after it leaves the
+    // element's bounds — it makes onPointerMove/onPointerUp fire
+    // consistently on this element for the whole gesture regardless of
+    // where the pointer physically wanders.
+    try {
+      e.currentTarget.setPointerCapture(e.pointerId);
+    } catch {
+      // Capture can throw if the pointer was already released/invalidated
+      // between dispatch and this call — the drag still works via normal
+      // hit-testing, capture is a robustness improvement, not a
+      // requirement.
+    }
   }
   function onPointerMove(e) {
     if (!draggingRef.current) return;
@@ -280,8 +301,11 @@ function ScatteredCanvas({ items, zoom }) {
     history.push({ x: e.clientX, y: e.clientY, t: performance.now() });
     while (history.length > 1 && performance.now() - history[0].t > 100) history.shift();
   }
-  function onPointerUp() {
+  function onPointerUp(e) {
     draggingRef.current = false;
+    if (e?.currentTarget?.hasPointerCapture?.(e.pointerId)) {
+      e.currentTarget.releasePointerCapture(e.pointerId);
+    }
     const history = historyRef.current;
     if (history.length < 2 || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
     const first = history[0];
