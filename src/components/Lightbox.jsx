@@ -24,12 +24,24 @@ export default function Lightbox({ photos, index, onIndexChange, onClose, alt = 
     // ahora. (Ninguno de esos dos componentes tiene un focus trap real de
     // Tab tampoco, así que no se inventó uno aquí que no exista ya en el
     // codebase; Escape/flechas ya funcionaban vía el listener de abajo.)
+    //
+    // Hallazgo jsx-a11y (auditoría 10 ago 2026, sesión 5): el fondo, el
+    // video/imagen y los dos clusters de controles tenían onClick sin
+    // equivalente de teclado. El fondo ahora solo cierra si el clic cae
+    // literalmente sobre él (e.target === e.currentTarget) — así el
+    // video/imagen/contador/controles ya no necesitan su propio
+    // stopPropagation, y el único onClick "real" que sobrevive (el del
+    // fondo) ya tiene su equivalente de teclado cubierto por Escape (ver
+    // el listener arriba) en vez de un segundo manejador redundante.
+    // eslint-disable-next-line jsx-a11y/no-static-element-interactions, jsx-a11y/click-events-have-key-events
     <div
       role="dialog"
       aria-modal="true"
       aria-label={alt || 'Foto ampliada'}
       className="fixed inset-0 z-[150] bg-dark-bg/95 flex items-center justify-center"
-      onClick={onClose}
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
     >
       {photo.type === 'video' ? (
         // Native controls here (unlike the muted carousel preview) — the
@@ -41,29 +53,21 @@ export default function Lightbox({ photos, index, onIndexChange, onClose, alt = 
           autoPlay
           loop
           playsInline
-          onClick={(e) => e.stopPropagation()}
           className="max-w-[90vw] max-h-[80vh] object-contain"
         />
       ) : (
         <img
           src={photo.url}
           alt={alt}
-          onClick={(e) => e.stopPropagation()}
           className="max-w-[90vw] max-h-[80vh] object-contain"
         />
       )}
 
-      <div
-        className="absolute bottom-6 left-6 font-label uppercase tracking-wide text-xs text-gallery-white/80"
-        onClick={(e) => e.stopPropagation()}
-      >
+      <div className="absolute bottom-6 left-6 font-label uppercase tracking-wide text-xs text-gallery-white/80">
         {index + 1}/{photos.length}
       </div>
 
-      <div
-        className="absolute bottom-6 right-6 flex gap-4 font-label uppercase tracking-wide text-xs text-gallery-white"
-        onClick={(e) => e.stopPropagation()}
-      >
+      <div className="absolute bottom-6 right-6 flex gap-4 font-label uppercase tracking-wide text-xs text-gallery-white">
         {photos.length > 1 && (
           <>
             <button

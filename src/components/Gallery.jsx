@@ -694,7 +694,7 @@ function DragHintAndZoom({ setZoom, showHint }) {
             zoomButtonPulse(e.currentTarget);
           }}
           aria-label="Alejar"
-          className="w-6 h-6 rounded-full border border-graphite bg-transparent flex items-center justify-center text-xs text-graphite"
+          className="w-6 h-6 rounded-full border border-brand-dark bg-transparent flex items-center justify-center text-xs text-brand-dark"
         >
           −
         </button>
@@ -704,7 +704,7 @@ function DragHintAndZoom({ setZoom, showHint }) {
             zoomButtonPulse(e.currentTarget);
           }}
           aria-label="Acercar"
-          className="w-6 h-6 rounded-full border border-graphite bg-transparent flex items-center justify-center text-xs text-graphite"
+          className="w-6 h-6 rounded-full border border-brand-dark bg-transparent flex items-center justify-center text-xs text-brand-dark"
         >
           +
         </button>
