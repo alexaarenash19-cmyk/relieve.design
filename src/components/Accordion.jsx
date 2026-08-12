@@ -2,6 +2,15 @@
 // (button + aria-expanded/aria-controls), not <details> — <details> has no
 // hook for the CSS grid-template-rows open/close transition (see
 // .accordion-content in index.css), which needs a real element to animate.
+//
+// Museográfico pass (11 ago 2026) — now also used to collapse Product.jsx's
+// "Ficha técnica" section (single item, its own Accordion instance,
+// separate from the "Detalles" one). Content changed from <p> to <div>:
+// FichaTecnica.jsx renders a <figure> (block element), invalid inside a
+// <p>. Plain-string content (the existing "Detalles" items) renders
+// identically inside a <div> with the same classes, so this is
+// backward-compatible — confirmed via repo search that Product.jsx is the
+// only consumer of this component.
 import { useId, useState } from 'react';
 
 export default function Accordion({ items }) {
@@ -43,7 +52,7 @@ export default function Accordion({ items }) {
               data-open={open}
             >
               <div className="min-h-0 overflow-hidden">
-                <p className="pb-4 text-sm leading-relaxed text-graphite/80">{content}</p>
+                <div className="pb-4 text-sm leading-relaxed text-graphite/80">{content}</div>
               </div>
             </div>
           </div>

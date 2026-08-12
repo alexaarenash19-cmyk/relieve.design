@@ -489,23 +489,34 @@ export default function Product() {
               </>
             )}
 
-            {/* 6. Ficha técnica — refleja la selección real de arriba,
-                visible siempre (no gateada por paso) para dar contexto
-                continuo de lo ya elegido mientras se avanza. */}
+            {/* 6. Ficha técnica — colapsada por default (museográfico
+                pass, 11 ago 2026), reutilizando el mismo Accordion.jsx que
+                ya usa "Detalles" más abajo, no una segunda implementación.
+                Un solo item -- FichaTecnica ya es una unidad visual
+                coherente, fragmentarla en varios triggers requeriría
+                tocar FichaTecnica.jsx, fuera de alcance. Visible/oculto
+                por interacción, no por paso -- da contexto continuo
+                mientras se avanza, igual que antes. */}
             <div className="mb-10">
-              <h2 className="font-heading font-bold text-brand-dark uppercase tracking-wide text-xs mb-2">
-                Ficha técnica
-              </h2>
-              <FichaTecnica
-                pieceNumber={null}
-                editionNumber={null}
-                collectionName={isPuzzle ? 'Juego' : 'Ciudades del Mundo'}
-                series={place.series}
-                placeName={place.name}
-                country={countryLabel}
-                sizeCode={sizeCode}
-                frameCode={isPuzzle ? undefined : frameCode}
-                colorCode={isPuzzle ? undefined : colorCode}
+              <Accordion
+                items={[
+                  {
+                    title: 'Ficha técnica',
+                    content: (
+                      <FichaTecnica
+                        pieceNumber={null}
+                        editionNumber={null}
+                        collectionName={isPuzzle ? 'Juego' : 'Ciudades del Mundo'}
+                        series={place.series}
+                        placeName={place.name}
+                        country={countryLabel}
+                        sizeCode={sizeCode}
+                        frameCode={isPuzzle ? undefined : frameCode}
+                        colorCode={isPuzzle ? undefined : colorCode}
+                      />
+                    ),
+                  },
+                ]}
               />
             </div>
 
