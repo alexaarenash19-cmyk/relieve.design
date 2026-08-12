@@ -1,0 +1,162 @@
+// Museográfico pass (11 ago 2026) — reemplaza el overlay de pantalla
+// completa "Índice" (MenuOverlay.jsx/IndexRow.jsx, retirados) por un botón
+// circular que se expande localmente en el header, adaptando el patrón
+// Menu/MenuItem/MenuContainer que Ale mandó como referencia (círculo
+// 64px, stack vertical escalonado, translateY+opacity+clipPath,
+// 300ms cubic-bezier(0.4,0,0.2,1)) a los tokens reales de Relieve — sin
+// clases dark: (no hay tema dual confirmado en el repo), sin lucide-react
+// (no está en package.json; íconos inline en el mismo estilo
+// stroke="currentColor" que ya usa SocialLinks.jsx), cempasúchil como
+// único acento (nunca fondo del botón).
+//
+// Contenido — confirmado con Ale: 4 items, no los 7 de navItems.js.
+// Inicio no es un item (el wordmark ya enlaza a "/"). Carrito abre el
+// CartDrawer existente (toggleCart, mismo hook de siempre) en vez de
+// navegar, y conserva el badge de cantidad.
+//
+// El propio círculo trae su transición hamburguesa↔X integrada — no
+// reutiliza MenuIconButton.jsx (ese sigue intacto solo en Gallery.jsx,
+// para su propio botón de menú del canvas; no es el mismo trigger, no
+// aplica la regla de "una sola transición por lugar").
+import { useRef, useState } from 'react';
+import { Link } from 'react-router-dom';
+import { useCart } from '../context/CartContext.jsx';
+import { useEscapeKey } from '../lib/useEscapeKey.js';
+import { useClickOutside } from '../lib/useClickOutside.js';
+
+function GridIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" width="18" height="18">
+      <rect x="4" y="4" width="7" height="7" rx="1" />
+      <rect x="13" y="4" width="7" height="7" rx="1" />
+      <rect x="4" y="13" width="7" height="7" rx="1" />
+      <rect x="13" y="13" width="7" height="7" rx="1" />
+    </svg>
+  );
+}
+function ContourIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" width="18" height="18">
+      <circle cx="12" cy="12" r="9" />
+      <circle cx="12" cy="12" r="5.5" />
+      <circle cx="12" cy="12" r="2" />
+    </svg>
+  );
+}
+function BagIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" width="18" height="18">
+      <path d="M6 8h12l-1 12H7L6 8z" />
+      <path d="M9 8V6a3 3 0 0 1 6 0v2" />
+    </svg>
+  );
+}
+function PencilIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" width="18" height="18">
+      <path d="M4 20l1-4 11-11 3 3-11 11-4 1z" />
+      <path d="M14 6l3 3" />
+    </svg>
+  );
+}
+
+const STAGGER_MS = 40;
+
+export default function FluidMenu() {
+  const [open, setOpen] = useState(false);
+  const containerRef = useRef(null);
+  const { items, toggleCart } = useCart();
+  const count = items.reduce((sum, i) => sum + i.qty, 0);
+
+  function close() {
+    setOpen(false);
+  }
+  useEscapeKey(close);
+  useClickOutside(containerRef, close);
+
+  const MENU_ITEMS = [
+    { key: 'colecciones', label: 'Colecciones', icon: <GridIcon />, as: Link, to: '/colecciones' },
+    { key: 'metodo', label: 'Método', icon: <ContourIcon />, as: Link, to: '/metodo-relieve' },
+    {
+      key: 'carrito',
+      label: count > 0 ? `Carrito (${count})` : 'Carrito',
+      icon: <BagIcon />,
+      as: 'button',
+      onClick: toggleCart,
+    },
+    { key: 'personaliza', label: 'Personaliza', icon: <PencilIcon />, as: Link, to: '/personaliza' },
+  ];
+
+  return (
+    <div ref={containerRef} className="relative">
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        aria-label={open ? 'Cerrar menú' : 'Abrir menú'}
+        aria-expanded={open}
+        className="pill-glass rounded-full w-16 h-16 flex items-center justify-center text-brand-dark"
+      >
+        <span className="relative w-[18px] h-[13px]" aria-hidden="true">
+          <span
+            className="absolute left-0 w-full h-[1.5px] bg-current transition-all duration-300"
+            style={{
+              top: open ? '50%' : 0,
+              transform: open ? 'translateY(-50%) rotate(45deg)' : 'none',
+            }}
+          />
+          <span
+            className="absolute left-0 top-1/2 -translate-y-1/2 w-full h-[1.5px] bg-current transition-opacity duration-200"
+            style={{ opacity: open ? 0 : 1 }}
+          />
+          <span
+            className="absolute left-0 bottom-0 w-full h-[1.5px] bg-current transition-all duration-300"
+            style={{
+              top: open ? '50%' : 'auto',
+              transform: open ? 'translateY(-50%) rotate(-45deg)' : 'none',
+            }}
+          />
+        </span>
+      </button>
+
+      <div
+        role="menu"
+        inert={!open}
+        className={`absolute top-full right-0 mt-3 flex flex-col items-end gap-3 transition-opacity duration-200 ${
+          open ? 'opacity-100' : 'opacity-0 pointer-events-none'
+        }`}
+      >
+        {MENU_ITEMS.map((item, i) => {
+          const Tag = item.as;
+          const itemProps =
+            Tag === Link
+              ? { to: item.to, onClick: close }
+              : { type: 'button', onClick: () => { item.onClick(); close(); } };
+          return (
+            <div
+              key={item.key}
+              className="flex items-center gap-3 transition-[transform,opacity,clip-path] ease-[cubic-bezier(0.4,0,0.2,1)]"
+              style={{
+                transitionDuration: '300ms',
+                transitionDelay: open ? `${i * STAGGER_MS}ms` : '0ms',
+                transform: open ? 'translateY(0)' : 'translateY(-8px)',
+                opacity: open ? 1 : 0,
+                clipPath: open ? 'inset(0 0 0 0)' : 'inset(0 0 100% 0)',
+              }}
+            >
+              <span className="font-label uppercase tracking-wide text-xs text-graphite/70 whitespace-nowrap">
+                {item.label}
+              </span>
+              <Tag
+                {...itemProps}
+                role="menuitem"
+                className="pill-glass rounded-full w-12 h-12 flex items-center justify-center text-brand-dark hover:text-cempasuchil transition-colors"
+              >
+                {item.icon}
+              </Tag>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
