@@ -6,6 +6,16 @@
 // gancho → pregunta → historia → ficha técnica → personalización → link
 // de método → precio/CTA → tiempos → cómo llega → trust). Ver §16
 // decisión 10 (video de unboxing) y §20 (registro de esta ejecución).
+//
+// Selector por pasos (11 ago 2026) — antes los 4 fieldsets de selección
+// (Tamaño/Marco/Color/Orientación) se mostraban todos juntos, amontonados.
+// Ahora se navega un paso a la vez vía StepProgress.jsx (ver ese archivo
+// para la justificación de por qué NO se usó framer-motion/lucide-react/
+// shadcn del componente de referencia que Ale mandó). El estado real de
+// selección (sizeCode/frameCode/colorCode/orientation/memoryNote) NO
+// cambió — sigue siendo el mismo useState de siempre, cablea a
+// FichaTecnica y al carrito exactamente igual que antes. `currentStep` es
+// puramente de navegación de UI, nuevo, sin afectar esos datos.
 import { useEffect, useMemo, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useCart } from '../context/CartContext.jsx';
@@ -32,6 +42,7 @@ import HowItArrives from '../components/HowItArrives.jsx';
 import Accordion from '../components/Accordion.jsx';
 import PhotoCarousel from '../components/PhotoCarousel.jsx';
 import FichaTecnica from '../components/FichaTecnica.jsx';
+import StepProgress from '../components/StepProgress.jsx';
 import { piecePhotos } from '../lib/photography.js';
 import { fetchJson } from '../lib/fetchJsonArray.js';
 
@@ -87,9 +98,11 @@ export default function Product() {
   const [orientation, setOrientation] = useState('horizontal');
   const [memoryNote, setMemoryNote] = useState('');
   const [unitPriceCents, setUnitPriceCents] = useState(null);
+  const [currentStep, setCurrentStep] = useState(1);
 
   useEffect(() => {
     let cancelled = false;
+    setCurrentStep(1);
     fetchJson(`/api/places/${slug}`)
       .then((data) => {
         if (cancelled) return;
@@ -253,6 +266,45 @@ export default function Product() {
     });
   }
 
+  // Selector por pasos — puzzle no tiene Marco/Color/Orientación
+  // (isPuzzle ya gatea esos fieldsets hoy), así que no se fuerza un paso
+  // "Acabado" vacío para él.
+  const STEPS = isPuzzle ? ['tamano', 'personalizacion'] : ['tamano', 'acabado', 'personalizacion'];
+  const STEP_LABELS = isPuzzle ? ['Tamaño', 'Personalización'] : ['Tamaño', 'Acabado', 'Personalización'];
+  const activeStep = STEPS[currentStep - 1];
+  const isLastStep = currentStep === STEPS.length;
+
+  function goNext() {
+    setCurrentStep((s) => Math.min(s + 1, STEPS.length));
+  }
+  function goBack() {
+    setCurrentStep((s) => Math.max(s - 1, 1));
+  }
+
+  // El bloque real de precio + CTA (sin cambios de copy/acción) — se
+  // reutiliza como `finalAction` de StepProgress en el último paso, no se
+  // duplica ni se inventa un botón "Finalizar" paralelo.
+  const ctaBlock = (
+    <div className="rounded-[9px] border border-line p-4">
+      <RollingPrice
+        cents={unitPriceCents ?? place.base_price}
+        className="font-label text-2xl font-bold block mb-1"
+      />
+      <p className="font-label uppercase tracking-wide text-[11px] text-graphite/60 mb-3">
+        Se fabrica en {PRODUCTION_DAYS} días hábiles · llega {SHIPPING_DAYS} días después
+      </p>
+      {place.status === 'soldout' ? (
+        <WaitlistDialog placeSlug={place.slug} />
+      ) : (
+        <Button onClick={handleAddToCart}>Encargar mi pieza</Button>
+      )}
+      <p className="text-[11px] text-graphite/60 mt-2">
+        Pieza hecha por encargo — no aplican cambios ni devoluciones salvo defecto.{' '}
+        <a href="#detalles" className="underline">Ver detalles</a>
+      </p>
+    </div>
+  );
+
   return (
     <main className={`${accent.bg} ${accent.text} transition-colors`}>
       {/* grid-cols-[minmax(0,11fr)_minmax(0,9fr)]: el carrusel domina
@@ -314,43 +366,52 @@ export default function Product() {
             </span>
           )}
 
-          {/* 4. "¿Para quién es esta pieza?" — la pregunta fija ya vive en
-              el legend del selector de tamaño (ver §19); se sube aquí,
-              cerca del gancho, en vez de quedar enterrada más abajo. */}
-          {/* apple-design audit (11 ago 2026) — Liquid Glass on this fieldset
-              and the Marco/Orientación ones below: same pill-glass/
-              pill-glass-active swap as Gallery.jsx's GHOST_PILL/DARK_PILL.
-              Dropped the separate "featured size" thicker-border treatment
-              — its own copy badge ("el más elegido para regalar") already
-              carries that emphasis, so a third glass tier wasn't worth the
-              complexity. Color swatches (below) stay untouched on purpose:
-              they show the real frame color, and glass over that would
-              obscure the thing they exist to communicate. */}
-          <fieldset className="mb-8">
-            <legend className="font-label uppercase tracking-wide text-xs mb-2">
-              ¿Para quién es esta pieza — para ti, o para presumirla?
-            </legend>
-            <div className="flex flex-wrap gap-2">
-              {availableSizes.map((s) => (
-                <button
-                  key={s.code}
-                  onClick={() => setSizeCode(s.code)}
-                  className={`px-3 py-1 rounded-full text-sm font-heading font-bold ${
-                    sizeCode === s.code ? 'pill-glass-active text-gallery-white' : 'pill-glass'
-                  }`}
-                >
-                  {s.label} <span className="opacity-70">· {formatDims(s.dims)}</span>
-                  {s.featured && <span className="ml-1 text-xs opacity-70">· el más elegido para regalar</span>}
-                </button>
-              ))}
-            </div>
-            {selectedSize?.tagline && (
-              <p className="mt-2 text-xs opacity-70">{selectedSize.tagline}</p>
-            )}
-          </fieldset>
+          {/* 4. "¿Para quién es esta pieza?" — paso 1 del selector.
+              apple-design audit (11 ago 2026) — Liquid Glass en este
+              fieldset y los de Marco/Orientación más abajo: mismo swap
+              pill-glass/pill-glass-active que GHOST_PILL/DARK_PILL de
+              Gallery.jsx. Color swatches (más abajo) siguen sin glass a
+              propósito: muestran el color real del marco, y glass encima
+              lo taparía. */}
+          {activeStep === 'tamano' && (
+            <fieldset className="mb-4">
+              <legend className="font-label uppercase tracking-wide text-xs mb-2">
+                ¿Para quién es esta pieza — para ti, o para presumirla?
+              </legend>
+              <div className="flex flex-wrap gap-2">
+                {availableSizes.map((s) => (
+                  <button
+                    key={s.code}
+                    onClick={() => setSizeCode(s.code)}
+                    className={`px-3 py-1 rounded-full text-sm font-heading font-bold ${
+                      sizeCode === s.code ? 'pill-glass-active text-gallery-white' : 'pill-glass'
+                    }`}
+                  >
+                    {s.label} <span className="opacity-70">· {formatDims(s.dims)}</span>
+                    {s.featured && <span className="ml-1 text-xs opacity-70">· el más elegido para regalar</span>}
+                  </button>
+                ))}
+              </div>
+              {selectedSize?.tagline && (
+                <p className="mt-2 text-xs opacity-70">{selectedSize.tagline}</p>
+              )}
+            </fieldset>
+          )}
+
+          {activeStep === 'tamano' && (
+            <StepProgress
+              total={STEPS.length}
+              current={currentStep}
+              labels={STEP_LABELS}
+              onBack={goBack}
+              onContinue={goNext}
+              isLast={isLastStep}
+              finalAction={ctaBlock}
+            />
+          )}
 
           {/* 5. Historia del lugar */}
-          {storyBody && <p className="mb-10 leading-relaxed max-w-[46ch]">{storyBody}</p>}
+          {storyBody && <p className="mt-8 mb-10 leading-relaxed max-w-[46ch]">{storyBody}</p>}
 
           {/* Todo lo demás vive en su propia card neutral, para que el
               estilo de selección existente (bg-brand-dark en el chip
@@ -365,7 +426,7 @@ export default function Product() {
               {!isPuzzle && <BaggageTag label="Marco" value={selectedFrame.label} />}
             </div>
 
-            {!isPuzzle && (
+            {!isPuzzle && activeStep === 'acabado' && (
               <>
                 <fieldset className="mb-4">
                   <legend className="font-label uppercase tracking-wide text-xs mb-2">Marco</legend>
@@ -428,7 +489,9 @@ export default function Product() {
               </>
             )}
 
-            {/* 6. Ficha técnica — refleja la selección real de arriba */}
+            {/* 6. Ficha técnica — refleja la selección real de arriba,
+                visible siempre (no gateada por paso) para dar contexto
+                continuo de lo ya elegido mientras se avanza. */}
             <div className="mb-10">
               <h2 className="font-heading font-bold text-brand-dark uppercase tracking-wide text-xs mb-2">
                 Ficha técnica
@@ -446,23 +509,25 @@ export default function Product() {
               />
             </div>
 
-            {/* 7. "En una frase, ¿por qué este lugar?" */}
-            <div className="mb-4">
-              <label htmlFor="memoryNote" className="font-label uppercase tracking-wide text-xs block mb-1">
-                En una frase, ¿por qué este lugar?
-              </label>
-              <input
-                id="memoryNote"
-                value={memoryNote}
-                onChange={(e) => setMemoryNote(e.target.value)}
-                maxLength={140}
-                placeholder="Aquí aprendí a vivir sola."
-                className="w-full border border-line rounded px-3 py-2"
-              />
-              <p className="text-xs text-graphite/60 mt-1">
-                Opcional — si la compartes, la imprimimos en una tarjeta dentro de tu pieza.
-              </p>
-            </div>
+            {/* 7. "En una frase, ¿por qué este lugar?" — paso final. */}
+            {activeStep === 'personalizacion' && (
+              <div className="mb-4">
+                <label htmlFor="memoryNote" className="font-label uppercase tracking-wide text-xs block mb-1">
+                  En una frase, ¿por qué este lugar?
+                </label>
+                <input
+                  id="memoryNote"
+                  value={memoryNote}
+                  onChange={(e) => setMemoryNote(e.target.value)}
+                  maxLength={140}
+                  placeholder="Aquí aprendí a vivir sola."
+                  className="w-full border border-line rounded px-3 py-2"
+                />
+                <p className="text-xs text-graphite/60 mt-1">
+                  Opcional — si la compartes, la imprimimos en una tarjeta dentro de tu pieza.
+                </p>
+              </div>
+            )}
 
             {/* Capelo de vidrio y placa grabada se descontinuaron de la
                 interfaz de cliente — brand-brief.md sección 16 decisión 5.
@@ -470,35 +535,28 @@ export default function Product() {
                 que 'nogal' en FRAMES/terracota en COLORS) por integridad de
                 FK de pedidos ya existentes; simplemente ya no se piden aquí. */}
 
+            {activeStep !== 'tamano' && (
+              <StepProgress
+                total={STEPS.length}
+                current={currentStep}
+                labels={STEP_LABELS}
+                onBack={goBack}
+                onContinue={goNext}
+                isLast={isLastStep}
+                finalAction={ctaBlock}
+              />
+            )}
+
             {/* 9. Link "Cómo se hizo esta pieza" — único punto de entrada
                 a /metodo-relieve desde la ficha de producto (sección 5/10
-                punto 9): un link, no contenido inline/colapsable. */}
+                punto 9): un link, no contenido inline/colapsable. Visible
+                siempre, no es una decisión de selección. */}
             <Link
               to="/metodo-relieve"
-              className="inline-block mb-10 text-sm underline text-brand-dark hover:opacity-70 transition-opacity"
+              className="inline-block mt-6 mb-10 text-sm underline text-brand-dark hover:opacity-70 transition-opacity"
             >
               Cómo se hizo esta pieza
             </Link>
-
-            {/* 10. Precio + CTA · 11. Tiempos · 14. micro-línea de trust */}
-            <div className="rounded-[9px] border border-line p-4 mb-10">
-              <RollingPrice
-                cents={unitPriceCents ?? place.base_price}
-                className="font-label text-2xl font-bold block mb-1"
-              />
-              <p className="font-label uppercase tracking-wide text-[11px] text-graphite/60 mb-3">
-                Se fabrica en {PRODUCTION_DAYS} días hábiles · llega {SHIPPING_DAYS} días después
-              </p>
-              {place.status === 'soldout' ? (
-                <WaitlistDialog placeSlug={place.slug} />
-              ) : (
-                <Button onClick={handleAddToCart}>Encargar mi pieza</Button>
-              )}
-              <p className="text-[11px] text-graphite/60 mt-2">
-                Pieza hecha por encargo — no aplican cambios ni devoluciones salvo defecto.{' '}
-                <a href="#detalles" className="underline">Ver detalles</a>
-              </p>
-            </div>
 
             {/* 13. Cómo llega */}
             <div className="mt-10">
