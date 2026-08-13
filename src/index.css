@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@custom-variant dark (&:where(.dark, .dark *));
 
 /* Brand tokens — exact 10 from the brand audit, plus --color-line (a
    structural hairline for borders/dividers, not a brand "color"; #E4DED3
@@ -15,7 +16,14 @@
   --color-walnut: #7a5a43;
   --color-stone: #c8c3bc;
   --color-passport-ink: #355a75;
-  --color-sello-navy: #22405c;
+  /* Rebrand de acento confirmado por Ale (13 ago 2026) — navy -> rojo, en
+     ambos modos (claro y oscuro). El nombre del token se queda
+     "sello-navy" a propósito: renombrarlo obligaría a tocar cada uno de
+     los ~6+ archivos que ya usan bg-sello-navy/text-sello-navy/
+     border-sello-navy (riesgo real de dejar uno sin actualizar y que
+     Tailwind simplemente no genere la utilidad ahí). Ver
+     docs/superpowers/specs/2026-08-13-dark-mode-design.md. */
+  --color-sello-navy: #c21807;
   --color-dark-bg: #1a1b19;
   --color-dark-fg: #ece7dd;
   --color-line: #e4ded3;
@@ -68,11 +76,47 @@
   --spacing-96: 96px;
 }
 
+/* Dark mode — same 15 tokens as @theme above, redefined under .dark.
+   Every existing bg-X/text-X/border-X utility in the codebase already
+   compiles to `var(--color-X)`, so this one block re-themes the whole
+   site with no per-component changes. Values from
+   docs/superpowers/specs/2026-08-13-dark-mode-design.md's palette table
+   — dark-bg/dark-fg/piedra/grafito/cempasuchil are intentionally absent
+   here: they're either already the dark-mode anchor or explicitly
+   unchanged per that spec. gallery-white flips completely (it's used as
+   both "page surface" and "light text on accent bg" today — see the
+   spec's "Tensión gallery-white" section for why surface wins and what
+   that means for the 3 Product.jsx accent pairs that use the other role). */
+.dark {
+  --color-gallery-white: #1f1e1a;
+  --color-graphite: #e8e3d9;
+  --color-explorer-blue: #c7d8e2;
+  --color-sage: #b9c4a8;
+  --color-walnut: #a67c5c;
+  --color-stone: #a9a49d;
+  --color-passport-ink: #5b83a0;
+  --color-sello-navy: #ff6659;
+  --color-line: #3a3733;
+  --color-brand-dark: #5c85a3;
+}
+
 body {
   background-color: var(--color-gallery-white);
   color: var(--color-graphite);
   font-family: var(--font-body);
   position: relative;
+}
+
+/* ThemeToggle.jsx drives the view-transition manually (a single
+   clip-path animation on ::view-transition-new(root), via
+   document.documentElement.animate()) — without this reset, the
+   browser's own default cross-fade would run at the same time and the
+   toggle would look like a fade blended with a wipe instead of a clean
+   circle reveal. */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
 }
 
 /* Hallazgo (auditoría 10 ago 2026): no existía :focus-visible en todo el
@@ -102,6 +146,14 @@ body::before {
   opacity: 0.05;
   mix-blend-mode: multiply;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+/* multiply darkens — on the near-black dark-mode background the grain
+   would be crushed to invisible. screen lightens instead, so the same
+   texture stays visible; opacity trimmed slightly since screen blending
+   reads stronger against a dark base than multiply does against light. */
+.dark body::before {
+  mix-blend-mode: screen;
+  opacity: 0.04;
 }
 
 /* Checkpoint 4 — warm color-grade for any placeholder/real photo, so the
@@ -466,6 +518,48 @@ body::before {
 .pill-glass-active:active {
   transform: scale(0.97);
   background: rgba(53, 89, 116, 0.78);
+}
+
+/* Dark-mode versions of the two Liquid Glass materials above — these use
+   literal rgba(), not var(--color-x), so they don't inherit the .dark
+   token overrides above and need their own values. Same relative
+   treatment (translucent, low-alpha, inset highlight) as the light
+   versions, just inverted: dark-bg tint instead of gallery-white tint. */
+.dark .pill-glass {
+  background: rgba(26, 27, 25, 0.4);
+  border: 1px solid rgba(236, 231, 221, 0.18);
+  box-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.3),
+    0 10px 24px -12px rgba(0, 0, 0, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+.dark .pill-glass:hover {
+  background: rgba(26, 27, 25, 0.55);
+}
+.dark .pill-glass:active {
+  background: rgba(26, 27, 25, 0.7);
+}
+.dark .pill-glass-active {
+  background: rgba(92, 133, 163, 0.55); /* dark-mode --color-brand-dark, tinted */
+  border: 1px solid rgba(236, 231, 221, 0.14);
+}
+.dark .pill-glass-active:hover {
+  background: rgba(92, 133, 163, 0.7);
+}
+.dark .pill-glass-active:active {
+  background: rgba(92, 133, 163, 0.82);
+}
+@media (prefers-reduced-transparency: reduce) {
+  .dark .pill-glass {
+    background: rgba(26, 27, 25, 0.96);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+  .dark .pill-glass-active {
+    background: rgba(92, 133, 163, 0.96);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
 }
 
 /* Reduced-transparency: near-solid instead of blurred, per apple-design
