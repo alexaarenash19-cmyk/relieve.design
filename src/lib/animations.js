@@ -256,3 +256,31 @@ export function zoomButtonPulse(el) {
   if (reduceMotion()) return;
   gsap.fromTo(el, { scale: 0.85 }, { scale: 1, duration: 0.3, ease: 'relieveEase' });
 }
+
+// ─────────────────────────────────────────────────────────────────────────
+// Nav pill-shrink al hacer scroll (Nav.jsx). Adaptado de un componente de
+// referencia de Aceternity (resizable-navbar.tsx, framer-motion animate={{
+// width, y, boxShadow}}) — la barra completa (wordmark + FluidMenu) se
+// encoge de 100% de ancho a su ancho natural de contenido y flota 8px
+// hacia abajo; wordmark/FluidMenu no cambian de tamaño, solo la barra que
+// los envuelve. El ancho de destino se MIDE (mismo truco que
+// inlinePanelOpen arriba: width:'fit-content' momentáneo -> offsetWidth),
+// no es un valor px adivinado. El material (blur/fondo/sombra) lo pone la
+// clase .pill-glass vía React state (solid), no GSAP — esta función solo
+// anima forma (width/borderRadius/y).
+// ─────────────────────────────────────────────────────────────────────────
+export function navPillMorph(el, solid) {
+  if (!el) return;
+  const reduced = reduceMotion();
+  const duration = reduced ? 0.01 : 0.5;
+
+  if (solid) {
+    const prevWidth = el.style.width;
+    el.style.width = 'fit-content';
+    const targetW = el.offsetWidth;
+    el.style.width = prevWidth;
+    gsap.to(el, { width: targetW, borderRadius: '9999px', y: 8, duration, ease: 'relieveEase' });
+  } else {
+    gsap.to(el, { width: '100%', borderRadius: '0px', y: 0, duration, ease: 'relieveEase' });
+  }
+}
