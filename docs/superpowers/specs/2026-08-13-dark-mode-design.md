@@ -4,6 +4,7 @@
 **Disparador:** `AnimatedThemeToggler` (referencia de Aceternity/MagicUI) que el usuario mandó para portar. El sitio no tiene modo oscuro hoy — ni `dark:` de Tailwind, ni `@custom-variant dark`, ni `lucide-react` — confirmado por grep antes de empezar. `FluidMenu.jsx` ya lo documenta explícitamente en su propio comentario: "no hay tema dual confirmado en el repo".
 **Autoridad de marca:** confirmada con el usuario en esta sesión — decisión propia, no requiere pasar por Ale antes de avanzar el diseño (a diferencia de la mayoría de decisiones de color del proyecto, que sí pasaron por su confirmación directa).
 **Alcance:** todo el sitio, no solo secciones específicas.
+**Actualización 13 ago (post-aprobación):** llegó un documento externo ("Blueprint Editorial") proponiendo, entre otras cosas, recolorear `sello-navy` a rojo. Confirmado con el usuario que ese color específico viene de Ale — incorporado en la tabla de abajo. El resto de ese documento (solo 5 de los 15 tokens, instrucción de no tocar los materiales glass) **no** se adoptó — no se pudo confirmar que viniera de la misma fuente, y contradecía hallazgos ya verificados contra el repo real (ver "Overrides manuales necesarios" abajo, sin cambios respecto a la versión original de este spec).
 
 ## Arquitectura
 
@@ -28,7 +29,7 @@ Mecanismo: `@custom-variant dark (&:where(.dark, .dark *));` en `src/index.css` 
 | `--color-walnut` | `#7a5a43` | `#a67c5c` | Los cafés medios se ven sucios sobre casi-negro; se aclara |
 | `--color-stone` | `#c8c3bc` | `#a9a49d` | Atenuado para no deslumbrar junto al resto oscuro |
 | `--color-passport-ink` | `#355a75` | `#5b83a0` | Aclarado para legibilidad sobre fondo oscuro |
-| `--color-sello-navy` | `#22405c` | `#3d6183` | Ídem |
+| `--color-sello-navy` | `#c21807` | `#ff6659` | **Rebrand de acento confirmado por Ale (13 ago 2026), no un ajuste de dark mode** — el rol pasa de azul marino a rojo, en AMBOS modos. `#22405c` (el navy original) queda retirado. El nombre del token se queda `sello-navy` a propósito (no `sello` ni otro nombre) — renombrarlo obligaría a tocar cada uno de los ~6+ archivos que ya usan `bg-sello-navy`/`text-sello-navy`/`border-sello-navy` (riesgo real de dejar uno sin actualizar y romperlo en silencio, ya que Tailwind simplemente no genera la utilidad si el nombre no matchea); cambiar solo el valor es la migración de menor riesgo. Contraste pre-verificado por la fuente del rebrand: claro `#111` sobre `#c21807`-adyacente ~5.9:1, oscuro sobre `#ff6659` ~5.2:1 — ambos pasan AA texto normal, pero repetir la medición real en Task 7 igual (ver spec de esa fuente, no tomarlo solo de ahí). |
 | `--color-dark-bg` | `#1a1b19` | *(sin cambio — ya es la base)* | Existía sin usar; ancla del fondo en modo oscuro |
 | `--color-dark-fg` | `#ece7dd` | *(sin cambio — ya es la base)* | Existía sin usar; ancla del texto en modo oscuro |
 | `--color-line` | `#e4ded3` | `#3a3733` | Hairline visible sobre fondo casi-negro |
