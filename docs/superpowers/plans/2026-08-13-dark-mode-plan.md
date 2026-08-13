@@ -182,7 +182,17 @@ At the very top of `src/index.css`, immediately after the existing `@import "tai
 @custom-variant dark (&:where(.dark, .dark *));
 ```
 
-- [ ] **Step 2: Add the `.dark` token-override block**
+- [ ] **Step 2: Recolor `--color-sello-navy` in the `@theme` block (light mode)**
+
+Confirmed by the user (13 ago, from Ale): the accent role carried by `--color-sello-navy` changes from navy to red, in **both** modes — this is a live rebrand of the current site's accent color, not a dark-mode-only value. The token's *name* stays `sello-navy` on purpose (renaming it would require touching every one of the ~6+ files already using `bg-sello-navy`/`text-sello-navy`/`border-sello-navy`, risking one getting missed and silently losing the class — see the spec's palette-table note on this row for the full reasoning).
+
+In the existing `@theme { ... }` block in `src/index.css`, find `--color-sello-navy: #22405c;` and change it to:
+
+```css
+--color-sello-navy: #c21807; /* rebrand confirmado por Ale (13 ago 2026) — navy -> rojo, ver docs/superpowers/specs/2026-08-13-dark-mode-design.md */
+```
+
+- [ ] **Step 3: Add the `.dark` token-override block**
 
 Immediately after the `@theme { ... }` block's closing `}` (right before the existing `body { ... }` rule), add:
 
@@ -203,15 +213,15 @@ Immediately after the `@theme { ... }` block's closing `}` (right before the exi
   --color-walnut: #a67c5c;
   --color-stone: #a9a49d;
   --color-passport-ink: #5b83a0;
-  --color-sello-navy: #3d6183;
+  --color-sello-navy: #ff6659;
   --color-line: #3a3733;
   --color-brand-dark: #5c85a3;
 }
 ```
 
-- [ ] **Step 3: Add the `.dark` overrides for literal (non-token) colors**
+- [ ] **Step 4: Add the `.dark` overrides for literal (non-token) colors**
 
-These don't use `var(--color-x)`, so they don't inherit from Step 2. Find the existing `.pill-glass-active:active { ... }` rule (the last of the three `.pill-glass*` rules, right before the `@media (prefers-reduced-transparency: reduce)` block), and insert this immediately after it, still before that media query:
+These don't use `var(--color-x)`, so they don't inherit from Step 3. Find the existing `.pill-glass-active:active { ... }` rule (the last of the three `.pill-glass*` rules, right before the `@media (prefers-reduced-transparency: reduce)` block), and insert this immediately after it, still before that media query:
 
 ```css
 /* Dark-mode versions of the two Liquid Glass materials above — these use
@@ -257,7 +267,7 @@ These don't use `var(--color-x)`, so they don't inherit from Step 2. Find the ex
 }
 ```
 
-- [ ] **Step 4: Fix the paper-grain overlay's blend mode for dark backgrounds**
+- [ ] **Step 5: Fix the paper-grain overlay's blend mode for dark backgrounds**
 
 Find the existing `body::before { ... }` rule (the paper-grain noise overlay, `mix-blend-mode: multiply`). `multiply` darkens — on a near-black dark-mode background the grain would be crushed to invisible. Add immediately after that rule's closing `}`:
 
@@ -272,11 +282,11 @@ Find the existing `body::before { ... }` rule (the paper-grain noise overlay, `m
 }
 ```
 
-- [ ] **Step 5: Note — do NOT touch `:focus-visible` or `.glass-card` in this task**
+- [ ] **Step 6: Note — do NOT touch `:focus-visible` or `.glass-card` in this task**
 
-`:focus-visible`'s box-shadow already references `var(--color-gallery-white)`, which Step 2 already re-themes to a dark value — no separate override needed, but confirm this visually in Task 7 (don't assume). `.glass-card` (from the still-open `feat/glass-order-summary-card` branch, PR #196) doesn't exist on `main` yet, so it isn't in this file to modify — if that PR merges before this one, add a `.dark .glass-card` override then, following the exact same pattern as `.dark .pill-glass` in Step 3.
+`:focus-visible`'s box-shadow already references `var(--color-gallery-white)`, which Step 3 already re-themes to a dark value — no separate override needed, but confirm this visually in Task 7 (don't assume). `.glass-card` (from the still-open `feat/glass-order-summary-card` branch, PR #196) doesn't exist on `main` yet, so it isn't in this file to modify — if that PR merges before this one, add a `.dark .glass-card` override then, following the exact same pattern as `.dark .pill-glass` in Step 4.
 
-- [ ] **Step 6: Commit**
+- [ ] **Step 7: Commit**
 
 ```bash
 git add src/index.css
