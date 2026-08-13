@@ -484,3 +484,41 @@ body::before {
     -webkit-backdrop-filter: none;
   }
 }
+
+/* Liquid Glass card — GlassOrderSummaryCard.jsx (quick-buy dialog). Same
+   material recipe as .pill-glass above (blur 20px + saturate 180% + inset
+   top highlight); a separate class rather than reusing .pill-glass because
+   that one is scoped to pill-shaped buttons/toggles by name and comment —
+   the material itself is shape-agnostic (Button.jsx already proves this,
+   reusing .pill-glass-active on a rounded-[9px] rectangle) but a card
+   holding real content (price, email field) needs a less transparent
+   background than a small pill label for text to stay legible, hence the
+   higher alpha (0.6 vs 0.28) — everything else matches. Hover uses
+   --color-brand-dark, not --color-cempasuchil: that accent is reserved for
+   the infinite canvas's top strip only (see its definition above) and is
+   explicitly not used on buttons/tags. */
+.glass-card {
+  background: rgba(246, 243, 237, 0.6);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid rgba(35, 35, 35, 0.1);
+  box-shadow:
+    0 1px 2px rgba(35, 35, 35, 0.06),
+    0 10px 24px -12px rgba(35, 35, 35, 0.25),
+    inset 0 1px 0 rgba(255, 255, 255, 0.5);
+  transition: border-color 200ms ease, box-shadow 200ms ease;
+}
+.glass-card:hover {
+  border-color: rgba(53, 89, 116, 0.4); /* --color-brand-dark */
+  box-shadow:
+    0 1px 2px rgba(35, 35, 35, 0.08),
+    0 14px 28px -12px rgba(35, 35, 35, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.5);
+}
+@media (prefers-reduced-transparency: reduce) {
+  .glass-card {
+    background: rgba(246, 243, 237, 0.96);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+}
