@@ -17,6 +17,7 @@ import { sendError } from '../lib/errors.js';
 import { calcUnitPriceCents, PricingError } from '../lib/pricing.js';
 import { DUMMY_PLACES, findDummyPlace } from '../lib/dummyCatalog.js';
 import { checkRateLimit } from '../lib/rateLimit.js';
+import { sendCurvaDeNivelWelcome, sendAlert } from '../lib/alerts.js';
 
 // Issue #23/#24: GET /api/places?q=&type=&series= and GET /api/places/:slug
 // `type` (ciudad/juego, wall piece vs. puzzle) and `series` (origen/
@@ -232,11 +233,24 @@ async function postCurvaDeNivel(req, res) {
     return sendError(res, 400, 'invalid_request', 'A valid email is required');
   }
 
-  const { error } = await supabase.from('curva_de_nivel').insert({ email: email.trim().toLowerCase() });
+  const trimmedEmail = email.trim().toLowerCase();
+  const { error } = await supabase.from('curva_de_nivel').insert({ email: trimmedEmail });
 
   if (error && error.code !== '23505') {
     return sendError(res, 500, 'db_error', error.message);
   }
+
+  // Fire-and-forget, same reasoning as the checkout-attempt capture in
+  // api/checkout.js: this is a "type an email, click a button" interaction
+  // that should stay snappy — an extra Resend round-trip on the critical
+  // path buys the customer nothing. A failure here doesn't mean the
+  // signup failed (the insert above already succeeded/deduped), so it's
+  // reported via sendAlert instead of failing the request.
+  sendCurvaDeNivelWelcome(trimmedEmail).catch((err) => {
+    console.error('[curva-de-nivel] welcome email failed', err);
+    sendAlert('curva-de-nivel welcome email failed', `${trimmedEmail}: ${err.stack ?? err.message}`);
+  });
+
   return res.status(201).json({ ok: true });
 }
 
