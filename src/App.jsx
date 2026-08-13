@@ -7,6 +7,8 @@ import PageStamp from './components/PageStamp.jsx';
 import CartDrawer from './components/CartDrawer.jsx';
 import SvgFilters from './components/SvgFilters.jsx';
 import Footer from './components/Footer.jsx';
+import { ThemeProvider } from './context/ThemeContext.jsx';
+import ThemeToggle from './components/ThemeToggle.jsx';
 
 // Hallazgo "gsap se filtra al bundle principal" (auditoría 10 ago 2026):
 // both of these are mounted unconditionally alongside <Routes>, not inside
@@ -59,7 +61,7 @@ function RouteFallback() {
 // navigation/contact/legal/social columns instead of a thin 2-link bar.
 export default function App() {
   return (
-    <>
+    <ThemeProvider>
       <SvgFilters />
       <PageStamp />
       <CustomCursor />
@@ -69,6 +71,7 @@ export default function App() {
         <LoadingReveal />
       </Suspense>
       <CartDrawer />
+      <ThemeToggle />
       <Suspense fallback={null}>
         <ProductPanel />
       </Suspense>
@@ -103,6 +106,6 @@ export default function App() {
         </Routes>
       </Suspense>
       <Footer />
-    </>
+    </ThemeProvider>
   );
 }
