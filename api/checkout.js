@@ -52,6 +52,13 @@ function assertFreeTextLength(field, value) {
   }
 }
 
+// Auditoría de seguridad (13 ago 2026), hallazgo 🟠 #4 — qty no tenía tope
+// superior. No permite pagar de menos (el precio unitario se recalcula
+// server-side de todos modos), pero sí dejaba mandar una cantidad absurda
+// a Stripe. 10 es generoso para un regalo/pedido grande sin abrir la
+// puerta a un carrito de miles de unidades.
+const MAX_QTY = 10;
+
 function encodeItemsMetadata(items) {
   const json = JSON.stringify(items);
   const chunks = [];
@@ -82,6 +89,11 @@ async function priceItem(item) {
   assertFreeTextLength('custom_place', custom_place);
   assertFreeTextLength('plate_text', plate_text);
   assertFreeTextLength('memory_note', memory_note);
+
+  const resolvedQty = qty && qty > 0 ? qty : 1;
+  if (resolvedQty > MAX_QTY) {
+    throw new PricingError('invalid_qty', `qty must be between 1 and ${MAX_QTY}`);
+  }
 
   const addons = [];
   if (capelo) addons.push('capelo');
@@ -117,7 +129,7 @@ async function priceItem(item) {
     place_id: place?.id ?? null,
     name,
     unit_price_cents,
-    qty: qty && qty > 0 ? qty : 1,
+    qty: resolvedQty,
   };
 }
 
