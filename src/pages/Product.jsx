@@ -16,7 +16,7 @@
 // cambió — sigue siendo el mismo useState de siempre, cablea a
 // FichaTecnica y al carrito exactamente igual que antes. `currentStep` es
 // puramente de navegación de UI, nuevo, sin afectar esos datos.
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useCart } from '../context/CartContext.jsx';
 import {
@@ -34,6 +34,7 @@ import {
 import { useDocumentHead } from '../lib/useDocumentHead.js';
 import RollingPrice from '../components/RollingPrice.jsx';
 import WaitlistDialog from '../components/WaitlistDialog.jsx';
+import GlassOrderSummaryCard from '../components/GlassOrderSummaryCard.jsx';
 import Button from '../components/Button.jsx';
 import Stamp from '../components/Stamp.jsx';
 import BaggageTag from '../components/BaggageTag.jsx';
@@ -99,6 +100,9 @@ export default function Product() {
   const [memoryNote, setMemoryNote] = useState('');
   const [unitPriceCents, setUnitPriceCents] = useState(null);
   const [currentStep, setCurrentStep] = useState(1);
+  // Quick-buy (GlassOrderSummaryCard) — native <dialog>, same
+  // ref+showModal()/close() pattern as WaitlistDialog.jsx.
+  const quickBuyDialogRef = useRef(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -252,8 +256,12 @@ export default function Product() {
     },
   ];
 
-  function handleAddToCart() {
-    addItem({
+  // Shared by "Encargar mi pieza" (cart) and "Comprar ahora" (quick-buy,
+  // GlassOrderSummaryCard) — same item shape either way, only the
+  // destination differs (cart vs. straight to a single-item Stripe
+  // Checkout session).
+  function buildCartItem() {
+    return {
       place_slug: place.slug,
       name: `Relieve · ${place.name} · ${sizeCode} · ${frameCode}`,
       unit_price_cents: unitPriceCents ?? place.base_price,
@@ -263,7 +271,11 @@ export default function Product() {
       color_code: colorCode,
       orientation,
       memory_note: memoryNote || null,
-    });
+    };
+  }
+
+  function handleAddToCart() {
+    addItem(buildCartItem());
   }
 
   // Selector por pasos — puzzle no tiene Marco/Color/Orientación
@@ -296,7 +308,36 @@ export default function Product() {
       {place.status === 'soldout' ? (
         <WaitlistDialog placeSlug={place.slug} />
       ) : (
-        <Button onClick={handleAddToCart}>Encargar mi pieza</Button>
+        <>
+          <Button onClick={handleAddToCart}>Encargar mi pieza</Button>
+          {/* Quick-buy — una sola pieza, sin pasar por el carrito.
+              Mismo link secundario ("underline text-brand-dark
+              hover:opacity-70") que "Cómo se hizo esta pieza" más abajo,
+              para no inventar un segundo estilo de link en esta misma
+              página. */}
+          <button
+            type="button"
+            onClick={() => quickBuyDialogRef.current?.showModal()}
+            className="block mt-2 text-sm underline text-brand-dark hover:opacity-70 transition-opacity"
+          >
+            Comprar ahora
+          </button>
+          {/* Sin chrome propio (border-none/bg-transparent/p-0): la card
+              ya trae su propio fondo glass/borde/radio — mismo criterio
+              que WaitlistDialog.jsx pero dejando que GlassOrderSummaryCard
+              sea todo el contenido visual del <dialog>, no solo lo que hay
+              adentro de un marco extra. */}
+          <dialog
+            ref={quickBuyDialogRef}
+            className="border-none bg-transparent p-0 backdrop:bg-graphite/40"
+          >
+            <GlassOrderSummaryCard
+              item={buildCartItem()}
+              imageUrl={photos[0]?.url}
+              onClose={() => quickBuyDialogRef.current?.close()}
+            />
+          </dialog>
+        </>
       )}
       <p className="text-[11px] text-graphite/60 mt-2">
         Pieza hecha por encargo — no aplican cambios ni devoluciones salvo defecto.{' '}
