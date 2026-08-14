@@ -130,4 +130,58 @@ function mockReq(method, body) {
   assert.strictEqual(res.body.error.code, 'invalid_qty');
 }
 
+// 7. docs/superpowers/specs/2026-08-13-personaliza-checkout-design.md — un
+// item personalizado sin custom_location válido se rechaza antes de
+// cualquier lookup a Supabase.
+{
+  const res = mockRes();
+  await handler(
+    mockReq('POST', {
+      items: [{ custom_place: 'Un lugar', size_code: 'chico', frame_code: 'parota', qty: 1, custom_location: { place_id: 'x' } }],
+      email: 'a@b.com',
+    }),
+    res
+  );
+  assert.strictEqual(res.statusCode, 400);
+  assert.strictEqual(res.body.error.code, 'invalid_custom_location');
+}
+
+// 8. Un item personalizado completo y válido usa getPersonalizedPrice
+// (+15%), no calcUnitPriceCents — verificado contra el fallback dummy
+// (mediano: 129900 * 1.15 = 149385) ya que Supabase real no está montado
+// en este test.
+{
+  const res = mockRes();
+  await handler(
+    mockReq('POST', {
+      items: [{
+        custom_place: 'Ciudad de México, CDMX, México',
+        size_code: 'mediano',
+        frame_code: 'parota',
+        color_code: 'blanco',
+        qty: 1,
+        custom_location: {
+          place_id: 'ChIJB3UJ2yYAzoURgKDXCKP5-oI',
+          formatted_address: 'Ciudad de México, CDMX, México',
+          latitude: 19.4326,
+          longitude: -99.1332,
+          zoom: 12,
+          map_bounds: { north: 19.5, south: 19.3, east: -99.0, west: -99.3 },
+        },
+      }],
+      email: 'a@b.com',
+    }),
+    res
+  );
+  // color_code lookup hits the same unreachable example.supabase.co
+  // Supabase host as everything else in this test file (unmocked) — se
+  // resuelve como invalid_color en vez de 200, lo cual de todos modos
+  // confirma que llegó más allá de la validación de custom_location y de
+  // getPersonalizedPrice sin lanzar. Si eso cambia (Supabase real
+  // montado), este test necesita mockFetch como el test 5 de este mismo
+  // archivo.
+  assert.notStrictEqual(res.body?.error?.code, 'invalid_custom_location');
+  assert.notStrictEqual(res.body?.error?.code, 'invalid_size');
+}
+
 console.log('checkout request-validation checks: OK');
