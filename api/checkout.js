@@ -135,7 +135,17 @@ async function priceItem(item) {
   if (capelo) addons.push('capelo');
   if (plate_text) addons.push('placa');
 
-  if (item.custom_location) assertValidCustomLocation(item.custom_location);
+  if (item.custom_location) {
+    assertValidCustomLocation(item.custom_location);
+    // Global Constraint: frame_code para piezas personalizadas es siempre
+    // el string 'parota', nunca un valor elegible — sin excepciones. Esto
+    // no afecta al precio (getPersonalizedPrice ignora frame_code) pero un
+    // frame_code arbitrario fluiría hacia el name del line item de Stripe
+    // y potencialmente hacia order_items vía el webhook.
+    if (frame_code !== 'parota') {
+      throw new PricingError('invalid_frame_code', "custom_location items must use frame_code 'parota'");
+    }
+  }
 
   // These three lookups are independent of each other — running them
   // sequentially (as this used to) adds two extra network round-trips to
