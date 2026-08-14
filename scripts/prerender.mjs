@@ -55,9 +55,13 @@ const STATIC_PAGES = {
     title: 'Envíos — Relieve',
     description: 'Envíos a todo México, siempre incluidos en el precio de tu pieza, con rastreo de tu pedido por correo.',
   },
+  // Final whole-branch review finding #5 — copied verbatim from
+  // Personalize.jsx's useDocumentHead call to keep both sources of truth
+  // in sync. The previous copy here described the deleted lead-capture
+  // flow (form -> email a Ale -> cotización manual, PR #208).
   '/personaliza': {
-    title: 'Encarga tu lugar — Relieve',
-    description: '¿No encontraste tu lugar en el catálogo? Cuéntanos cuál quieres y te avisamos si es posible fabricarlo en relieve.',
+    title: 'Diseña tu Relieve — Relieve',
+    description: 'Elige un lugar, dale forma y compra tu Relieve personalizado — sin intermediarios, con precio claro desde el primer paso.',
   },
   '/terminos': {
     title: 'Términos y Condiciones — Relieve',
