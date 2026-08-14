@@ -6,7 +6,7 @@
 // de lead-capture (POST /api/personaliza, tabla personalize_requests)
 // queda en el backend sin uso — no se borra (bajo riesgo, cero costo de
 // mantenerla), simplemente esta página ya no la llama.
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import StepProgress from '../components/StepProgress.jsx';
 import LocationPicker from '../components/LocationPicker.jsx';
@@ -46,6 +46,11 @@ export default function Personalize() {
   const [story, setStory] = useState('');
   const [unitPriceCents, setUnitPriceCents] = useState(null);
   const [priceError, setPriceError] = useState(false);
+  // Final whole-branch review finding #4 — a failed price fetch used to be
+  // an unrecoverable dead end (unitPriceCents stays null forever, the only
+  // way out was going back and re-selecting the size). Bumping this state
+  // re-triggers the pricing effect below without touching sizeCode.
+  const [retryKey, setRetryKey] = useState(0);
 
   // docs/superpowers/specs sección 3 — "el precio debe actualizarse
   // inmediatamente cuando el usuario cambie el tamaño". Mismo patrón que
@@ -68,7 +73,7 @@ export default function Personalize() {
     return () => {
       cancelled = true;
     };
-  }, [sizeCode]);
+  }, [sizeCode, retryKey]);
 
   const selectedSize = WALL_SIZES.find((s) => s.code === sizeCode);
   const selectedColor = COLORS.find((c) => c.code === colorCode);
@@ -78,8 +83,14 @@ export default function Personalize() {
   // duplicada del lado del cliente (gate del botón) — el servidor la
   // repite de forma independiente en api/checkout.js, nunca confía en
   // esta.
+  // Final whole-branch review finding #10 — formatted_address wasn't part
+  // of this gate. If Google ever returns a place with a place_id but no
+  // formattedAddress, the buy button would enable client-side but the
+  // server would reject it (400 invalid_custom_location / invalid_item),
+  // leaving the customer stuck at checkout with no clear error.
   const isComplete = Boolean(
     location?.place_id &&
+    location?.formatted_address &&
     location?.map_bounds &&
     sizeCode &&
     colorCode &&
@@ -96,7 +107,13 @@ export default function Personalize() {
   function handleBuy() {
     if (!isComplete) return;
     addItem({
-      custom_place: location.formatted_address,
+      // Final whole-branch review finding #2 — custom_place caps at 120
+      // chars server-side (api/checkout.js's FREE_TEXT_LIMITS) while
+      // custom_location.formatted_address allows 200 (assertValidCustomLocation)
+      // — a 121-200 char Google address would pass location validation then
+      // fail at custom_place length with no way for the customer to fix it.
+      // Truncate only this copy; the full address still goes into custom_location.
+      custom_place: location.formatted_address.slice(0, 120),
       custom_location: {
         place_id: location.place_id,
         formatted_address: location.formatted_address,
@@ -225,7 +242,16 @@ export default function Personalize() {
             <p className="text-sm text-brand-dark font-bold">Completa tu Relieve para continuar.</p>
           )}
           {priceError && (
-            <p className="text-sm text-graphite/60">No pudimos calcular el precio, intenta de nuevo.</p>
+            <p className="text-sm text-graphite/60">
+              No pudimos calcular el precio, intenta de nuevo.{' '}
+              <button
+                type="button"
+                onClick={() => setRetryKey((k) => k + 1)}
+                className="text-xs text-graphite/60 underline"
+              >
+                Reintentar
+              </button>
+            </p>
           )}
         </div>
       )}
