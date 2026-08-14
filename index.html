@@ -2,6 +2,24 @@
 <html lang="es-MX">
   <head>
     <meta charset="UTF-8" />
+    <script>
+      (function () {
+        // Anti-FOUC: decide dark/light BEFORE the app bundle loads, so a
+        // returning visitor with dark stored never sees a flash of the light
+        // theme. Duplicates src/lib/theme.js's getPreferredTheme as plain
+        // inline JS on purpose — this runs before any ES module is available,
+        // so it can't import that file. Keep the two in sync if this logic
+        // ever changes. Wrapped in try/catch: private-mode storage or an
+        // unsupported matchMedia must never break page load.
+        try {
+          var stored = localStorage.getItem('relieve_theme');
+          var dark =
+            stored === 'dark' ||
+            (stored !== 'light' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+          if (dark) document.documentElement.classList.add('dark');
+        } catch (e) {}
+      })();
+    </script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Relieve Design | Mapas en Relieve 3D con Marco en Madera Mexicana</title>
     <meta name="description" content="Mapas en relieve impresos en 3D, montados en marco de madera noble mexicana. Piezas de autor y regalos de diseño coleccionables, hechos a mano en México." />
