@@ -114,4 +114,20 @@ function mockReq(method, body) {
   assert.strictEqual(res.body.error.code, 'not_available');
 }
 
+// 6. Auditoría de seguridad (13 ago 2026), hallazgo 🟠 #4 — qty over the
+// server-side cap is rejected before any pricing/Supabase lookup, same
+// spot as test 4's text_too_long check.
+{
+  const res = mockRes();
+  await handler(
+    mockReq('POST', {
+      items: [{ custom_place: 'Un lugar', size_code: 'chico', frame_code: 'parota', qty: 11 }],
+      email: 'a@b.com',
+    }),
+    res
+  );
+  assert.strictEqual(res.statusCode, 400);
+  assert.strictEqual(res.body.error.code, 'invalid_qty');
+}
+
 console.log('checkout request-validation checks: OK');

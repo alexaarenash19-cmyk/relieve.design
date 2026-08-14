@@ -130,4 +130,18 @@ const SPOOFED_BYTES = Buffer.from('<?php echo "not an image"; ?>');
   });
 }
 
+// Auditoría de seguridad (13 ago 2026), hallazgo 🟠 #8 — comment sobre el
+// límite de longitud se rechaza antes de la validación de foto (y antes
+// de tocar Supabase).
+{
+  await withServer(async (url) => {
+    const form = reviewForm({ photoBytes: REAL_JPEG_BYTES });
+    form.set('comment', 'x'.repeat(1001));
+    const res = await fetch(`${url}/api/reviews`, { method: 'POST', body: form });
+    assert.strictEqual(res.status, 400);
+    const body = await res.json();
+    assert.strictEqual(body.error?.code, 'invalid_request', `overlong comment should be rejected, got: ${JSON.stringify(body)}`);
+  });
+}
+
 console.log('reviews dummy-fallback checks: OK');
