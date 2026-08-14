@@ -144,9 +144,13 @@ export default function OrderStatus() {
           (asignado en el momento del pago, ver api/catalog.js getOrder).
           Antes esta lista mostraba el place_id crudo en vez del nombre del
           lugar — bug preexistente, corregido de paso al integrar
-          FichaTecnica aquí. Piezas con custom_place (lugar no catalogado,
-          sin fila en `places`) no tienen datos para una ficha completa —
-          se quedan con la línea simple anterior, no se inventa una ficha. */}
+          FichaTecnica aquí. Rama de tres vías por item: item.places (pieza
+          de catálogo) -> FichaTecnica completa; item.custom_location (pieza
+          personalizada de /personaliza, Task 12/13) -> tarjeta detallada con
+          ubicación/tamaño/color/marco; ninguno de los dos (custom_place sin
+          custom_location — gap ya cerrado server-side, ver api/checkout.js's
+          priceItem) -> se queda con la línea simple original, no se inventa
+          una ficha para datos que no existen. */}
       <div className="mt-8 space-y-6">
         {order.items?.map((item, i) =>
           item.places ? (
