@@ -26,6 +26,7 @@ export default function LocationPicker({ aspectRatio, onConfirm }) {
   const [ready, setReady] = useState(false);
   const [loadError, setLoadError] = useState(null);
   const [hasFramed, setHasFramed] = useState(false);
+  const [hasPlace, setHasPlace] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -62,6 +63,7 @@ export default function LocationPicker({ aspectRatio, onConfirm }) {
             place_id: place.id,
             formatted_address: place.formattedAddress,
           };
+          setHasPlace(true);
           map.setCenter(place.location);
           if (place.viewport) map.fitBounds(place.viewport);
         });
@@ -102,6 +104,8 @@ export default function LocationPicker({ aspectRatio, onConfirm }) {
   }
 
   async function handleConfirm() {
+    if (!selectedPlaceRef.current) return; // sin lugar seleccionado no hay nada que confirmar
+
     const maps = window.google.maps;
     const map = mapRef.current;
     const overlay = overlayRef.current;
@@ -137,11 +141,14 @@ export default function LocationPicker({ aspectRatio, onConfirm }) {
       <button
         type="button"
         onClick={handleConfirm}
-        disabled={!ready || !hasFramed}
+        disabled={!ready || !hasFramed || !hasPlace}
         className="pill-glass-active text-gallery-white px-6 py-3 rounded-[9px] font-heading font-bold disabled:opacity-40"
       >
         Confirmar ubicación
       </button>
+      {ready && !hasPlace && (
+        <p className="text-sm text-graphite/70 -mt-2">Busca tu ubicación primero.</p>
+      )}
     </div>
   );
 }
