@@ -96,6 +96,10 @@ Rate limit `waitlist`, 5/min por IP. Si Supabase no responde pero `place_slug` e
 ### POST /api/curva-de-nivel `{ email }` → 201
 Lista de correo a nivel sitio (no por pieza). Email duplicado no es error — la constraint `unique` en la tabla deduplica en silencio (`23505` tratado como éxito).
 
+## Personaliza
+### POST /api/personaliza `{ name, email, location, notes? }` → 201
+Rate limit `personalize`, 5/min por IP. Lead capture para un lugar que no está en el catálogo (Personalize.jsx) — no crea nada en `places`, solo registra la solicitud y notifica por correo a Ale para revisión manual. Sin unique constraint: una misma persona puede pedir varios lugares.
+
 ## Reseñas
 ### GET /api/reviews?place=slug
 → `[{ id, customer, city, rating, photo_url, comment }]` (solo `approved=true`)

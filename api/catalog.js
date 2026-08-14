@@ -17,7 +17,7 @@ import { sendError } from '../lib/errors.js';
 import { calcUnitPriceCents, PricingError } from '../lib/pricing.js';
 import { DUMMY_PLACES, findDummyPlace } from '../lib/dummyCatalog.js';
 import { checkRateLimit } from '../lib/rateLimit.js';
-import { sendCurvaDeNivelWelcome, sendAlert } from '../lib/alerts.js';
+import { sendCurvaDeNivelWelcome, sendPersonalizeRequestNotification, sendAlert } from '../lib/alerts.js';
 
 // Issue #23/#24: GET /api/places?q=&type=&series= and GET /api/places/:slug
 // `type` (ciudad/juego, wall piece vs. puzzle) and `series` (origen/
@@ -254,6 +254,51 @@ async function postCurvaDeNivel(req, res) {
   return res.status(201).json({ ok: true });
 }
 
+// F1/C6 (reporte consolidado de bugs, 13 ago 2026): POST /api/personaliza
+// { name, email, location, notes? } -> 201. Personalize.jsx (Issue #54
+// original) nunca tuvo un endpoint real — el formulario solo confirmaba
+// client-side. Mismas convenciones de validación/rate-limit que
+// postWaitlist/postCurvaDeNivel arriba; a diferencia de esas dos, no hay
+// unique constraint en email (una misma persona puede pedir varios
+// lugares distintos), así que no hace falta manejar 23505 aquí.
+async function postPersonalizeRequest(req, res) {
+  if (req.method !== 'POST') {
+    res.setHeader('Allow', 'POST');
+    return sendError(res, 405, 'method_not_allowed', 'Use POST');
+  }
+
+  if (!(await checkRateLimit(req, res, { key: 'personalize', limit: 5, windowMs: 60_000 }))) return;
+
+  const { name, email, location, notes } = req.body ?? {};
+  if (
+    !name || typeof name !== 'string' ||
+    !email || typeof email !== 'string' || !email.includes('@') ||
+    !location || typeof location !== 'string'
+  ) {
+    return sendError(res, 400, 'invalid_request', 'name, email and location are required');
+  }
+
+  const trimmed = {
+    name: name.trim(),
+    email: email.trim().toLowerCase(),
+    location: location.trim(),
+    notes: typeof notes === 'string' && notes.trim() ? notes.trim() : null,
+  };
+
+  const { error } = await supabase.from('personalize_requests').insert(trimmed);
+  if (error) return sendError(res, 500, 'db_error', error.message);
+
+  // Fire-and-forget, same reasoning as postCurvaDeNivel above: the insert
+  // already succeeded, so a failure here is Ale not getting notified, not
+  // the customer's request failing — reported via sendAlert, not a 500.
+  sendPersonalizeRequestNotification(trimmed).catch((err) => {
+    console.error('[personalize] notification email failed', err);
+    sendAlert('personalize request notification failed', `${trimmed.email} (${trimmed.location}): ${err.stack ?? err.message}`);
+  });
+
+  return res.status(201).json({ ok: true });
+}
+
 // Issue #36: GET /api/orders/:token — magic-link order status, no login.
 async function getOrder(req, res) {
   if (req.method !== 'GET') {
@@ -325,6 +370,7 @@ const RESOURCES = {
   pricing: postPricing,
   waitlist: postWaitlist,
   curva_de_nivel: postCurvaDeNivel,
+  personalize_requests: postPersonalizeRequest,
   orders: getOrder,
   orders_by_session: getOrderBySession,
 };
