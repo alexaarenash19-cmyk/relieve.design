@@ -53,6 +53,7 @@ export default function Personalize() {
   useEffect(() => {
     let cancelled = false;
     setPriceError(false);
+    setUnitPriceCents(null);
     fetchJson('/api/personalized-pricing', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
