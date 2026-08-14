@@ -4,6 +4,7 @@
   ],
   "rewrites": [
     { "source": "/api/pricing", "destination": "/api/catalog?resource=pricing" },
+    { "source": "/api/personalized-pricing", "destination": "/api/catalog?resource=personalized_pricing" },
     { "source": "/api/waitlist", "destination": "/api/catalog?resource=waitlist" },
     { "source": "/api/curva-de-nivel", "destination": "/api/catalog?resource=curva_de_nivel" },
     { "source": "/api/personaliza", "destination": "/api/catalog?resource=personalize_requests" },
