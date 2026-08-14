@@ -17,7 +17,7 @@ import { useEscapeKey } from '../lib/useEscapeKey.js';
 // ver src/lib/animations.js. Esa misma importación ya registra GSAP's
 // CustomEase y crea 'relieveEase', así que este archivo no necesita
 // tocar gsap directamente en absoluto.
-import { panelOpenTimeline } from '../lib/animations.js';
+import { panelOpenTimeline, panelCloseTimeline } from '../lib/animations.js';
 
 function usePlace(slug) {
   const [place, setPlace] = useState(null);
@@ -64,12 +64,34 @@ export default function ProductPanel() {
   const metaRef = useRef(null);
   const ctaRef = useRef(null);
   const tlRef = useRef(null);
+  const closingRef = useRef(false);
 
   useEffect(() => {
     setActivePhoto(0);
   }, [slug]);
 
-  useEscapeKey(closeProduct);
+  // apple-design audit (14 ago 2026, §7 "enter and exit along the same
+  // path") — la apertura tenía una coreografía de 4 pasos (panelOpenTimeline
+  // arriba); el cierre era un swap de clase `invisible` instantáneo, sin
+  // ninguna animación. isOpen se queda en true (contexto real) hasta que
+  // panelCloseTimeline termina — el panel sigue visible/interactivo durante
+  // su propio cierre, que es lo correcto — recién ahí se llama al
+  // closeProduct real que lo saca del DOM visual.
+  function handleClose() {
+    if (closingRef.current || !isOpen) return;
+    closingRef.current = true;
+    panelCloseTimeline({
+      titleEl: titleRef.current,
+      photoEl: photoRef.current,
+      metaEl: metaRef.current,
+      ctaEl: ctaRef.current,
+    }).eventCallback('onComplete', () => {
+      closingRef.current = false;
+      closeProduct();
+    });
+  }
+
+  useEscapeKey(handleClose);
 
   // piecePhotos() ahora devuelve {url, type}[] (sección 16 decisión 10, para
   // soportar video en el carrusel de Product.jsx) — este panel se mantiene
@@ -140,7 +162,7 @@ export default function ProductPanel() {
         {/* mobile-only close — the artifact hides the divider/gap below
             720px and moves the × to a plain top-right corner instead */}
         <button
-          onClick={closeProduct}
+          onClick={handleClose}
           aria-label="Cerrar"
           className="md:hidden absolute top-6 right-6 w-10 h-10 border border-brand-dark bg-gallery-white text-brand-dark font-heading font-bold flex items-center justify-center text-lg leading-none"
         >
@@ -286,7 +308,7 @@ export default function ProductPanel() {
           color transition on hover — hidden below 720px along with the gap */}
       <div className="hidden md:block relative w-px bg-graphite/25 shrink-0">
         <button
-          onClick={closeProduct}
+          onClick={handleClose}
           aria-label="Cerrar"
           className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[46px] h-[46px] border border-brand-dark bg-gallery-white text-brand-dark font-heading font-bold flex items-center justify-center text-[1.2rem] leading-none transition-colors duration-200 hover:bg-brand-dark hover:text-gallery-white"
         >

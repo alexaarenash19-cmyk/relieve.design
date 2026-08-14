@@ -30,8 +30,14 @@ export default function CustomCursor() {
 
   return (
     <div
-      className="fixed z-[100] pointer-events-none -translate-x-1/2 -translate-y-1/2"
-      style={{ left: pos.x, top: pos.y }}
+      className="fixed z-[100] pointer-events-none"
+      // apple-design audit (14 ago 2026, §11): antes usaba left/top, que
+      // son propiedades de layout — cada pointermove disparaba un reflow.
+      // translate3d es solo compositor; el -50%/-50% del centrado (antes
+      // Tailwind -translate-x-1/2 -translate-y-1/2) va encadenado en el
+      // mismo transform porque un style inline reemplaza la propiedad
+      // completa, no se combina con las clases.
+      style={{ transform: `translate3d(${pos.x}px, ${pos.y}px, 0) translate(-50%, -50%)` }}
     >
       {/* Hallazgo (auditoría 10 ago 2026): acento de pill fragmentado
           (Gallery.jsx fija bg-brand-dark/text-gallery-white como el único
