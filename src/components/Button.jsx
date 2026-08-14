@@ -12,7 +12,7 @@ export default function Button({ as: As = 'button', className = '', ...props }) 
   return (
     <As
       className={`inline-flex items-center justify-center rounded-[9px] px-6 py-3 font-heading font-bold
-        pill-glass-active text-gallery-white
+        pill-glass-active text-on-accent
         active:scale-[0.98] transition-transform duration-200
         ${className}`}
       {...props}

@@ -65,7 +65,7 @@ export default function Collections() {
         <button
           onClick={() => setView('todos')}
           className={`rounded-full px-4 py-2 font-heading font-bold ${
-            view === 'todos' ? 'pill-glass-active text-gallery-white' : 'pill-glass text-brand-dark'
+            view === 'todos' ? 'pill-glass-active text-on-accent' : 'pill-glass text-brand-dark'
           }`}
         >
           Todos los mapas
@@ -73,7 +73,7 @@ export default function Collections() {
         <button
           onClick={() => setView('categoria')}
           className={`rounded-full px-4 py-2 font-heading font-bold ${
-            view === 'categoria' ? 'pill-glass-active text-gallery-white' : 'pill-glass text-brand-dark'
+            view === 'categoria' ? 'pill-glass-active text-on-accent' : 'pill-glass text-brand-dark'
           }`}
         >
           Por categoría
@@ -104,7 +104,7 @@ export default function Collections() {
                         aparte — solo distinguido con esta etiqueta (handoff
                         8 ago 2026, sección 1). */}
                     {s.value === 'cumbre' && place.type === 'juego' && (
-                      <span className="absolute top-2 left-2 rounded-full bg-brand-dark text-gallery-white px-2 py-1 font-label uppercase tracking-wide text-[10px]">
+                      <span className="absolute top-2 left-2 rounded-full bg-brand-dark text-on-accent px-2 py-1 font-label uppercase tracking-wide text-[10px]">
                         Edición Puzzle
                       </span>
                     )}

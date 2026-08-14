@@ -86,7 +86,7 @@ export default function CurvaDeNivel() {
                 every other CTA site-wide (Button.jsx). */}
             <button
               type="submit"
-              className="pill-glass-active text-gallery-white px-6 py-3 rounded-[9px] font-heading font-bold"
+              className="pill-glass-active text-on-accent px-6 py-3 rounded-[9px] font-heading font-bold"
             >
               Quiero ser parte
             </button>

@@ -40,12 +40,14 @@ export default function CustomCursor() {
       style={{ transform: `translate3d(${pos.x}px, ${pos.y}px, 0) translate(-50%, -50%)` }}
     >
       {/* Hallazgo (auditoría 10 ago 2026): acento de pill fragmentado
-          (Gallery.jsx fija bg-brand-dark/text-gallery-white como el único
+          (Gallery.jsx fija bg-brand-dark/text-on-accent como el único
           acento post-rebrand vía sus constantes DARK_PILL/GHOST_PILL) —
           además, bg-sello-navy + text-dark-bg medía ~1.61:1, texto casi
           invisible sobre el cursor en cualquier target con
-          data-cursor-label. */}
-      <span className="flex items-center justify-center h-9 px-4 rounded-full bg-brand-dark text-gallery-white font-label uppercase tracking-wide text-xs whitespace-nowrap">
+          data-cursor-label. Actualizado (auditoría de regresión, 14 ago
+          2026): text-gallery-white → text-on-accent, mismo fix que el
+          resto del sitio — ver su comentario en index.css. */}
+      <span className="flex items-center justify-center h-9 px-4 rounded-full bg-brand-dark text-on-accent font-label uppercase tracking-wide text-xs whitespace-nowrap">
         {label}
       </span>
     </div>

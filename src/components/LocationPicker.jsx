@@ -142,7 +142,7 @@ export default function LocationPicker({ aspectRatio, onConfirm }) {
         type="button"
         onClick={handleConfirm}
         disabled={!ready || !hasFramed || !hasPlace}
-        className="pill-glass-active text-gallery-white px-6 py-3 rounded-[9px] font-heading font-bold disabled:opacity-40"
+        className="pill-glass-active text-on-accent px-6 py-3 rounded-[9px] font-heading font-bold disabled:opacity-40"
       >
         Confirmar ubicación
       </button>

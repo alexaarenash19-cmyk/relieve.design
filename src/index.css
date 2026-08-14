@@ -41,6 +41,19 @@
      token no tendrá efecto visual hasta que esos usos se migren aparte. */
   --color-graphite-muted: #4a2e27; /* Potting Soil */
   --color-brand-dark: #4d0e12; /* Sceptre Red, igual que sello-navy — ver nota arriba */
+  /* Auditoría de regresión visual (14 ago 2026) — cierra la "Tensión
+     gallery-white" que el spec de dark mode dejó como follow-up sin
+     resolver (ver esa sección arriba). gallery-white cumplía dos roles
+     con un solo token — superficie de página (necesita invertirse) y
+     texto claro sobre fondo de acento/vidrio (necesita quedarse claro,
+     porque esos fondos — pill-glass-active, brand-dark, sello-navy — se
+     quedan oscuros/saturados en ambos modos por diseño). Medido: con el
+     token viejo, pill-glass-active + text-gallery-white daba 1.06:1 en
+     dark mode (invisible) por este exacto conflicto. on-accent es un
+     tercer token, sin override en .dark — mismo valor en los dos modos,
+     porque el fondo con el que empareja tampoco cambia de rol. gallery-
+     white sigue intacto para su rol de superficie (~30 archivos). */
+  --color-on-accent: #f5efc6; /* Transparent Yellow — constante, no se invierte */
 
   /* 2026-08-09 landing rebrand hand-off §2 — Piedra/Grafito.
      Landing-scoped only: does not replace graphite/sello-navy/walnut/etc
@@ -100,8 +113,19 @@
    spec (cempasuchil ya no existe, ver su nota de retiro arriba).
    gallery-white flips completely (it's used as
    both "page surface" and "light text on accent bg" today — see the
-   spec's "Tensión gallery-white" section for why surface wins and what
-   that means for the 3 Product.jsx accent pairs that use the other role). */
+   spec's "Tensión gallery-white" section for why surface wins).
+   Resuelto (auditoría de regresión, 14 ago 2026): el rol 2 ("texto claro
+   sobre fondo de acento") se movió al token --color-on-accent (arriba,
+   sin override .dark) en los ~12 componentes que lo necesitaban — ver su
+   comentario para la medición. Los 3 pares de ACCENT_CLASSES de
+   Product.jsx (walnut/passport-ink/sello-navy) ya usan on-accent, pero
+   sus fondos de dark mode (aclarados para legibilidad) siguen dando
+   3.19–3.96:1 contra texto normal — por debajo de AA (4.5:1), por
+   encima de AA texto grande (3:1). Igual que pill-glass-active en modo
+   claro (3.62:1, preexistente, no introducido por dark mode). Pendiente
+   de decisión de Ale: aclarar más el texto no es posible (ya es el
+   valor más claro de la paleta) — requeriría oscurecer esos 4 fondos
+   específicos, lo cual si toca la paleta aprobada. */
 .dark {
   --color-gallery-white: #231815; /* Java Brown */
   --color-graphite: #f5efc6; /* Transparent Yellow */

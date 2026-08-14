@@ -549,7 +549,7 @@ function ExperienceToggle({ view, onChange }) {
 const GHOST_PILL =
   'pill-glass rounded-full text-brand-dark px-3 py-2 font-heading font-bold uppercase tracking-wide text-xs flex items-center gap-1.5';
 const DARK_PILL =
-  'pill-glass-active rounded-full text-gallery-white px-3 py-2 font-heading font-bold uppercase tracking-wide text-xs flex items-center gap-1.5';
+  'pill-glass-active rounded-full text-on-accent px-3 py-2 font-heading font-bold uppercase tracking-wide text-xs flex items-center gap-1.5';
 
 // Same taxonomy as /buscar and /colecciones — CATEGORIES is the one
 // source of truth, not a separate list per filter UI.
@@ -735,7 +735,7 @@ function BottomControlBar({
                 onClick={() => setType(opt.value)}
                 className={`rounded-full px-3 py-1.5 font-label uppercase tracking-wide text-[10px] ${
                   type === opt.value
-                    ? 'pill-glass-active text-gallery-white'
+                    ? 'pill-glass-active text-on-accent'
                     : 'pill-glass text-graphite'
                 }`}
               >
@@ -752,7 +752,7 @@ function BottomControlBar({
                 onClick={() => setColor(opt.value)}
                 className={`rounded-full px-3 py-1.5 font-label uppercase tracking-wide text-[10px] ${
                   color === opt.value
-                    ? 'pill-glass-active text-gallery-white'
+                    ? 'pill-glass-active text-on-accent'
                     : 'pill-glass text-graphite'
                 }`}
               >
@@ -769,7 +769,7 @@ function BottomControlBar({
                 onClick={() => setSize(opt.value)}
                 className={`rounded-full px-3 py-1.5 font-label uppercase tracking-wide text-[10px] ${
                   size === opt.value
-                    ? 'pill-glass-active text-gallery-white'
+                    ? 'pill-glass-active text-on-accent'
                     : 'pill-glass text-graphite'
                 }`}
               >
