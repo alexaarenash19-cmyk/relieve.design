@@ -12,8 +12,6 @@
 export const WALL_SIZES = [
   { code: 'chico', label: 'Para ti', dims: '15x15 cm', tagline: 'La pieza para tu propio espacio — donde solo tú la ves cada día.' },
   { code: 'mediano', label: 'El que se cuenta', dims: '64x64 cm', featured: true, tagline: 'El tamaño que la gente ve primero al entrar a la sala — el más elegido para regalar.' },
-  // PLACEHOLDER — Ale aún no confirma esta medida ("déjame pensar"), 80x80
-  // cm es temporal mientras decide.
   { code: 'grande', label: 'Pieza de casa', dims: '80x80 cm', tagline: 'Presencia real de pared — la que ancla un espacio.' },
   { code: 'especial', label: 'La pieza ancla', dims: '120x80 cm', tagline: 'El statement — para el lugar que lo cambió todo.' },
 ];
@@ -69,10 +67,13 @@ export const ADDONS = {
   placa: 15000,
 };
 
+// D10 (14 ago 2026) — Ale confirmó que Relieve solo ofrece 2 colores reales,
+// no 4: Blanco Mate y Negro Mate. 'arena'/'grafito' removed per the same
+// FK-integrity precedent as 'nogal' in FRAMES/'terracota' above — the
+// `colors` DB row stays for existing order_items, only dropped from this
+// customer-facing list.
 export const COLORS = [
-  { code: 'blanco', label: 'Blanco', hex: '#F6F3ED' }, // --gallery-white (no pure white — ui-ux.md)
-  { code: 'arena', label: 'Arena', hex: '#C2B280' }, // real sand-paint swatch, no brand token for it
-  { code: 'grafito', label: 'Grafito', hex: '#232323' }, // --graphite
+  { code: 'blanco', label: 'Blanco mate', hex: '#F6F3ED' }, // --gallery-white (no pure white — ui-ux.md)
   { code: 'negromate', label: 'Negro mate', hex: '#1C1C1C' }, // real matte-black color option
 ];
 
