@@ -11,11 +11,16 @@
 // (Tamaño/Marco/Color/Orientación) se mostraban todos juntos, amontonados.
 // Ahora se navega un paso a la vez vía StepProgress.jsx (ver ese archivo
 // para la justificación de por qué NO se usó framer-motion/lucide-react/
-// shadcn del componente de referencia que Ale mandó). El estado real de
-// selección (sizeCode/frameCode/colorCode/orientation/memoryNote) NO
-// cambió — sigue siendo el mismo useState de siempre, cablea a
-// FichaTecnica y al carrito exactamente igual que antes. `currentStep` es
-// puramente de navegación de UI, nuevo, sin afectar esos datos.
+// shadcn del componente de referencia que Ale mandó). `currentStep` es
+// puramente de navegación de UI, nuevo, sin afectar los datos de selección.
+//
+// Configurador simplificado (D8-D10, 14 ago 2026) — Marco y Orientación
+// nunca fueron decisiones reales del cliente (ver la nota junto a
+// frameCode/orientation más abajo) y se quitaron como fieldsets
+// seleccionables; el paso "acabado" ahora solo pregunta Color, y Color
+// mismo bajó de 4 opciones a 2 (blanco/negromate) en catalog.js. sizeCode
+// y colorCode siguen siendo useState reales — son las únicas dos
+// decisiones de personalización que le quedan al cliente.
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useCart } from '../context/CartContext.jsx';
@@ -94,9 +99,19 @@ export default function Product() {
   const [error, setError] = useState(null);
 
   const [sizeCode, setSizeCode] = useState(SIZES[1].code);
-  const [frameCode, setFrameCode] = useState(FRAMES[0].code);
+  // Fix (14 ago 2026): Marco y Orientación dejaron de ser opciones reales
+  // — Relieve nunca ofreció elegir tipo de madera, y la orientación
+  // tampoco fue nunca una decisión real del cliente. Antes eran useState
+  // seleccionables (fieldsets "Marco"/"Orientación" abajo, ya quitados);
+  // ahora son valores fijos — frameCode sigue siendo FRAMES[0].code
+  // (parota, el único real) sin exponer roble/negro como opción, y
+  // orientation siempre 'horizontal'. FRAMES conserva sus 3 entradas en
+  // catalog.js por la misma razón que 'nogal'/'terracota' se quedaron ahí
+  // — integridad de FK con pedidos existentes — solo ya no se listan como
+  // elegibles aquí.
+  const frameCode = FRAMES[0].code;
+  const orientation = 'horizontal';
   const [colorCode, setColorCode] = useState(COLORS[0].code);
-  const [orientation, setOrientation] = useState('horizontal');
   const [memoryNote, setMemoryNote] = useState('');
   const [unitPriceCents, setUnitPriceCents] = useState(null);
   const [currentStep, setCurrentStep] = useState(1);
@@ -243,7 +258,7 @@ export default function Product() {
       title: 'Material y acabado',
       content: isPuzzle
         ? 'El puzzle se imprime en 3D de alta precisión, acabado mate, listo para armar sobre cualquier superficie plana.'
-        : 'El relieve se imprime en 3D de alta precisión y se enmarca a mano en parota, roble o negro. Acabado mate en toda la pieza.',
+        : 'El relieve se imprime en 3D de alta precisión y se enmarca a mano en Parota Nacional. Acabado mate en toda la pieza.',
     },
     {
       title: 'Cambios y devoluciones',
@@ -467,67 +482,32 @@ export default function Product() {
               {!isPuzzle && <BaggageTag label="Marco" value={selectedFrame.label} />}
             </div>
 
+            {/* Fix (14 ago 2026): los fieldsets de Marco y Orientación se
+                quitaron — nunca fueron opciones reales (ver la nota junto a
+                frameCode/orientation arriba). El paso "acabado" ahora solo
+                pregunta Color, la única elección real de las tres que
+                vivían aquí. */}
             {!isPuzzle && activeStep === 'acabado' && (
-              <>
-                <fieldset className="mb-4">
-                  <legend className="font-label uppercase tracking-wide text-xs mb-2">Marco</legend>
-                  <div className="flex flex-wrap gap-2">
-                    {FRAMES.map((f) => (
-                      <button
-                        key={f.code}
-                        onClick={() => setFrameCode(f.code)}
-                        className={`flex items-center gap-2 px-3 py-1 rounded-full text-sm font-heading font-bold ${
-                          frameCode === f.code ? 'pill-glass-active text-gallery-white' : 'pill-glass text-graphite'
-                        }`}
-                      >
-                        <span
-                          className="w-3 h-3 rounded-full"
-                          style={{ backgroundColor: f.hex }}
-                        />
-                        {f.label}
-                      </button>
-                    ))}
-                  </div>
-                </fieldset>
-
-                <fieldset className="mb-4">
-                  <legend className="font-label uppercase tracking-wide text-xs mb-2">Color</legend>
-                  <div className="flex gap-2">
-                    {COLORS.map((c) => (
-                      <button
-                        key={c.code}
-                        onClick={() => setColorCode(c.code)}
-                        aria-label={c.label}
-                        title={c.label}
-                        className={`w-7 h-7 rounded-full border-2 ${
-                          colorCode === c.code ? 'border-brand-dark' : 'border-line'
-                        }`}
-                        style={{ backgroundColor: c.hex }}
-                      />
-                    ))}
-                  </div>
-                  <p className="mt-2 text-xs text-graphite/70">
-                    {selectedColor?.label}
-                  </p>
-                </fieldset>
-
-                <fieldset className="mb-6">
-                  <legend className="font-label uppercase tracking-wide text-xs mb-2">Orientación</legend>
-                  <div className="flex gap-2">
-                    {['horizontal', 'vertical'].map((o) => (
-                      <button
-                        key={o}
-                        onClick={() => setOrientation(o)}
-                        className={`px-3 py-1 rounded-full text-sm capitalize font-heading font-bold ${
-                          orientation === o ? 'pill-glass-active text-gallery-white' : 'pill-glass text-graphite'
-                        }`}
-                      >
-                        {o}
-                      </button>
-                    ))}
-                  </div>
-                </fieldset>
-              </>
+              <fieldset className="mb-6">
+                <legend className="font-label uppercase tracking-wide text-xs mb-2">Color</legend>
+                <div className="flex gap-2">
+                  {COLORS.map((c) => (
+                    <button
+                      key={c.code}
+                      onClick={() => setColorCode(c.code)}
+                      aria-label={c.label}
+                      title={c.label}
+                      className={`w-7 h-7 rounded-full border-2 ${
+                        colorCode === c.code ? 'border-brand-dark' : 'border-line'
+                      }`}
+                      style={{ backgroundColor: c.hex }}
+                    />
+                  ))}
+                </div>
+                <p className="mt-2 text-xs text-graphite/70">
+                  {selectedColor?.label}
+                </p>
+              </fieldset>
             )}
 
             {/* 6. Ficha técnica — colapsada por default (museográfico
@@ -610,14 +590,6 @@ export default function Product() {
               Cómo se hizo esta pieza
             </Link>
 
-            {/* 13. Cómo llega */}
-            <div className="mt-10">
-              <h2 className="font-heading font-bold text-brand-dark uppercase tracking-wide text-xs mb-3">
-                Cómo llega
-              </h2>
-              <HowItArrives steps={isPuzzle ? PUZZLE_HOW_IT_ARRIVES_STEPS : HOW_IT_ARRIVES_STEPS} />
-            </div>
-
             <div id="detalles" className="mt-10">
               <h2 className="font-heading font-bold text-brand-dark uppercase tracking-wide text-xs mb-2">
                 Detalles
@@ -628,6 +600,20 @@ export default function Product() {
             <Reviews slug={place.slug} />
           </div>
         </div>
+      </div>
+
+      {/* 13. Cómo llega (D11 — 14 ago 2026): antes vivía adentro de la
+          tarjeta bg-gallery-white de la columna derecha, angosta y
+          apretada. HowItArrives.jsx ya renderiza sus 3 pasos en
+          grid-cols-3 (horizontal) por sí mismo — lo único que le faltaba
+          era un contenedor con ancho real para lucirlo, no un cambio al
+          componente. Se saca del grid de 2 columnas y se pone a todo el
+          ancho, debajo de ambas columnas. */}
+      <div className="max-w-6xl mx-auto px-8 pb-16">
+        <h2 className="font-heading font-bold text-brand-dark uppercase tracking-wide text-xs mb-4">
+          Cómo llega
+        </h2>
+        <HowItArrives steps={isPuzzle ? PUZZLE_HOW_IT_ARRIVES_STEPS : HOW_IT_ARRIVES_STEPS} />
       </div>
     </main>
   );
