@@ -258,6 +258,24 @@ export function zoomButtonPulse(el) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────
+// EFECTO 7 — Entrada de GlassOrderSummaryCard (quick-buy, pre-checkout).
+// Adaptado de un componente de referencia que Ale mandó (framer-motion
+// fromTo opacity/y, sin guard de reduced-motion) al mismo patrón de este
+// archivo: mismos valores (0.4s, power2.out), pero con el guard que el
+// original no tenía — reduced-motion salta directo al estado final en vez
+// de animar.
+// ─────────────────────────────────────────────────────────────────────────
+export function orderSummaryCardEnter(el) {
+  if (!el) return;
+  const reduced = reduceMotion();
+  gsap.fromTo(
+    el,
+    { opacity: 0, y: 20 },
+    { opacity: 1, y: 0, duration: reduced ? 0.01 : 0.4, ease: 'power2.out' },
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────
 // Nav pill-shrink al hacer scroll (Nav.jsx). Adaptado de un componente de
 // referencia de Aceternity (resizable-navbar.tsx, framer-motion animate={{
 // width, y, boxShadow}}) — la barra completa (wordmark + FluidMenu) se
