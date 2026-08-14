@@ -246,4 +246,75 @@ function mockReq(method, body, headers = {}) {
   assert.strictEqual(resendCalls.length, 0, 'must not alert or email for an expected concurrent-duplicate, not a real failure');
 }
 
+// 8. docs/superpowers/specs/2026-08-13-personaliza-checkout-design.md —
+// checkout.session.completed con un item personalizado: el precio se
+// recalcula con getPersonalizedPrice (mediano * 1.15 = 149385, no el
+// precio "confirmado" en metadata), y custom_location llega hasta el
+// insert de order_items.
+{
+  const resendCalls = [];
+  let insertedOrderItems = null;
+
+  mockFetch = async (input, init = {}) => {
+    const url = typeof input === 'string' ? input : input.url;
+    const method = (init.method || 'GET').toUpperCase();
+
+    if (url.startsWith('https://api.resend.com/')) {
+      resendCalls.push(JSON.parse(init.body));
+      return new Response(JSON.stringify({ id: 'email_test' }), { status: 200 });
+    }
+    if (url.includes('/rest/v1/orders')) {
+      if (method === 'GET') {
+        return new Response(JSON.stringify({ code: 'PGRST116', message: 'no rows' }), { status: 406 });
+      }
+      return new Response(
+        JSON.stringify({ id: 'order-uuid-personalize', number: 'RLV-2026-000002', status_token: 'tok456' }),
+        { status: 201, headers: { 'Content-Type': 'application/json' } }
+      );
+    }
+    if (url.includes('/rest/v1/order_items')) {
+      insertedOrderItems = JSON.parse(init.body);
+      return new Response(JSON.stringify(insertedOrderItems), { status: 201 });
+    }
+    if (url.includes('/rest/v1/carts')) {
+      return new Response(JSON.stringify([]), { status: 200 });
+    }
+    if (url.includes('/rest/v1/sizes') || url.includes('/rest/v1/frames') || url.includes('/rest/v1/addons')) {
+      // catalog tables unreachable -> getPersonalizedPrice/calcUnitPriceCents fall back to dummyCatalog
+      return new Response('Internal Server Error', { status: 500 });
+    }
+    throw new Error(`Unexpected fetch to ${url} in test 8`);
+  };
+
+  const customLocation = {
+    place_id: 'ChIJB3UJ2yYAzoURgKDXCKP5-oI',
+    formatted_address: 'Ciudad de México, CDMX, México',
+    latitude: 19.4326,
+    longitude: -99.1332,
+    zoom: 12,
+    map_bounds: { north: 19.5, south: 19.3, east: -99.0, west: -99.3 },
+  };
+  const items = [{
+    custom_place: 'Ciudad de México, CDMX, México',
+    custom_location: customLocation,
+    size_code: 'mediano',
+    frame_code: 'parota',
+    color_code: 'blanco',
+    qty: 1,
+  }];
+  const { payload, header } = signedPayload('checkout.session.completed', {
+    id: 'cs_test_personalize',
+    customer_email: 'cliente3@example.com',
+    metadata: { items: JSON.stringify(items), is_gift: 'false', gift_message: '' },
+  });
+  const res = mockRes();
+  await handler(mockReq('POST', payload, { 'stripe-signature': header }), res);
+  mockFetch = null;
+
+  assert.strictEqual(res.statusCode, 200, `expected 200, got ${res.statusCode} body=${JSON.stringify(res.body)}`);
+  assert.ok(insertedOrderItems, 'expected an order_items insert to happen');
+  assert.strictEqual(insertedOrderItems[0].unit_price_cents, 149385, 'expected mediano (129900) * 1.15 rounded');
+  assert.deepStrictEqual(insertedOrderItems[0].custom_location, customLocation);
+}
+
 console.log('stripe webhook signature + event handling checks: OK');
