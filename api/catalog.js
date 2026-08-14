@@ -18,6 +18,7 @@ import { calcUnitPriceCents, PricingError } from '../lib/pricing.js';
 import { DUMMY_PLACES, findDummyPlace } from '../lib/dummyCatalog.js';
 import { checkRateLimit } from '../lib/rateLimit.js';
 import { sendCurvaDeNivelWelcome, sendPersonalizeRequestNotification, sendAlert } from '../lib/alerts.js';
+import { validateEmail } from '../lib/validate.js';
 
 // Issue #23/#24: GET /api/places?q=&type=&series= and GET /api/places/:slug
 // `type` (ciudad/juego, wall piece vs. puzzle) and `series` (origen/
@@ -37,6 +38,17 @@ async function getPlaces(req, res) {
 
   const { q, type, series } = req.query;
 
+  // Auditoría de seguridad (13 ago 2026), hallazgo 🟠 #7 — q no tenía
+  // límite de longitud ni la query un límite de resultados. El catálogo
+  // real es chico hoy, así que no expone más datos de los que ya son
+  // públicos, pero un q arbitrariamente largo contra ilike es un vector de
+  // carga menor sin razón para no cerrarlo.
+  const MAX_Q_LENGTH = 100;
+  const MAX_RESULTS = 100;
+  if (q && q.length > MAX_Q_LENGTH) {
+    return sendError(res, 400, 'invalid_request', `q exceeds ${MAX_Q_LENGTH} characters`);
+  }
+
   let query = supabase
     .from('places')
     .select('slug, name, type, series, thumb_url, base_price_cents, status')
@@ -50,7 +62,7 @@ async function getPlaces(req, res) {
   if (type) query = query.eq('type', type);
   if (series) query = query.eq('series', series);
 
-  const { data, error } = await query.order('name');
+  const { data, error } = await query.order('name').limit(MAX_RESULTS);
 
   if (error) {
     res.setHeader('Cache-Control', 'no-store');
@@ -141,6 +153,13 @@ async function postPricing(req, res) {
     return sendError(res, 405, 'method_not_allowed', 'Use POST');
   }
 
+  // Auditoría de seguridad (13 ago 2026), hallazgo 🟠 #6 — sin rate limit.
+  // No permite manipular precio (checkout recalcula independiente), pero
+  // sí se puede automatizar para generar carga. 40/min/IP: generoso porque
+  // el configurador hace varias consultas legítimas al cambiar tamaño/
+  // color, pero no ilimitado.
+  if (!(await checkRateLimit(req, res, { key: 'pricing', limit: 40, windowMs: 60_000 }))) return;
+
   const { size_code, frame_code, addons = [] } = req.body ?? {};
   if (!size_code || !frame_code) {
     return sendError(
@@ -182,6 +201,12 @@ async function postWaitlist(req, res) {
       'invalid_request',
       'place_slug and email are required',
     );
+  }
+  // Auditoría de seguridad (13 ago 2026), hallazgo 🟠 #11 — este endpoint
+  // no validaba el formato del email en absoluto (solo el `!email` de
+  // arriba). Ver lib/validate.js.
+  if (!validateEmail(email)) {
+    return sendError(res, 400, 'invalid_request', 'A valid email is required');
   }
 
   const { data: place, error: placeError } = await supabase
@@ -229,7 +254,9 @@ async function postCurvaDeNivel(req, res) {
   if (!(await checkRateLimit(req, res, { key: 'curva-de-nivel', limit: 5, windowMs: 60_000 }))) return;
 
   const { email } = req.body ?? {};
-  if (!email || typeof email !== 'string' || !email.includes('@')) {
+  // Auditoría de seguridad (13 ago 2026), hallazgo 🟠 #11 — email.includes('@')
+  // dejaba pasar "@", "a@", "@@@". Ver lib/validate.js.
+  if (!validateEmail(email)) {
     return sendError(res, 400, 'invalid_request', 'A valid email is required');
   }
 
@@ -270,9 +297,11 @@ async function postPersonalizeRequest(req, res) {
   if (!(await checkRateLimit(req, res, { key: 'personalize', limit: 5, windowMs: 60_000 }))) return;
 
   const { name, email, location, notes } = req.body ?? {};
+  // Auditoría de seguridad (13 ago 2026), hallazgo 🟠 #11 — email.includes('@')
+  // dejaba pasar "@", "a@", "@@@". Ver lib/validate.js.
   if (
     !name || typeof name !== 'string' ||
-    !email || typeof email !== 'string' || !email.includes('@') ||
+    !validateEmail(email) ||
     !location || typeof location !== 'string'
   ) {
     return sendError(res, 400, 'invalid_request', 'name, email and location are required');
@@ -352,6 +381,14 @@ async function getOrderBySession(req, res) {
   const { session_id } = req.query;
   if (!session_id) {
     return sendError(res, 400, 'invalid_request', 'session_id is required');
+  }
+  // Auditoría de seguridad (13 ago 2026), hallazgo 🟠 #10 — session_id no
+  // se validaba antes de consultar Supabase. Los Checkout Session IDs de
+  // Stripe siempre tienen el prefijo cs_ (cs_test_.../cs_live_...) seguido
+  // de caracteres alfanuméricos — cualquier otra cosa no puede ser un
+  // session_id real, así que se rechaza antes de tocar la base de datos.
+  if (!/^cs_[a-zA-Z0-9_]+$/.test(session_id)) {
+    return sendError(res, 400, 'invalid_request', 'session_id has an invalid format');
   }
 
   const { data: order, error } = await supabase
