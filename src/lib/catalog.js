@@ -67,10 +67,13 @@ export const ADDONS = {
   placa: 15000,
 };
 
+// D10 (14 ago 2026) — Ale confirmó que Relieve solo ofrece 2 colores reales,
+// no 4: Blanco Mate y Negro Mate. 'arena'/'grafito' removed per the same
+// FK-integrity precedent as 'nogal' in FRAMES/'terracota' above — the
+// `colors` DB row stays for existing order_items, only dropped from this
+// customer-facing list.
 export const COLORS = [
-  { code: 'blanco', label: 'Blanco', hex: '#F6F3ED' }, // --gallery-white (no pure white — ui-ux.md)
-  { code: 'arena', label: 'Arena', hex: '#C2B280' }, // real sand-paint swatch, no brand token for it
-  { code: 'grafito', label: 'Grafito', hex: '#232323' }, // --graphite
+  { code: 'blanco', label: 'Blanco mate', hex: '#F6F3ED' }, // --gallery-white (no pure white — ui-ux.md)
   { code: 'negromate', label: 'Negro mate', hex: '#1C1C1C' }, // real matte-black color option
 ];
 
