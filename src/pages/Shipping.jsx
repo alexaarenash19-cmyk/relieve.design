@@ -4,7 +4,7 @@ export default function Shipping() {
   useDocumentHead({
     title: 'Envíos — Relieve',
     description:
-      'Envíos a todo México, costo y tiempo estimado en el checkout, envío incluido en pedidos mayores a $2,500 MXN, y rastreo de tu pedido por correo.',
+      'Envíos a todo México, siempre incluidos en el precio de tu pieza, con rastreo de tu pedido por correo.',
     canonicalPath: '/envios',
   });
 
@@ -13,12 +13,13 @@ export default function Shipping() {
       <h1 className="font-heading font-bold text-brand-dark text-3xl mb-6">Envíos</h1>
 
       <p className="mb-4">
-        Enviamos a todo México. El costo y tiempo estimado de entrega se
-        calculan en el checkout según tu código postal.
+        Enviamos a todo México. El envío ya está incluido en el precio de tu
+        pieza — el tiempo estimado de entrega se calcula en el checkout
+        según tu código postal.
       </p>
 
       <ul className="mb-4 list-disc pl-6 space-y-2">
-        <li>Envío incluido en pedidos mayores a $2,500 MXN.</li>
+        <li>Envío siempre incluido, sin costo adicional ni monto mínimo.</li>
         <li>Producción: cada pieza se fabrica bajo pedido, ver tiempo estimado en el checkout.</li>
         <li>Empaque protegido para piezas enmarcadas.</li>
         <li>Recibirás número de rastreo y notificaciones por correo.</li>

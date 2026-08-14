@@ -32,8 +32,9 @@ export default function Terms() {
 
       <h2 className="font-heading font-bold text-brand-dark text-xl mt-8 mb-3">Envíos</h2>
       <p className="mb-4">
-        Enviamos a todo México. El costo y tiempo de envío se muestran en el
-        checkout; pedidos mayores a $2,500 MXN incluyen envío sin costo.
+        Enviamos a todo México. El envío está siempre incluido en el precio
+        de tu pieza, sin costo adicional; el tiempo estimado se muestra en
+        el checkout.
       </p>
 
       <h2 className="font-heading font-bold text-brand-dark text-xl mt-8 mb-3">
