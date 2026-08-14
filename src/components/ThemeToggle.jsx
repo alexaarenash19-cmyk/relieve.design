@@ -53,9 +53,20 @@ export default function ThemeToggle() {
 
   const onClick = useCallback(() => {
     const button = buttonRef.current;
-    if (!button || isTransitioningRef.current) return;
+    if (!button) return;
 
-    if (typeof document.startViewTransition !== 'function') {
+    // apple-design audit (14 ago 2026, §3): un click mientras la transición
+    // circular anterior sigue corriendo ya NO se ignora — se saltaba en
+    // silencio, y "nunca bloquear el input durante una transición" es el
+    // principio que el propio documento marca como el más importante.
+    // Overlapar dos document.startViewTransition() reales es terreno
+    // movedizo (comportamiento no del todo definido entre navegadores), así
+    // que en vez de eso este click de todos modos aplica el cambio de tema
+    // de inmediato — sin el efecto circular esta vez puntual — en lugar de
+    // no hacer nada. En cuanto la transición en curso termina,
+    // isTransitioningRef se limpia y el próximo click vuelve a tener el
+    // efecto completo.
+    if (typeof document.startViewTransition !== 'function' || isTransitioningRef.current) {
       toggleTheme();
       return;
     }
