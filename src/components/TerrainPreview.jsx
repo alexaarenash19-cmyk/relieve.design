@@ -13,7 +13,13 @@ import * as THREE from 'three';
 import { loadGoogleMaps } from '../lib/googleMapsLoader.js';
 import { buildElevationGrid, normalizeElevations, heightmapToTextureData } from '../lib/terrainMesh.js';
 
-const GRID_SIZE = 32;
+// 22x22 = 484 puntos por llamada a getElevationForLocations — el límite
+// real de la Elevation API (JS client) es 512 locations por request; 32x32
+// (1024) lo excede y siempre devuelve status INVALID_REQUEST (confirmado
+// en vivo contra la API real: 512 puntos OK, 1024 falla). 484 se queda
+// con margen bajo el límite sin perder resolución perceptible en un plano
+// de displacement de este tamaño.
+const GRID_SIZE = 22;
 const elevationCache = new Map();
 
 function cacheKey(mapBounds) {
