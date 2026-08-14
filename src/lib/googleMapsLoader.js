@@ -15,6 +15,12 @@ export function loadGoogleMaps() {
     }
     const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
     if (!apiKey) {
+      // Final whole-branch review finding #7 — without resetting
+      // loadPromise here, loadGoogleMaps() would return this same
+      // rejected promise forever for the rest of the session, making
+      // /personaliza permanently unusable after one failure until a full
+      // page reload.
+      loadPromise = null;
       reject(new Error('VITE_GOOGLE_MAPS_API_KEY no está configurada.'));
       return;
     }
@@ -22,7 +28,12 @@ export function loadGoogleMaps() {
     script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places,elevation&v=weekly`;
     script.async = true;
     script.onload = () => resolve(window.google.maps);
-    script.onerror = () => reject(new Error('No pudimos cargar Google Maps.'));
+    script.onerror = () => {
+      // Same reasoning as the missing-API-key reject above — a transient
+      // network failure shouldn't poison every future call this session.
+      loadPromise = null;
+      reject(new Error('No pudimos cargar Google Maps.'));
+    };
     document.head.appendChild(script);
   });
 
