@@ -60,5 +60,32 @@ const items = [
   assert.ok(html.includes('&lt;script&gt;'), 'expected the XSS payload to appear escaped');
 }
 
+// 3. docs/superpowers/specs/2026-08-13-personaliza-checkout-design.md —
+// un item personalizado incluye un link a Maps + coordenadas en el correo
+// interno a Ale, con el mismo tratamiento de escapeHtml que cualquier otro
+// campo de texto libre del cliente.
+{
+  sentEmails.length = 0;
+  const personalizedItems = [
+    {
+      custom_place: XSS,
+      custom_location: {
+        formatted_address: XSS,
+        latitude: 19.4326,
+        longitude: -99.1332,
+      },
+      size_code: 'mediano',
+      frame_code: 'parota',
+      qty: 1,
+      unit_price_cents: 149385,
+    },
+  ];
+  await sendOrderPaidNotification(order, personalizedItems, {});
+  const html = sentEmails[0].html;
+  assert.ok(!html.includes('<script>'), `raw <script> leaked via custom_location.formatted_address:\n${html}`);
+  assert.ok(html.includes('19.4326') && html.includes('-99.1332'), 'expected coordinates in the email');
+  assert.ok(html.includes('google.com/maps'), 'expected a Google Maps link');
+}
+
 globalThis.fetch = realFetch;
 console.log('alerts HTML-escaping checks: OK');

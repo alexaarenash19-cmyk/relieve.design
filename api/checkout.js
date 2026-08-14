@@ -5,7 +5,7 @@
 import Stripe from 'stripe';
 import { supabase } from '../lib/supabase.js';
 import { sendError } from '../lib/errors.js';
-import { calcUnitPriceCents, PricingError } from '../lib/pricing.js';
+import { calcUnitPriceCents, getPersonalizedPrice, PricingError } from '../lib/pricing.js';
 import { checkRateLimit } from '../lib/rateLimit.js';
 
 // new Stripe(undefined) throws synchronously at import time — same class
@@ -38,7 +38,7 @@ const METADATA_CHUNK_SIZE = 450; // margin under Stripe's 500-char limit
 // claro en vez de con el 502 genérico de stripe_error.
 const FREE_TEXT_LIMITS = {
   memory_note: 140,
-  custom_place: 80,
+  custom_place: 120,
   plate_text: 60,
   gift_message: 300,
 };
@@ -49,6 +49,48 @@ function assertFreeTextLength(field, value) {
       'text_too_long',
       `${field} exceeds ${FREE_TEXT_LIMITS[field]} characters`,
     );
+  }
+}
+
+// docs/superpowers/specs/2026-08-13-personaliza-checkout-design.md sección 5
+// — "antes de pagar" también aplica server-side, no solo como gate del
+// botón en el cliente (mismo principio que el resto de este archivo:
+// nunca confiar en que el cliente ya validó). map_bounds usa el shape
+// que google.maps.LatLngBounds.toJSON() produce.
+function assertValidCustomLocation(loc) {
+  if (!loc || typeof loc !== 'object') {
+    throw new PricingError('invalid_custom_location', 'custom_location is required for personalized items');
+  }
+  const { place_id, formatted_address, latitude, longitude, map_bounds, zoom } = loc;
+  if (!place_id || typeof place_id !== 'string' || place_id.length > 200) {
+    throw new PricingError('invalid_custom_location', 'custom_location.place_id is invalid');
+  }
+  if (!formatted_address || typeof formatted_address !== 'string' || formatted_address.length > 200) {
+    throw new PricingError('invalid_custom_location', 'custom_location.formatted_address is invalid');
+  }
+  // Final whole-branch review finding #6 — typeof x !== 'number' admits
+  // NaN (typeof NaN === 'number', and NaN < -90 / NaN > 90 are both false,
+  // so the range check didn't catch it either). NaN round-trips through
+  // JSON.stringify as null, breaking Ale's Maps link in the order email
+  // ("(null, null)"). Number.isFinite(x) rejects NaN/Infinity/-Infinity
+  // along with non-numbers.
+  if (!Number.isFinite(latitude) || latitude < -90 || latitude > 90) {
+    throw new PricingError('invalid_custom_location', 'custom_location.latitude is invalid');
+  }
+  if (!Number.isFinite(longitude) || longitude < -180 || longitude > 180) {
+    throw new PricingError('invalid_custom_location', 'custom_location.longitude is invalid');
+  }
+  if (!Number.isFinite(zoom) || zoom < 0 || zoom > 22) {
+    throw new PricingError('invalid_custom_location', 'custom_location.zoom is invalid');
+  }
+  if (
+    !map_bounds ||
+    typeof map_bounds.north !== 'number' ||
+    typeof map_bounds.south !== 'number' ||
+    typeof map_bounds.east !== 'number' ||
+    typeof map_bounds.west !== 'number'
+  ) {
+    throw new PricingError('invalid_custom_location', 'custom_location.map_bounds is invalid');
   }
 }
 
@@ -99,6 +141,28 @@ async function priceItem(item) {
   if (capelo) addons.push('capelo');
   if (plate_text) addons.push('placa');
 
+  // Final whole-branch review finding #1 — a custom_place-bearing item
+  // without custom_location used to skip both the 15% personalized markup
+  // AND the frame_code === 'parota' enforcement below, falling through to
+  // calcUnitPriceCents at catalog price with any frame. Unreachable from
+  // Personalize.jsx today (it always sets both together), but a real gap
+  // for a direct API call.
+  if (custom_place && !item.custom_location) {
+    throw new PricingError('invalid_item', 'custom_place requires custom_location');
+  }
+
+  if (item.custom_location) {
+    assertValidCustomLocation(item.custom_location);
+    // Global Constraint: frame_code para piezas personalizadas es siempre
+    // el string 'parota', nunca un valor elegible — sin excepciones. Esto
+    // no afecta al precio (getPersonalizedPrice ignora frame_code) pero un
+    // frame_code arbitrario fluiría hacia el name del line item de Stripe
+    // y potencialmente hacia order_items vía el webhook.
+    if (frame_code !== 'parota') {
+      throw new PricingError('invalid_frame_code', "custom_location items must use frame_code 'parota'");
+    }
+  }
+
   // These three lookups are independent of each other — running them
   // sequentially (as this used to) adds two extra network round-trips to
   // Supabase per item for no reason; every millisecond here is on the
@@ -110,7 +174,9 @@ async function priceItem(item) {
     color_code
       ? supabase.from('colors').select('code').eq('code', color_code).maybeSingle()
       : Promise.resolve({ data: null }),
-    calcUnitPriceCents({ size_code, frame_code, addons }),
+    item.custom_location
+      ? getPersonalizedPrice(size_code)
+      : calcUnitPriceCents({ size_code, frame_code, addons }),
   ]);
 
   if (place_slug && !placeResult.data) {
@@ -130,6 +196,8 @@ async function priceItem(item) {
     name,
     unit_price_cents,
     qty: resolvedQty,
+    custom_place: custom_place ?? null,
+    custom_location: item.custom_location ?? null,
   };
 }
 

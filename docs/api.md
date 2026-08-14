@@ -45,6 +45,9 @@ Body: `{ size_code, frame_code, addons: ['capelo'] }` (addons es opcional, defau
 → `{ unit_price }` (centavos MXN — el nombre de la respuesta no lleva sufijo `_cents` pese a que sí lo es, inconsistencia menor conocida, no vale la pena romper el contrato solo por nombrarlo bien)
 = `sizes.price_cents + frames.price_delta_cents + Σ addons.price_delta_cents`, calculado en `lib/pricing.js`. Si el catálogo de Supabase no responde, cae a un fallback hardcodeado (`lib/dummyCatalog.js`) en vez de fallar.
 
+### POST /api/personalized-pricing
+Body: `{ size_code }` → `{ unit_price }` (centavos MXN). `= Math.round(sizes.price_cents * 1.15)`, calculado en `lib/pricing.js`'s `getPersonalizedPrice`. Usado por el wizard de `/personaliza` (docs/superpowers/specs/2026-08-13-personaliza-checkout-design.md) — el 15% aplica solo aquí, nunca a piezas de catálogo.
+
 ## Checkout (Stripe)
 ### POST /api/checkout
 Body:

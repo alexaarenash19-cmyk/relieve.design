@@ -14,7 +14,7 @@
 // queries start succeeding — nothing to flip off by hand.
 import { supabase } from '../lib/supabase.js';
 import { sendError } from '../lib/errors.js';
-import { calcUnitPriceCents, PricingError } from '../lib/pricing.js';
+import { calcUnitPriceCents, getPersonalizedPrice, PricingError } from '../lib/pricing.js';
 import { DUMMY_PLACES, findDummyPlace } from '../lib/dummyCatalog.js';
 import { checkRateLimit } from '../lib/rateLimit.js';
 import { sendCurvaDeNivelWelcome, sendPersonalizeRequestNotification, sendAlert } from '../lib/alerts.js';
@@ -180,6 +180,31 @@ async function postPricing(req, res) {
   } catch (err) {
     if (err instanceof PricingError)
       return sendError(res, 400, err.code, err.message);
+    return sendError(res, 500, 'db_error', err.message);
+  }
+}
+
+// docs/superpowers/specs/2026-08-13-personaliza-checkout-design.md sección 4 —
+// precio en vivo del wizard de /personaliza. Mismo criterio de rate limit
+// que postPricing (el wizard recalcula cada vez que cambia el tamaño).
+async function postPersonalizedPricing(req, res) {
+  if (req.method !== 'POST') {
+    res.setHeader('Allow', 'POST');
+    return sendError(res, 405, 'method_not_allowed', 'Use POST');
+  }
+
+  if (!(await checkRateLimit(req, res, { key: 'personalized-pricing', limit: 40, windowMs: 60_000 }))) return;
+
+  const { size_code } = req.body ?? {};
+  if (!size_code) {
+    return sendError(res, 400, 'invalid_request', 'size_code is required');
+  }
+
+  try {
+    const unit_price = await getPersonalizedPrice(size_code);
+    return res.status(200).json({ unit_price });
+  } catch (err) {
+    if (err instanceof PricingError) return sendError(res, 400, err.code, err.message);
     return sendError(res, 500, 'db_error', err.message);
   }
 }
@@ -358,7 +383,7 @@ async function getOrder(req, res) {
   const { data: items, error: itemsError } = await supabase
     .from('order_items')
     .select(
-      'place_id, custom_place, size_code, frame_code, color_code, qty, unit_price_cents, piece_number, places(name, series, country, type)',
+      'place_id, custom_place, custom_location, size_code, frame_code, color_code, qty, unit_price_cents, piece_number, places(name, series, country, type)',
     )
     .eq('order_id', order.id);
 
@@ -405,6 +430,7 @@ async function getOrderBySession(req, res) {
 const RESOURCES = {
   places: getPlaces,
   pricing: postPricing,
+  personalized_pricing: postPersonalizedPricing,
   waitlist: postWaitlist,
   curva_de_nivel: postCurvaDeNivel,
   personalize_requests: postPersonalizeRequest,

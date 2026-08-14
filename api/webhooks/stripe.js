@@ -5,7 +5,7 @@
 import crypto from 'node:crypto';
 import Stripe from 'stripe';
 import { supabase } from '../../lib/supabase.js';
-import { calcUnitPriceCents } from '../../lib/pricing.js';
+import { calcUnitPriceCents, getPersonalizedPrice } from '../../lib/pricing.js';
 import { sendAlert, sendOrderPaidNotification, sendOrderConfirmation } from '../../lib/alerts.js';
 
 export const config = { api: { bodyParser: false } };
@@ -51,11 +51,13 @@ async function createOrderFromSession(session) {
       const addons = [];
       if (item.capelo) addons.push('capelo');
       if (item.plate_text) addons.push('placa');
-      const unit_price_cents = await calcUnitPriceCents({
-        size_code: item.size_code,
-        frame_code: item.frame_code,
-        addons,
-      });
+      const unit_price_cents = item.custom_location
+        ? await getPersonalizedPrice(item.size_code)
+        : await calcUnitPriceCents({
+            size_code: item.size_code,
+            frame_code: item.frame_code,
+            addons,
+          });
 
       // name selected here (not just id) so the order-notification emails
       // below don't need a second round-trip per item to show a real place
@@ -133,6 +135,7 @@ async function createOrderFromSession(session) {
       order_id: order.id,
       place_id: item.place_id,
       custom_place: item.custom_place ?? null,
+      custom_location: item.custom_location ?? null,
       size_code: item.size_code,
       frame_code: item.frame_code,
       color_code: item.color_code ?? null,

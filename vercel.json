@@ -4,6 +4,7 @@
   ],
   "rewrites": [
     { "source": "/api/pricing", "destination": "/api/catalog?resource=pricing" },
+    { "source": "/api/personalized-pricing", "destination": "/api/catalog?resource=personalized_pricing" },
     { "source": "/api/waitlist", "destination": "/api/catalog?resource=waitlist" },
     { "source": "/api/curva-de-nivel", "destination": "/api/catalog?resource=curva_de_nivel" },
     { "source": "/api/personaliza", "destination": "/api/catalog?resource=personalize_requests" },
@@ -25,7 +26,7 @@
         { "key": "Permissions-Policy", "value": "camera=(), microphone=(), geolocation=(), payment=()" },
         {
           "key": "Content-Security-Policy-Report-Only",
-          "value": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https://images.unsplash.com https://*.supabase.co; connect-src 'self' https://*.supabase.co; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'"
+          "value": "default-src 'self'; script-src 'self' https://maps.googleapis.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https://images.unsplash.com https://*.supabase.co https://maps.gstatic.com https://maps.googleapis.com; connect-src 'self' https://*.supabase.co https://maps.googleapis.com; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'"
         }
       ]
     }
