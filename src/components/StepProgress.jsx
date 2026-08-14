@@ -7,9 +7,10 @@
 // con bg-sello-navy/bg-line por segmento) — más simple, ya establecido en
 // el repo, y una transición CSS (transition-colors) resuelve el mismo
 // movimiento sin necesitar GSAP ni una segunda librería de animación
-// (framer-motion) en paralelo a la que ya usa todo el sitio. Cempasúchil
-// como único acento (principio museográfico), nunca el azul/verde del
-// componente original.
+// (framer-motion) en paralelo a la que ya usa todo el sitio.
+// Corrección (14 ago 2026): esto decía usar cempasúchil, pero ese acento
+// se retiró del sitio — ahora sí usa bg-sello-navy, igual que
+// OrderStatus.jsx, tal como este mismo comentario ya decía que hacía.
 import Button from './Button.jsx';
 
 export default function StepProgress({
@@ -28,7 +29,7 @@ export default function StepProgress({
           <li key={n} className="flex-1">
             <div
               className={`h-1 rounded-full transition-colors duration-300 ${
-                n <= current ? 'bg-cempasuchil' : 'bg-line'
+                n <= current ? 'bg-sello-navy' : 'bg-line'
               }`}
             />
           </li>
