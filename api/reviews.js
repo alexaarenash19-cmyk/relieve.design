@@ -14,6 +14,12 @@ const MAX_PHOTO_BYTES = 5 * 1024 * 1024; // 5MB — reviews are a phone snapshot
 const ALLOWED_PHOTO_MIME = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/gif']);
 const MIME_EXTENSION = { 'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp', 'image/gif': 'gif' };
 
+// Auditoría de seguridad (13 ago 2026), hallazgo 🟠 #8 — customer/city/
+// comment no tenían tope de longitud server-side. Números de referencia
+// del propio reporte, no confirmados por Ale — ajustar si define algo
+// distinto (mismo criterio que FREE_TEXT_LIMITS en api/checkout.js).
+const FIELD_LIMITS = { customer: 80, city: 80, comment: 1000 };
+
 // photo.mimetype below is whatever Content-Type the client's multipart
 // request declared — formidable trusts it, it doesn't inspect the file.
 // Anyone can label arbitrary bytes "image/jpeg". This checks the real file
@@ -135,6 +141,15 @@ async function handlePost(req, res) {
   // Nunca solo estrellas + texto genérico.
   if (!customer || !city) {
     return sendError(res, 400, 'invalid_request', 'customer and city are required');
+  }
+  if (customer.length > FIELD_LIMITS.customer) {
+    return sendError(res, 400, 'invalid_request', `customer exceeds ${FIELD_LIMITS.customer} characters`);
+  }
+  if (city.length > FIELD_LIMITS.city) {
+    return sendError(res, 400, 'invalid_request', `city exceeds ${FIELD_LIMITS.city} characters`);
+  }
+  if (comment && comment.length > FIELD_LIMITS.comment) {
+    return sendError(res, 400, 'invalid_request', `comment exceeds ${FIELD_LIMITS.comment} characters`);
   }
   if (!photo) {
     return sendError(res, 400, 'invalid_request', 'photo is required — no se aceptan reseñas sin foto de la pieza instalada');
