@@ -53,7 +53,7 @@ const STATIC_PAGES = {
   },
   '/envios': {
     title: 'Envíos — Relieve',
-    description: 'Envíos a todo México, costo y tiempo estimado en el checkout, envío incluido en pedidos mayores a $2,500 MXN, y rastreo de tu pedido por correo.',
+    description: 'Envíos a todo México, siempre incluidos en el precio de tu pieza, con rastreo de tu pedido por correo.',
   },
   '/personaliza': {
     title: 'Encarga tu lugar — Relieve',
