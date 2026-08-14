@@ -9,27 +9,38 @@
    (brand-brief.md §16, decision 1).
    Courier Prime for labels/specs/prices, always uppercase + tracking. */
 @theme {
-  --color-gallery-white: #f6f3ed;
-  --color-graphite: #232323;
+  /* Paleta Pantone confirmada por Ale (13 ago 2026) — 5 tonos de su
+     moodboard de Pinterest (Transparent Yellow / Sceptre Red / Cerulean
+     Blue / Potting Soil / Java Brown), reemplazando la paleta de marca
+     original para estos 4 tokens + el nuevo graphite-muted de abajo.
+     Ver docs/superpowers/specs/2026-08-13-dark-mode-design.md. */
+  --color-gallery-white: #f5efc6; /* Transparent Yellow */
+  --color-graphite: #231815; /* Java Brown */
   --color-explorer-blue: #b9ccd8;
   --color-sage: #aeb99e;
   --color-walnut: #7a5a43;
   --color-stone: #c8c3bc;
   --color-passport-ink: #355a75;
-  /* Rebrand de acento confirmado por Ale (13 ago 2026) — navy -> rojo, en
-     ambos modos (claro y oscuro). El nombre del token se queda
-     "sello-navy" a propósito: renombrarlo obligaría a tocar cada uno de
-     los ~6+ archivos que ya usan bg-sello-navy/text-sello-navy/
-     border-sello-navy (riesgo real de dejar uno sin actualizar y que
-     Tailwind simplemente no genere la utilidad ahí). Ver
-     docs/superpowers/specs/2026-08-13-dark-mode-design.md. */
-  --color-sello-navy: #c21807;
+  /* Rebrand de acento confirmado por Ale — Sceptre Red, en ambos modos.
+     Nombre del token se queda "sello-navy" a propósito: renombrarlo
+     obligaría a tocar cada uno de los ~6+ archivos que ya usan
+     bg-sello-navy/text-sello-navy/border-sello-navy (riesgo real de
+     dejar uno sin actualizar y que Tailwind simplemente no genere la
+     utilidad ahí). */
+  --color-sello-navy: #4d0e12; /* Sceptre Red */
+  /* --color-brand-dark (abajo) recibe el mismo tratamiento — es el token
+     real detrás del azul de títulos/links que se pidió quitar; no
+     estaba en el doc de la paleta Pantone pero unificarlo con sello-navy
+     evita dejar un azul suelto en una paleta que ahora es de 5 tonos. */
   --color-dark-bg: #1a1b19;
   --color-dark-fg: #ece7dd;
-  --color-line: #e4ded3;
-  /* Rebranding tipográfico (brand-brief.md §15/§16) — new, distinct from
-     --color-passport-ink (#355A75) even though visually close; do not alias. */
-  --color-brand-dark: #355974;
+  --color-line: #a5bcd6; /* Cerulean Blue */
+  /* Texto secundario/gris — nuevo, no existía antes. Ningún componente
+     real usa `text-graphite-muted` todavía (el patrón actual en ~30
+     archivos es opacidad sobre graphite, ej. text-graphite/60) — este
+     token no tendrá efecto visual hasta que esos usos se migren aparte. */
+  --color-graphite-muted: #4a2e27; /* Potting Soil */
+  --color-brand-dark: #4d0e12; /* Sceptre Red, igual que sello-navy — ver nota arriba */
 
   /* 2026-08-09 landing rebrand hand-off §2 — Piedra/Grafito/Cempasúchil.
      Landing-scoped only: does not replace graphite/sello-navy/walnut/etc
@@ -88,16 +99,22 @@
    spec's "Tensión gallery-white" section for why surface wins and what
    that means for the 3 Product.jsx accent pairs that use the other role). */
 .dark {
-  --color-gallery-white: #1f1e1a;
-  --color-graphite: #e8e3d9;
+  --color-gallery-white: #231815; /* Java Brown */
+  --color-graphite: #f5efc6; /* Transparent Yellow */
   --color-explorer-blue: #c7d8e2;
   --color-sage: #b9c4a8;
   --color-walnut: #a67c5c;
   --color-stone: #a9a49d;
   --color-passport-ink: #5b83a0;
-  --color-sello-navy: #ff6659;
-  --color-line: #3a3733;
-  --color-brand-dark: #5c85a3;
+  /* No es un tono de catálogo Pantone — Sceptre Red (#4D0E12) aclarado a
+     mano porque el original es demasiado oscuro para leerse sobre el
+     fondo Java Brown en oscuro. Aprobado por Ale; ajustar a ojo en
+     preview si hace falta, es el único valor de esta paleta que no viene
+     directo del catálogo. */
+  --color-sello-navy: #c0524f;
+  --color-line: #4a2e27; /* Potting Soil */
+  --color-graphite-muted: #a5bcd6; /* Cerulean Blue */
+  --color-brand-dark: #c0524f; /* mismo criterio que sello-navy arriba */
 }
 
 body {
@@ -147,14 +164,9 @@ body::before {
   mix-blend-mode: multiply;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
 }
-/* multiply darkens — on the near-black dark-mode background the grain
-   would be crushed to invisible. screen lightens instead, so the same
-   texture stays visible; opacity trimmed slightly since screen blending
-   reads stronger against a dark base than multiply does against light. */
-.dark body::before {
-  mix-blend-mode: screen;
-  opacity: 0.04;
-}
+/* Grano de papel: instrucción explícita de Ale (13 ago 2026) — se queda
+   tal cual en ambos modos, sin override .dark. (Antes tenía uno acá que
+   cambiaba mix-blend-mode a screen en oscuro; revertido a pedido.) */
 
 /* Checkpoint 4 — warm color-grade for any placeholder/real photo, so the
    treatment lives in CSS (one place) instead of being baked into each
@@ -520,47 +532,11 @@ body::before {
   background: rgba(53, 89, 116, 0.78);
 }
 
-/* Dark-mode versions of the two Liquid Glass materials above — these use
-   literal rgba(), not var(--color-x), so they don't inherit the .dark
-   token overrides above and need their own values. Same relative
-   treatment (translucent, low-alpha, inset highlight) as the light
-   versions, just inverted: dark-bg tint instead of gallery-white tint. */
-.dark .pill-glass {
-  background: rgba(26, 27, 25, 0.4);
-  border: 1px solid rgba(236, 231, 221, 0.18);
-  box-shadow:
-    0 1px 2px rgba(0, 0, 0, 0.3),
-    0 10px 24px -12px rgba(0, 0, 0, 0.5),
-    inset 0 1px 0 rgba(255, 255, 255, 0.08);
-}
-.dark .pill-glass:hover {
-  background: rgba(26, 27, 25, 0.55);
-}
-.dark .pill-glass:active {
-  background: rgba(26, 27, 25, 0.7);
-}
-.dark .pill-glass-active {
-  background: rgba(92, 133, 163, 0.55); /* dark-mode --color-brand-dark, tinted */
-  border: 1px solid rgba(236, 231, 221, 0.14);
-}
-.dark .pill-glass-active:hover {
-  background: rgba(92, 133, 163, 0.7);
-}
-.dark .pill-glass-active:active {
-  background: rgba(92, 133, 163, 0.82);
-}
-@media (prefers-reduced-transparency: reduce) {
-  .dark .pill-glass {
-    background: rgba(26, 27, 25, 0.96);
-    backdrop-filter: none;
-    -webkit-backdrop-filter: none;
-  }
-  .dark .pill-glass-active {
-    background: rgba(92, 133, 163, 0.96);
-    backdrop-filter: none;
-    -webkit-backdrop-filter: none;
-  }
-}
+/* Liquid Glass (.pill-glass/.pill-glass-active): instrucción explícita de
+   Ale (13 ago 2026) — se quedan exactamente como están, sin override
+   .dark, en ambos modos. (Antes había una versión oscura acá con sus
+   propios rgba(); revertida a pedido — los botones siguen leyéndose como
+   el mismo vidrio claro sin importar el tema.) */
 
 /* Reduced-transparency: near-solid instead of blurred, per apple-design
    §14 — the material intent (distinct "on" vs "off" surface) survives,
