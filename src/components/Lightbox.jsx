@@ -54,14 +54,14 @@ export default function Lightbox({ photos, index, onIndexChange, onClose, alt = 
       )}
 
       <div
-        className="absolute bottom-6 left-6 font-label uppercase tracking-wide text-xs text-gallery-white/80"
+        className="absolute bottom-6 left-6 font-label uppercase tracking-wide text-xs text-on-accent/80"
         onClick={(e) => e.stopPropagation()}
       >
         {index + 1}/{photos.length}
       </div>
 
       <div
-        className="absolute bottom-6 right-6 flex gap-4 font-label uppercase tracking-wide text-xs text-gallery-white"
+        className="absolute bottom-6 right-6 flex gap-4 font-label uppercase tracking-wide text-xs text-on-accent"
         onClick={(e) => e.stopPropagation()}
       >
         {photos.length > 1 && (

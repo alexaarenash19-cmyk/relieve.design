@@ -48,7 +48,7 @@ function TickerContent() {
 
 export default function TrustBar() {
   return (
-    <div className="fixed top-0 inset-x-0 z-50 h-7 overflow-hidden bg-brand-dark text-gallery-white">
+    <div className="fixed top-0 inset-x-0 z-50 h-7 overflow-hidden bg-brand-dark text-on-accent">
       {/* Hallazgo (auditoría 10 ago 2026): el <div aria-hidden="true"> de
           abajo escondía info real de política (envío/devoluciones) de
           cualquier lector de pantalla en todas las páginas menos donde

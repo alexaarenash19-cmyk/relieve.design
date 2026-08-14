@@ -95,7 +95,7 @@ export default function PhotoCarousel({ photos, alt = '', placeholderLabel, over
               {p.type === 'video' ? (
                 <>
                   <video src={p.url} muted loop autoPlay playsInline className="warm-photo w-full h-full object-cover" />
-                  <span className="absolute inset-0 flex items-center justify-center text-gallery-white text-xs drop-shadow">▶</span>
+                  <span className="absolute inset-0 flex items-center justify-center text-on-accent text-xs drop-shadow">▶</span>
                 </>
               ) : (
                 <img src={p.url} alt="" className="warm-photo w-full h-full object-cover" />

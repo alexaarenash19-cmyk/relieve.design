@@ -291,7 +291,7 @@ export default function ProductPanel() {
               // apple-design audit (11 ago 2026) — Liquid Glass instead of
               // the flat bg-brand-dark fill, same as every other pill
               // button site-wide.
-              className="group self-start inline-flex items-center gap-2 rounded-full pill-glass-active text-gallery-white px-[18px] py-[10px] font-heading font-bold text-[0.82rem]"
+              className="group self-start inline-flex items-center gap-2 rounded-full pill-glass-active text-on-accent px-[18px] py-[10px] font-heading font-bold text-[0.82rem]"
             >
               Ver pieza completa{' '}
               <span className="inline-block transition-transform duration-[350ms] group-hover:-rotate-45">
@@ -310,7 +310,7 @@ export default function ProductPanel() {
         <button
           onClick={handleClose}
           aria-label="Cerrar"
-          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[46px] h-[46px] border border-brand-dark bg-gallery-white text-brand-dark font-heading font-bold flex items-center justify-center text-[1.2rem] leading-none transition-colors duration-200 hover:bg-brand-dark hover:text-gallery-white"
+          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[46px] h-[46px] border border-brand-dark bg-gallery-white text-brand-dark font-heading font-bold flex items-center justify-center text-[1.2rem] leading-none transition-colors duration-200 hover:bg-brand-dark hover:text-on-accent"
         >
           ×
         </button>

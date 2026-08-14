@@ -155,7 +155,7 @@ export default function Personalize() {
                 type="button"
                 onClick={() => setSizeCode(s.code)}
                 className={`text-left px-4 py-3 rounded-[9px] font-heading font-bold ${
-                  sizeCode === s.code ? 'pill-glass-active text-gallery-white' : 'pill-glass text-graphite'
+                  sizeCode === s.code ? 'pill-glass-active text-on-accent' : 'pill-glass text-graphite'
                 }`}
               >
                 {s.label} — {formatDims(s.dims)}
@@ -268,7 +268,7 @@ export default function Personalize() {
             type="button"
             onClick={handleBuy}
             disabled={!isComplete}
-            className="pill-glass-active text-gallery-white px-6 py-3 rounded-[9px] font-heading font-bold w-full disabled:opacity-40"
+            className="pill-glass-active text-on-accent px-6 py-3 rounded-[9px] font-heading font-bold w-full disabled:opacity-40"
           >
             Comprar mi Relieve
           </button>

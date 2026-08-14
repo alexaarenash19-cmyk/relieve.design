@@ -62,11 +62,11 @@ import { fetchJson } from '../lib/fetchJsonArray.js';
 // fallback. Every literal class has to appear here (not built via
 // `bg-${accent}`) or Tailwind's build-time scan won't generate it.
 const ACCENT_CLASSES = {
-  walnut: { bg: 'bg-walnut', text: 'text-gallery-white', dark: true },
+  walnut: { bg: 'bg-walnut', text: 'text-on-accent', dark: true },
   sage: { bg: 'bg-sage', text: 'text-graphite', dark: false },
   'explorer-blue': { bg: 'bg-explorer-blue', text: 'text-graphite', dark: false },
-  'passport-ink': { bg: 'bg-passport-ink', text: 'text-gallery-white', dark: true },
-  'sello-navy': { bg: 'bg-sello-navy', text: 'text-gallery-white', dark: true },
+  'passport-ink': { bg: 'bg-passport-ink', text: 'text-on-accent', dark: true },
+  'sello-navy': { bg: 'bg-sello-navy', text: 'text-on-accent', dark: true },
   stone: { bg: 'bg-stone', text: 'text-graphite', dark: false },
 };
 const ACCENT_BY_SLUG = {
@@ -440,7 +440,7 @@ export default function Product() {
                     key={s.code}
                     onClick={() => setSizeCode(s.code)}
                     className={`px-3 py-1 rounded-full text-sm font-heading font-bold ${
-                      sizeCode === s.code ? 'pill-glass-active text-gallery-white' : 'pill-glass'
+                      sizeCode === s.code ? 'pill-glass-active text-on-accent' : 'pill-glass'
                     }`}
                   >
                     {s.label} <span className="opacity-70">· {formatDims(s.dims)}</span>
