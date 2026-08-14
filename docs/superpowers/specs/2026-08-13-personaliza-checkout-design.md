@@ -148,6 +148,16 @@ export function getPersonalizedPrice(sizeCode) {
   nombre legible del lugar, igual que hoy.
 - `frame_code` siempre `'parota'` para piezas personalizadas — sin
   addons de marco/color, el 15% ya cubre todo.
+- **El precio final queda guardado, no solo calculado al vuelo**:
+  `order_items.unit_price_cents` (columna existente, `not null`, la que
+  ya usa cualquier item de catálogo) recibe el resultado de
+  `getPersonalizedPrice()` en el momento del pago — mismo campo, mismo
+  mecanismo que cualquier otro pedido, disponible después para
+  factura/consulta vía `GET /api/orders/:token` (ya existente). El precio
+  *base* (antes del 15%) no se guarda aparte — es recuperable siempre
+  desde `SIZES` por `size_code`, mismo principio que ya aplica hoy: los
+  deltas de precio de `frame_code`/`color_code` tampoco se guardan por
+  separado en `order_items`.
 - **`api/checkout.js`**: `priceItem()` ya acepta `custom_place` como
   alternativa a `place_slug` (soporte parcial preexistente, nunca antes
   conectado a una UI real). Se extiende para leer `custom_location` +
