@@ -7,7 +7,6 @@ import { useCart } from '../context/CartContext.jsx';
 import { useEscapeKey } from '../lib/useEscapeKey.js';
 import Button from './Button.jsx';
 
-const FREE_SHIPPING_THRESHOLD_CENTS = 250000; // $2,500 MXN — api.md checkout rule
 // Hallazgo (auditoría 10 ago 2026): storage propio, separado de
 // CartContext's STORAGE_KEY — ver el comentario en CartContext.jsx sobre
 // por qué giftMessage salió del contexto compartido.
@@ -41,9 +40,6 @@ export default function CartDrawer() {
     isOpen,
     closeCart,
   } = useCart();
-
-  const remaining = Math.max(0, FREE_SHIPPING_THRESHOLD_CENTS - subtotal_cents);
-  const progress = Math.min(100, (subtotal_cents / FREE_SHIPPING_THRESHOLD_CENTS) * 100);
 
   // Solo este componente lee/escribe giftMessage — sacarlo de CartContext
   // (auditoría 10 ago 2026) es lo que de verdad evita que cada tecla acá
@@ -307,16 +303,9 @@ export default function CartDrawer() {
             <span className="font-bold">{money(subtotal_cents)}</span>
           </div>
 
-          {remaining > 0 ? (
-            <p className="normal-case font-body text-xs mt-2 text-graphite/70">
-              Agrega {money(remaining)} más y tu envío queda incluido, como en el resto de la colección.
-            </p>
-          ) : (
-            <p className="normal-case font-body text-xs mt-2 text-sage">Envío incluido en piezas de colección.</p>
-          )}
-          <div className="h-1 bg-line rounded-full mt-2 overflow-hidden">
-            <div className="h-full bg-sello-navy" style={{ width: `${progress}%` }} />
-          </div>
+          <p className="normal-case font-body text-xs mt-2 text-sage">
+            Envío siempre incluido — ya está en el precio de tu pieza.
+          </p>
 
           <label className="flex items-center gap-2 mt-6 normal-case font-body text-sm">
             <input
