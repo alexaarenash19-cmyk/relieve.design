@@ -302,3 +302,23 @@ export function navPillMorph(el, solid) {
     gsap.to(el, { width: '100%', borderRadius: '0px', y: 0, duration, ease: 'relieveEase' });
   }
 }
+
+// ─────────────────────────────────────────────────────────────────────────
+// apple-design audit (14 ago 2026, §7 "enter and exit along the same
+// path") — ProductPanel.jsx (panelOpenTimeline arriba) entraba con una
+// coreografía elaborada (título letra por letra, foto, meta, CTA en
+// cascada) y salía con un swap de clase instantáneo, sin nada. No repite
+// el mismo stagger en reversa — un fundido rápido y conjunto de los 4
+// elementos (mismo leve desplazamiento en Y que la entrada, invertido) es
+// lo apropiado para un cierre, no una réplica letra por letra.
+// ─────────────────────────────────────────────────────────────────────────
+export function panelCloseTimeline({ titleEl, photoEl, metaEl, ctaEl }) {
+  const reduced = reduceMotion();
+  const d = reduced ? 0.01 : 0.2;
+  const els = [titleEl, photoEl, metaEl, ctaEl].filter(Boolean);
+  const tl = gsap.timeline();
+  if (els.length) {
+    tl.to(els, { opacity: 0, y: reduced ? 0 : -6, duration: d, ease: 'power1.in' }, 0);
+  }
+  return tl;
+}
