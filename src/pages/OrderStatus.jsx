@@ -77,6 +77,13 @@ export default function OrderStatus() {
   const currentIndex = STAGES.findIndex((s) => s.code === order.status);
   const stateCopy = STATE_COPY[order.status];
 
+  // docs/superpowers/specs/2026-08-13-personaliza-checkout-design.md sección 5
+  // — headline propio SOLO cuando el pedido es 100% personalizado. Un
+  // carrito mixto (catálogo + personalizado) no está cubierto por la spec
+  // — se queda con el copy genérico existente en vez de inventar texto
+  // para ese caso.
+  const isFullyPersonalized = order.items?.length > 0 && order.items.every((i) => i.custom_location);
+
   return (
     // Hallazgo #8 (auditoría 10 ago 2026): pt-32 (no p-8) — mismo fix que Collections.jsx.
     <main className="max-w-2xl mx-auto pt-32 px-8 pb-8">
@@ -84,10 +91,16 @@ export default function OrderStatus() {
         Pedido {order.number}
       </p>
 
-      {stateCopy && (
+      {isFullyPersonalized && order.status === 'paid' ? (
         <h1 className="font-heading font-bold text-brand-dark text-2xl md:text-3xl mb-4">
-          {stateCopy.headline}
+          Tu Relieve está en marcha.
         </h1>
+      ) : (
+        stateCopy && (
+          <h1 className="font-heading font-bold text-brand-dark text-2xl md:text-3xl mb-4">
+            {stateCopy.headline}
+          </h1>
+        )
       )}
 
       {stateCopy?.body && (
@@ -149,6 +162,17 @@ export default function OrderStatus() {
               frameCode={item.places.type === 'juego' ? undefined : item.frame_code}
               colorCode={item.places.type === 'juego' ? undefined : item.color_code}
             />
+          ) : item.custom_location ? (
+            <div key={i} className="py-4 border-b border-line text-sm">
+              <p className="font-label uppercase tracking-wide text-xs text-graphite/60">Ubicación</p>
+              <p className="mb-2">{item.custom_place}</p>
+              <p className="font-label uppercase tracking-wide text-xs text-graphite/60">Tamaño</p>
+              <p className="mb-2">{item.size_code}</p>
+              <p className="font-label uppercase tracking-wide text-xs text-graphite/60">Color</p>
+              <p className="mb-2">{item.color_code}</p>
+              <p className="font-label uppercase tracking-wide text-xs text-graphite/60">Marco</p>
+              <p>{item.frame_code}</p>
+            </div>
           ) : (
             <div key={i} className="py-2 flex justify-between font-label uppercase tracking-wide text-xs border-b border-line">
               <span>
