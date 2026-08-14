@@ -35,12 +35,29 @@ export default function CurvaDeNivel() {
     }
   }
 
+  // Hallazgo (reporte de bug): `sent` no tenía forma de volver a `false` —
+  // a diferencia de WaitlistDialog.jsx (un <dialog>, donde cerrarlo ya es
+  // el reset), esta sección vive inline y permanente en Home, así que sin
+  // esto la confirmación se quedaba pegada el resto de la visita, sin
+  // manera de volver a ver el formulario.
+  function onReset() {
+    setSent(false);
+    setEmail('');
+  }
+
   return (
     <section className="max-w-md mx-auto text-center px-8 py-20">
       {sent ? (
         <>
           <Stamp label="Confirmado" className="mb-4" />
           <p>Listo, ya eres parte de la Curva de Nivel.</p>
+          <button
+            type="button"
+            onClick={onReset}
+            className="mt-4 text-xs text-graphite/60 underline"
+          >
+            Volver
+          </button>
         </>
       ) : (
         <>
