@@ -184,4 +184,35 @@ function mockReq(method, body) {
   assert.notStrictEqual(res.body?.error?.code, 'invalid_size');
 }
 
+// 9. Task 4 review fix — Global Constraint: frame_code para piezas
+// personalizadas es siempre 'parota', nunca un valor elegible, sin
+// excepciones. Un custom_location válido con otro frame_code se rechaza
+// antes de cualquier lookup a Supabase (mismo criterio que el test 7).
+{
+  const res = mockRes();
+  await handler(
+    mockReq('POST', {
+      items: [{
+        custom_place: 'Ciudad de México, CDMX, México',
+        size_code: 'mediano',
+        frame_code: 'roble',
+        color_code: 'blanco',
+        qty: 1,
+        custom_location: {
+          place_id: 'ChIJB3UJ2yYAzoURgKDXCKP5-oI',
+          formatted_address: 'Ciudad de México, CDMX, México',
+          latitude: 19.4326,
+          longitude: -99.1332,
+          zoom: 12,
+          map_bounds: { north: 19.5, south: 19.3, east: -99.0, west: -99.3 },
+        },
+      }],
+      email: 'a@b.com',
+    }),
+    res
+  );
+  assert.strictEqual(res.statusCode, 400);
+  assert.strictEqual(res.body.error.code, 'invalid_frame_code');
+}
+
 console.log('checkout request-validation checks: OK');
