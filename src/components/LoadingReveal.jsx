@@ -1,44 +1,55 @@
 // 2026-08-09 landing rebrand hand-off §3 — loading screen. Plays once per
 // browser session (sessionStorage — resets on a new tab, the conservative
 // choice), on whatever route the visitor first lands on, not just '/'. No
-// 0%→100% counter: purely visual, done in under ~1.5s so it reads as "the
-// site opening", not a wait.
+// 0%→100% counter: purely visual.
 //
-// Effect: the existing single wordmark.svg (RELIEVE stacked over DESIGN —
-// exploration confirmed it's one fused compound path, not two separate
-// files) is rendered twice, each copy clipped to its own half via
-// clip-path. The two halves pull apart (GSAP), and a real catalog photo
-// sits behind them, masked to the wordmark's own letterform silhouette
-// (mask-mode: alpha — the SVG's opaque ink = visible photo, transparent
-// background = hidden) so the photo only shows inside the parting gap,
-// Monolith-style. Ale's own separately-exported split PNGs
-// ("releive solo.svg" / "desifgn solo.svg") were the originally-planned
-// asset for this, but those live only in her local Downloads folder and
-// were never committed to the repo — this clip-path approach reproduces
-// the same visual beat from assets already in the codebase, no new asset
-// needed. Revisit with the real split art if/when she sends it committed.
+// Efecto — iris/circle reveal (componente de referencia que Ale mandó:
+// MaskContainer/RelieveIntroMask de Aceternity, adaptado): un círculo
+// centrado crece desde un punto hasta cubrir toda la pantalla, revelando
+// una foto real de catálogo debajo. El wordmark se ve chico al centro al
+// inicio y se desvanece conforme el círculo crece sobre él. Reemplaza la
+// versión anterior de este mismo archivo (wordmark partido en dos mitades
+// que se separaban) — mismo trabajo (foto real de catálogo, gate de
+// sesión), mecánica de reveal distinta.
 //
-// After the halves finish separating, the whole overlay fades out and
-// unmounts — it does NOT replace or skip Home's own hero (Hero.jsx, see
-// its history note re: apple-design audit 11 ago 2026); that flow
-// proceeds completely unchanged underneath. The wordmark-halves-as-
-// permanent-canvas-borders idea (rest of §3, all of §4) was TrustBar.jsx
-// (top) + CanvasBottomStrip.jsx (bottom) — the bottom one removed
-// outright at Ale's direct request (11 ago 2026, never asked for it);
-// TrustBar's top strip stays.
+// CORRECCIÓN vs. el componente de referencia: ahí el mask-image estaba
+// aplicado a la capa negra+texto, no a la foto (revealText). Con
+// mask-mode: alpha (el default para una imagen SVG referenciada sin
+// fragmento #, que es como está aquí), eso hace que el círculo creciente
+// revele MÁS texto/negro, no más foto — habría terminado en pantalla
+// completa negra con "RELIEVE", al revés de lo que el propio comentario
+// del original decía que pasaría ("revealText a pantalla completa").
+// Aquí el mask va directo en la foto — mismo mask-mode: alpha que la
+// versión anterior de este archivo ya usaba para enmascarar la foto a la
+// silueta del wordmark — así el círculo creciente sí revela más foto.
 //
-// Tightened 11 ago 2026 ("tardan demasiado en cargar" — this overlay is a
-// fixed inset-0 z-300 layer sitting on top of the whole page for every
-// visitor's first pageview per session, on any entry route, so its own
-// runtime *is* the perceived "carga inicial" regardless of how fast the
-// backend/API actually is. Original timeline landed the final fade-out
-// around ~1.6s; cut to ~0.9s (each phase ~35-40% shorter, the closing
-// hold before fade-out almost removed) — still reads as a deliberate
-// brand beat, not a stall.
+// TRADUCCIÓN DEL RESTO:
+// - framer-motion (`motion.div`, animate={{maskSize, maskPosition}}) →
+//   @keyframes CSS puro (src/index.css, .loading-reveal-mask/
+//   .loading-reveal-wordmark-fade) en vez de JS-ticked — mismo criterio
+//   de confiabilidad que .tile-pop-in/.canvas-tile:hover ya documentan
+//   ahí (una animación CSS nativa no depende de que el JS alcance a
+//   programar cada frame). GSAP se queda solo para el fundido final del
+//   overlay completo, igual que la versión anterior de este archivo.
+// - El modo interactivo por hover (mousemove/isHovered) del original no
+//   se portó — esta pantalla es puramente automática, nunca hay
+//   interacción del usuario con ella.
+// - Duración: 3s, el default de la referencia. Nota dejada explícita:
+//   esto es MÁS LENTO que el ajuste que Ale pidió el 11 ago ("tardan
+//   demasiado en cargar", recortado de ~1.6s a ~0.9s en su momento) —
+//   decisión tomada a propósito en esta sesión, no silenciosa.
+// - `size`/`revealSize` (10px/2000px) del original → mask-size fijo en
+//   las keyframes, 0 → 3000px (cubre pantallas hasta ~4K con margen; el
+//   propio original tampoco calculaba esto contra el viewport real, solo
+//   usaba un número generoso fijo).
+// - pieceMainThumb() (copia de 480px, pensada para tiles de catálogo de
+//   175-360px) → pieceMainPhoto() (la fuente completa, ~2048px): esta
+//   pantalla cubre el viewport entero con object-cover, y el thumb se
+//   vería visiblemente borroso estirado a ese tamaño.
 import { useEffect, useRef, useState } from 'react';
 import gsap from 'gsap';
 import wordmark from '../assets/brand/wordmark.svg';
-import { pieceMainThumb } from '../lib/photography.js';
+import { pieceMainPhoto } from '../lib/photography.js';
 import { alreadySeen, markSeen, pickRevealSlug } from '../lib/loadingReveal.js';
 
 function getSessionStorage() {
@@ -49,15 +60,20 @@ function getSessionStorage() {
   }
 }
 
+// Círculo relleno sobre lienzo transparente — sin fragmento #, así que se
+// carga como imagen plana y mask-mode resuelve a alpha por default (mismo
+// criterio que mask.svg del componente de referencia). mask-size controla
+// el diámetro renderizado; el propio viewBox no necesita cambiar.
+const MASK_CIRCLE_SVG =
+  "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='50' fill='black'/%3E%3C/svg%3E";
+
 export default function LoadingReveal() {
   const [visible, setVisible] = useState(() => !alreadySeen(getSessionStorage()));
   const rootRef = useRef(null);
-  const topRef = useRef(null);
-  const bottomRef = useRef(null);
   const photoRef = useRef(null);
 
   const photoSlug = useRef(pickRevealSlug()).current;
-  const photoUrl = pieceMainThumb(photoSlug);
+  const photoUrl = pieceMainPhoto(photoSlug);
 
   useEffect(() => {
     if (!visible) return;
@@ -65,8 +81,9 @@ export default function LoadingReveal() {
 
     const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     if (reduced) {
-      // No parting/mask animation — just a quick fade of the whole overlay,
-      // same "respect prefers-reduced-motion" precedent as Home.jsx/Nav.jsx.
+      // Sin reveal — mismo criterio que la versión anterior de este
+      // archivo: fundido rápido del overlay completo, sin la mecánica de
+      // círculo/wordmark.
       gsap.to(rootRef.current, {
         opacity: 0,
         duration: 0.3,
@@ -76,22 +93,20 @@ export default function LoadingReveal() {
       return;
     }
 
-    const tl = gsap.timeline({
-      onComplete: () => setVisible(false),
-    });
-    tl.set([topRef.current, bottomRef.current], { yPercent: 0 })
-      .to(photoRef.current, { opacity: 1, duration: 0.2, ease: 'power1.out' }, 0.05)
-      .to(
-        topRef.current,
-        { yPercent: -12, duration: 0.4, ease: 'power2.inOut' },
-        0.1,
-      )
-      .to(
-        bottomRef.current,
-        { yPercent: 12, duration: 0.4, ease: 'power2.inOut' },
-        0.1,
-      )
-      .to(rootRef.current, { opacity: 0, duration: 0.25, ease: 'power1.in' }, '+=0.1');
+    // El crecimiento del círculo corre solo (CSS, .loading-reveal-mask).
+    // Cuando termina, un fundido corto del overlay completo (GSAP) antes
+    // de desmontar — igual que la versión anterior de este archivo.
+    function onMaskDone() {
+      gsap.to(rootRef.current, {
+        opacity: 0,
+        duration: 0.25,
+        ease: 'power1.in',
+        onComplete: () => setVisible(false),
+      });
+    }
+    const photoEl = photoRef.current;
+    photoEl?.addEventListener('animationend', onMaskDone, { once: true });
+    return () => photoEl?.removeEventListener('animationend', onMaskDone);
   }, [visible]);
 
   if (!visible) return null;
@@ -100,43 +115,30 @@ export default function LoadingReveal() {
     <div
       ref={rootRef}
       aria-hidden="true"
-      className="fixed inset-0 z-[300] bg-piedra pointer-events-none flex items-center justify-center overflow-hidden"
+      className="fixed inset-0 z-[300] bg-piedra pointer-events-none overflow-hidden"
     >
-      <div className="relative w-[min(70vw,480px)] aspect-[524/331]">
-        {photoUrl && (
-          <img
-            ref={photoRef}
-            src={photoUrl}
-            alt=""
-            className="absolute inset-0 w-full h-full object-cover opacity-0"
-            style={{
-              maskImage: `url(${wordmark})`,
-              maskMode: 'alpha',
-              maskRepeat: 'no-repeat',
-              maskSize: 'contain',
-              maskPosition: 'center',
-              WebkitMaskImage: `url(${wordmark})`,
-              WebkitMaskRepeat: 'no-repeat',
-              WebkitMaskSize: 'contain',
-              WebkitMaskPosition: 'center',
-            }}
-          />
-        )}
+      {photoUrl && (
         <img
-          ref={topRef}
-          src={wordmark}
+          ref={photoRef}
+          src={photoUrl}
           alt=""
-          className="absolute inset-0 w-full h-full object-contain"
-          style={{ clipPath: 'inset(0 0 50% 0)' }}
+          className="absolute inset-0 w-full h-full object-cover loading-reveal-mask"
+          style={{
+            maskImage: `url(${MASK_CIRCLE_SVG})`,
+            maskMode: 'alpha',
+            maskRepeat: 'no-repeat',
+            maskPosition: 'center',
+            WebkitMaskImage: `url(${MASK_CIRCLE_SVG})`,
+            WebkitMaskRepeat: 'no-repeat',
+            WebkitMaskPosition: 'center',
+          }}
         />
-        <img
-          ref={bottomRef}
-          src={wordmark}
-          alt=""
-          className="absolute inset-0 w-full h-full object-contain"
-          style={{ clipPath: 'inset(50% 0 0 0)' }}
-        />
-      </div>
+      )}
+      <img
+        src={wordmark}
+        alt=""
+        className="absolute inset-0 m-auto w-[min(40vw,220px)] h-auto loading-reveal-wordmark-fade"
+      />
     </div>
   );
 }

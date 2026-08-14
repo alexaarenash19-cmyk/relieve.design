@@ -194,6 +194,48 @@ body::before {
   }
 }
 
+/* LoadingReveal.jsx — círculo centrado que crece revelando la foto de
+   catálogo debajo (mask-size 0 → 3000px, un tope fijo generoso que cubre
+   pantallas hasta ~4K con margen, no un cálculo contra el viewport real —
+   mismo criterio que el revealSize=2000 fijo del componente de
+   referencia). CSS puro en vez de JS-ticked por la misma razón de
+   confiabilidad que .tile-pop-in/.canvas-tile:hover arriba: no depende de
+   que el JS alcance a programar cada frame. */
+.loading-reveal-mask {
+  animation: loading-reveal-mask 3s cubic-bezier(0.2, 0.6, 0.2, 1) forwards;
+}
+@keyframes loading-reveal-mask {
+  from {
+    mask-size: 0px;
+    -webkit-mask-size: 0px;
+  }
+  to {
+    mask-size: 3000px;
+    -webkit-mask-size: 3000px;
+  }
+}
+/* El wordmark se ve chico al centro al inicio y se desvanece a la mitad
+   del reveal, conforme el círculo de la foto crece sobre él. */
+.loading-reveal-wordmark-fade {
+  animation: loading-reveal-wordmark 3s ease-out forwards;
+}
+@keyframes loading-reveal-wordmark {
+  0%,
+  35% {
+    opacity: 1;
+  }
+  60%,
+  100% {
+    opacity: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .loading-reveal-mask,
+  .loading-reveal-wordmark-fade {
+    animation-duration: 0.01s;
+  }
+}
+
 /* PRD "Relieve: Fix de carga + paridad de efectos con Palmer" sección 2.2 —
    letter-by-letter reveal, one span per character (LetterReveal.jsx). */
 .letter-reveal-char {
