@@ -139,6 +139,7 @@ CREATE TABLE order_items (
   piece_number  INT DEFAULT nextval('piece_number_seq')  -- número de pieza/edición, secuencia global asignada al pagar
 );
 ```
+- `custom_location` (jsonb, nullable): datos geográficos de una pieza personalizada vía /personaliza — place_id/formatted_address/latitude/longitude/map_bounds/zoom de Google Maps. NULL para piezas de catálogo. No hay generación automática de modelo desde estos datos — Ale los usa a mano, igual que produce todo el catálogo hoy (docs/decisions.md).
 - `piece_number` se asigna vía `DEFAULT nextval(...)`, no en el webhook — la única vía que inserta en esta tabla (`createOrderFromSession`, `api/webhooks/stripe.js`) solo corre para pedidos ya pagados, así que el `DEFAULT` logra "asignar en el momento del pago" sin lógica extra.
 
 ### reviews
