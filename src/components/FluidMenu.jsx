@@ -4,10 +4,14 @@
 // Menu/MenuItem/MenuContainer que Ale mandó como referencia (círculo
 // 64px, stack vertical escalonado, translateY+opacity+clipPath,
 // 300ms cubic-bezier(0.4,0,0.2,1)) a los tokens reales de Relieve — sin
-// clases dark: (no hay tema dual confirmado en el repo), sin lucide-react
-// (no está en package.json; íconos inline en el mismo estilo
-// stroke="currentColor" que ya usa SocialLinks.jsx), cempasúchil como
-// único acento (nunca fondo del botón).
+// lucide-react (no está en package.json; íconos inline en el mismo estilo
+// stroke="currentColor" que ya usa SocialLinks.jsx).
+// Nota (14 ago 2026): cempasúchil, el acento que este archivo usaba para
+// el hover de los íconos, se retiró del sitio (ver index.css) — el hover
+// ahora se apoya en el propio brillo de fondo que .pill-glass ya define
+// en su :hover, sin necesitar un color de ícono aparte. El comentario
+// original sobre "sin tema dual" también quedó viejo — dark mode ya
+// existe (ThemeContext.jsx).
 //
 // Contenido — confirmado con Ale: 4 items, no los 7 de navItems.js.
 // Inicio no es un item (el wordmark ya enlaza a "/"). Carrito abre el
@@ -149,7 +153,7 @@ export default function FluidMenu() {
               <Tag
                 {...itemProps}
                 role="menuitem"
-                className="pill-glass rounded-full w-12 h-12 flex items-center justify-center text-brand-dark hover:text-cempasuchil transition-colors"
+                className="pill-glass rounded-full w-12 h-12 flex items-center justify-center text-brand-dark transition-colors"
               >
                 {item.icon}
               </Tag>
