@@ -26,9 +26,9 @@
 //   tiene shadcn instalado.
 // - Colores hardcodeados (--relieve-ink/--relieve-accent/--relieve-bg) →
 //   tokens reales de src/index.css. El accent de hover/borde usa
-//   --color-brand-dark, NO --color-cempasuchil: ese acento está reservado
-//   solo para la franja del canvas infinito (ver su comentario en
-//   index.css) y explícitamente no se usa en botones/tags.
+//   --color-brand-dark (Sceptre Red, el único acento del sitio desde el
+//   14 ago 2026 — cempasúchil, que este comentario mencionaba antes, se
+//   retiró; ver su nota en index.css).
 // - `backdrop-blur-md` genérico → clase .glass-card (index.css), misma
 //   receta Liquid Glass que .pill-glass/.pill-glass-active (blur 20px +
 //   saturate 180% + highlight superior + variante sin blur para
