@@ -215,4 +215,22 @@ function mockReq(method, body) {
   assert.strictEqual(res.body.error.code, 'invalid_frame_code');
 }
 
+// 10. Final whole-branch review finding #1 — an item with custom_place set
+// but custom_location omitted entirely (not just invalid) must be rejected
+// before it can fall through to calcUnitPriceCents at catalog price with
+// any frame_code — that bypass skipped both the 15% personalized markup
+// and the frame_code === 'parota' enforcement.
+{
+  const res = mockRes();
+  await handler(
+    mockReq('POST', {
+      items: [{ custom_place: 'Un lugar', size_code: 'chico', frame_code: 'roble', qty: 1 }],
+      email: 'a@b.com',
+    }),
+    res
+  );
+  assert.strictEqual(res.statusCode, 400);
+  assert.strictEqual(res.body.error.code, 'invalid_item');
+}
+
 console.log('checkout request-validation checks: OK');
