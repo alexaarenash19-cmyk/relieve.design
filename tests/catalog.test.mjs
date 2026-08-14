@@ -171,4 +171,19 @@ function mockReq(method, query, body) {
   assert.strictEqual(res.body.error.code, 'invalid_request');
 }
 
+// docs/superpowers/specs/2026-08-13-personaliza-checkout-design.md sección 4
+// — getPersonalizedPrice: mediano (129900) * 1.15 = 149385.
+{
+  const res = mockRes();
+  await handler(mockReq('POST', { resource: 'personalized_pricing' }, { size_code: 'mediano' }), res);
+  assert.strictEqual(res.statusCode, 200);
+  assert.strictEqual(res.body.unit_price, 149385);
+}
+{
+  const res = mockRes();
+  await handler(mockReq('POST', { resource: 'personalized_pricing' }, { size_code: 'no-existe' }), res);
+  assert.strictEqual(res.statusCode, 400);
+  assert.strictEqual(res.body.error.code, 'invalid_size');
+}
+
 console.log('catalog dispatch checks: OK');
