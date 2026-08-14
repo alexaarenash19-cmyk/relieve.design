@@ -8,7 +8,7 @@
 // sobra para esta grilla) — evita volver a llamar Elevation API si el
 // cliente regresa a ajustar el encuadre sin cambiar de lugar.
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Canvas, useLoader } from '@react-three/fiber';
+import { Canvas } from '@react-three/fiber';
 import * as THREE from 'three';
 import { loadGoogleMaps } from '../lib/googleMapsLoader.js';
 import { buildElevationGrid, normalizeElevations, heightmapToTextureData } from '../lib/terrainMesh.js';
@@ -50,20 +50,25 @@ async function fetchHeightmapTexture(mapBounds) {
   return texture;
 }
 
-function TerrainMesh({ mapBounds, aspectRatio, colorHex }) {
+function TerrainMesh({ mapBounds, aspectRatio, colorHex, onError }) {
   const [texture, setTexture] = useState(null);
   const cancelledRef = useRef(false);
 
   useEffect(() => {
     cancelledRef.current = false;
     setTexture(null);
+    onError(null);
     fetchHeightmapTexture(mapBounds)
       .then((tex) => {
         if (!cancelledRef.current) setTexture(tex);
       })
-      .catch(() => {
-        // Fail quiet — TerrainPreview's parent shows the "sin preview
-        // disponible" fallback below when texture stays null.
+      .catch((err) => {
+        // Final whole-branch review finding #3 — this used to fail quiet
+        // (comment promised a "sin preview disponible" fallback that never
+        // existed), leaving the customer with an empty box under a caption
+        // that claimed a preview had been generated. Lift the error up so
+        // TerrainPreview can render a real fallback instead.
+        if (!cancelledRef.current) onError(err);
       });
     return () => {
       cancelledRef.current = true;
@@ -95,6 +100,20 @@ export default function TerrainPreview({ mapBounds, aspectRatio, colorHex }) {
     mapBounds.east,
     mapBounds.west,
   ]);
+  const [error, setError] = useState(null);
+
+  // Final whole-branch review finding #3 — a genuine failure branch, not
+  // the empty box the old "sin preview disponible" comment promised but
+  // never implemented. The success-path caption text below is unchanged.
+  if (error) {
+    return (
+      <div className="flex flex-col items-center gap-3">
+        <p className="font-label uppercase tracking-wide text-xs text-graphite/50">
+          No pudimos generar la vista previa de tu terreno.
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col items-center gap-3">
@@ -102,7 +121,7 @@ export default function TerrainPreview({ mapBounds, aspectRatio, colorHex }) {
         <Canvas camera={{ position: [0, 1.4, 1.8], fov: 45 }}>
           <ambientLight intensity={0.6} />
           <directionalLight position={[2, 3, 2]} intensity={1.2} />
-          <TerrainMesh mapBounds={memoBounds} aspectRatio={aspectRatio} colorHex={colorHex} />
+          <TerrainMesh mapBounds={memoBounds} aspectRatio={aspectRatio} colorHex={colorHex} onError={setError} />
         </Canvas>
       </div>
       <p className="font-label uppercase tracking-wide text-xs text-graphite/50">
