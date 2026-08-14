@@ -68,13 +68,19 @@ function assertValidCustomLocation(loc) {
   if (!formatted_address || typeof formatted_address !== 'string' || formatted_address.length > 200) {
     throw new PricingError('invalid_custom_location', 'custom_location.formatted_address is invalid');
   }
-  if (typeof latitude !== 'number' || latitude < -90 || latitude > 90) {
+  // Final whole-branch review finding #6 — typeof x !== 'number' admits
+  // NaN (typeof NaN === 'number', and NaN < -90 / NaN > 90 are both false,
+  // so the range check didn't catch it either). NaN round-trips through
+  // JSON.stringify as null, breaking Ale's Maps link in the order email
+  // ("(null, null)"). Number.isFinite(x) rejects NaN/Infinity/-Infinity
+  // along with non-numbers.
+  if (!Number.isFinite(latitude) || latitude < -90 || latitude > 90) {
     throw new PricingError('invalid_custom_location', 'custom_location.latitude is invalid');
   }
-  if (typeof longitude !== 'number' || longitude < -180 || longitude > 180) {
+  if (!Number.isFinite(longitude) || longitude < -180 || longitude > 180) {
     throw new PricingError('invalid_custom_location', 'custom_location.longitude is invalid');
   }
-  if (typeof zoom !== 'number' || zoom < 0 || zoom > 22) {
+  if (!Number.isFinite(zoom) || zoom < 0 || zoom > 22) {
     throw new PricingError('invalid_custom_location', 'custom_location.zoom is invalid');
   }
   if (
@@ -134,6 +140,16 @@ async function priceItem(item) {
   const addons = [];
   if (capelo) addons.push('capelo');
   if (plate_text) addons.push('placa');
+
+  // Final whole-branch review finding #1 — a custom_place-bearing item
+  // without custom_location used to skip both the 15% personalized markup
+  // AND the frame_code === 'parota' enforcement below, falling through to
+  // calcUnitPriceCents at catalog price with any frame. Unreachable from
+  // Personalize.jsx today (it always sets both together), but a real gap
+  // for a direct API call.
+  if (custom_place && !item.custom_location) {
+    throw new PricingError('invalid_item', 'custom_place requires custom_location');
+  }
 
   if (item.custom_location) {
     assertValidCustomLocation(item.custom_location);
