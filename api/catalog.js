@@ -383,7 +383,7 @@ async function getOrder(req, res) {
   const { data: items, error: itemsError } = await supabase
     .from('order_items')
     .select(
-      'place_id, custom_place, size_code, frame_code, color_code, qty, unit_price_cents, piece_number, places(name, series, country, type)',
+      'place_id, custom_place, custom_location, size_code, frame_code, color_code, qty, unit_price_cents, piece_number, places(name, series, country, type)',
     )
     .eq('order_id', order.id);
 
