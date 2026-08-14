@@ -19,10 +19,26 @@
 // button moved inside FluidMenu.jsx (which also replaced the earlier
 // full-screen "Índice" overlay — see FluidMenu.jsx's own header for that
 // history). Wordmark still links home, same as always.
-import { useEffect, useState } from 'react';
+//
+// Pill-shrink on scroll (componente de referencia de Aceternity,
+// resizable-navbar.tsx, adaptado): en vez del swap plano de fondo que
+// tenía antes (bg-transparent -> bg-gallery-white/95), la barra completa
+// se encoge a una pill centrada y flota un poco hacia abajo al pasar
+// solid=true. La franja `<nav>` externa sigue siendo full-width — solo
+// controla el reveal-on-hover (visible) sin cambios; el nuevo <div
+// ref={pillRef}> interno es lo que de verdad se encoge, así que
+// wordmark+FluidMenu quedan juntos en el centro al hacer scroll en vez de
+// en los extremos. wordmark/FluidMenu NO cambian de tamaño — el "encoger"
+// es la barra angostándose alrededor de contenido de tamaño fijo, no el
+// contenido mismo (Ale pidió el wordmark grande a propósito, no se toca).
+// Material: reusa .pill-glass (mismo Liquid Glass del resto del sitio) en
+// vez del bg-gallery-white/95 plano anterior — consistente con el resto
+// de pills/botones ya migrados en la auditoría del 11 ago.
+import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import wordmark from '../assets/brand/wordmark.svg';
 import FluidMenu from './FluidMenu.jsx';
+import { navPillMorph } from '../lib/animations.js';
 
 // Was 72px — too easy to miss on a normal-sized viewport, effectively
 // hiding the only way back to the catalog/cart from every product page.
@@ -37,6 +53,7 @@ export default function Nav() {
       typeof window !== 'undefined' &&
       !window.matchMedia('(pointer: fine)').matches,
   );
+  const pillRef = useRef(null);
 
   useEffect(() => {
     const hoverCapable = window.matchMedia('(pointer: fine)').matches;
@@ -57,19 +74,26 @@ export default function Nav() {
     };
   }, []);
 
+  useEffect(() => {
+    navPillMorph(pillRef.current, solid);
+  }, [solid]);
+
   return (
     <nav
       onFocusCapture={() => setVisible(true)}
-      className={`fixed top-7 inset-x-0 z-40 flex items-center justify-between px-6 py-2 transition-[transform,opacity,background-color] duration-300 ${
-        solid
-          ? 'bg-gallery-white/95 backdrop-blur border-b border-line'
-          : 'bg-transparent'
-      } ${visible ? 'translate-y-0 opacity-100' : '-translate-y-full opacity-0 pointer-events-none'}`}
+      className={`fixed top-7 inset-x-0 z-40 flex justify-center transition-[transform,opacity] duration-300 ${
+        visible ? 'translate-y-0 opacity-100' : '-translate-y-full opacity-0 pointer-events-none'
+      }`}
     >
-      <Link to="/" className="flex items-center">
-        <img src={wordmark} alt="Relieve Design" className="h-14 w-auto" />
-      </Link>
-      <FluidMenu />
+      <div
+        ref={pillRef}
+        className={`flex items-center justify-between gap-6 px-6 py-2 w-full ${solid ? 'pill-glass' : ''}`}
+      >
+        <Link to="/" className="flex items-center shrink-0">
+          <img src={wordmark} alt="Relieve Design" className="h-14 w-auto" />
+        </Link>
+        <FluidMenu />
+      </div>
     </nav>
   );
 }
