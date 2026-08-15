@@ -237,7 +237,7 @@ body::before {
    fijo en los paths del SVG (#a5bcd6), por eso no hay var(--color-x) ni
    override .dark aquí: es el mismo azul en los dos modos a propósito. */
 .page-stamp-mark {
-  width: min(22vw, 180px);
+  width: min(38vw, 320px);
   height: auto;
 }
 @keyframes page-stamp-anim {
