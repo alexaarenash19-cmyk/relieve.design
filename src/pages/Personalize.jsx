@@ -152,7 +152,7 @@ export default function Personalize() {
       {activeStep === 'ubicacion' ? (
         <div className="w-full">
           <div className="mb-6">
-            <p className="font-label uppercase tracking-wide text-xs text-graphite/50 mb-1 text-center">01 — Elige tu lugar</p>
+            <p className="font-label uppercase tracking-wide text-xs text-graphite/50 mb-1 text-center">02 — Elige tu lugar</p>
             <LocationPicker
               aspectRatio={aspectRatio}
               sizeLabel={`${selectedSize?.label} — ${formatDims(selectedSize?.dims)}`}
@@ -164,8 +164,10 @@ export default function Personalize() {
         <div className="max-w-lg mx-auto px-8">
           {activeStep === 'escala' && (
             <fieldset className="mb-6">
-              <p className="font-label uppercase tracking-wide text-xs text-graphite/50 mb-1">01 — Elige tu escala</p>
-              <h2 className="font-heading font-bold text-2xl mb-6">¿Qué tamaño tendrá tu Relieve?</h2>
+              <legend className="w-full">
+                <p className="font-label uppercase tracking-wide text-xs text-graphite/50 mb-1">01 — Elige tu escala</p>
+                <h2 className="font-heading font-bold text-2xl mb-6">¿Qué tamaño tendrá tu Relieve?</h2>
+              </legend>
               <div className="flex flex-col gap-2">
                 {WALL_SIZES.map((s) => (
                   <button
@@ -185,8 +187,10 @@ export default function Personalize() {
 
           {activeStep === 'forma' && (
             <fieldset className="mb-6">
-              <p className="font-label uppercase tracking-wide text-xs text-graphite/50 mb-1">02 — Dale forma</p>
-              <h2 className="font-heading font-bold text-2xl mb-6">Color</h2>
+              <legend className="w-full">
+                <p className="font-label uppercase tracking-wide text-xs text-graphite/50 mb-1">03 — Dale forma</p>
+                <h2 className="font-heading font-bold text-2xl mb-6">Color</h2>
+              </legend>
               <div className="flex gap-2">
                 {COLORS.map((c) => (
                   <button
@@ -222,7 +226,7 @@ export default function Personalize() {
 
           {activeStep === 'preview' && location?.map_bounds && (
             <div className="mb-6 text-center">
-              <p className="font-label uppercase tracking-wide text-xs text-graphite/50 mb-1">03 — Mira tu Relieve</p>
+              <p className="font-label uppercase tracking-wide text-xs text-graphite/50 mb-1">04 — Mira tu Relieve</p>
               <h2 className="font-heading font-bold text-2xl mb-6">Así se verá</h2>
               <TerrainPreview mapBounds={location.map_bounds} aspectRatio={aspectRatio} colorHex={selectedColor?.hex} />
             </div>
@@ -230,7 +234,7 @@ export default function Personalize() {
 
           {activeStep === 'historia' && (
             <div className="mb-6">
-              <p className="font-label uppercase tracking-wide text-xs text-graphite/50 mb-1">04 — Hazlo tuyo</p>
+              <p className="font-label uppercase tracking-wide text-xs text-graphite/50 mb-1">05 — Hazlo tuyo</p>
               <label className="flex flex-col gap-1">
                 <span className="font-heading font-bold text-2xl mb-1">¿Por qué este lugar?</span>
                 <span className="text-sm text-graphite/60 mb-3">
@@ -249,7 +253,7 @@ export default function Personalize() {
 
           {activeStep === 'resumen' && (
             <div className="mb-6 bg-gallery-white rounded-[9px] p-6">
-              <p className="font-label uppercase tracking-wide text-xs text-graphite/50 mb-1">05 — Tu Relieve</p>
+              <p className="font-label uppercase tracking-wide text-xs text-graphite/50 mb-1">06 — Tu Relieve</p>
               <h2 className="font-heading font-bold text-brand-dark text-2xl mb-4">Tu Relieve</h2>
               <dl className="space-y-2 text-sm mb-6">
                 <div>
