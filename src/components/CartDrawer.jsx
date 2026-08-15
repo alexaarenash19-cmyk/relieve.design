@@ -186,10 +186,18 @@ export default function CartDrawer() {
         onComplete: closeCart,
       });
     } else {
+      // apple-design audit (14 ago 2026) — este camino no heredaba la
+      // velocidad del gesto (duración fija 0.3s), a diferencia del cierre
+      // arriba que sí (§5). Si el usuario venía frenando/regresando
+      // (velocity negativa, moviéndose de vuelta hacia el borde), la
+      // animación de vuelta hereda esa velocidad; si no, un piso fijo de
+      // 600px/s mantiene el mismo snap rápido de antes.
+      const snapVelocity = velocity < 0 ? -velocity : 600;
+      const duration = reduced ? 0.01 : Math.max(0.1, dx / Math.max(snapVelocity, 600));
       gsap.to(el, {
         x: 0,
-        duration: reduced ? 0.01 : 0.3,
-        ease: 'power2.out',
+        duration,
+        ease: 'power1.out',
         onComplete: clearDragStyle,
       });
     }
