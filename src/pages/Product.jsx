@@ -401,7 +401,11 @@ export default function Product() {
               contraste (WCAG AA pide 4.5:1). Sin color propio, hereda
               accent.text del <main>, el mismo mecanismo que ya usa
               correctamente el párrafo del gancho emocional debajo. */}
-          <h1 className="font-heading font-bold text-[clamp(2.25rem,3vw+1.5rem,3.5rem)] leading-tight mb-1">
+          {/* apple-design audit (14 ago 2026) — le faltaba el tracking-[-0.02em]
+              que Hero.jsx ya usa en su propio texto grande fluido (clamp +
+              leading apretado + tracking negativo, §15). Mismo tamaño de
+              texto (hasta 3.5rem), tratamiento inconsistente sin esto. */}
+          <h1 className="font-heading font-bold text-[clamp(2.25rem,3vw+1.5rem,3.5rem)] leading-tight tracking-[-0.02em] mb-1">
             {place.name}
           </h1>
           <p className="font-label uppercase tracking-wide text-xs mb-6 opacity-70">
