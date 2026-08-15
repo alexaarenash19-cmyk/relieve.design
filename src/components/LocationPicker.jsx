@@ -9,13 +9,20 @@
 // proyectando las 2 esquinas del marco (en píxeles, relativas al div del
 // mapa) a lat/lng reales vía la Projection del mapa. Un OverlayView vacío
 // es la única forma que expone esa Projection en la API de Google Maps.
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { loadGoogleMaps } from '../lib/googleMapsLoader.js';
+import { boundsAreaKm2, boundsWidthMeters, boundsHeightMeters, detailQuality } from '../lib/geo.js';
 
 const DEFAULT_CENTER = { lat: 19.4326, lng: -99.1332 }; // Ciudad de México
 const DEFAULT_ZOOM = 5;
 
-export default function LocationPicker({ aspectRatio, onConfirm }) {
+const QUALITY_COPY = {
+  excelente: { emoji: '🟢', label: 'Excelente', detail: 'Esta zona tiene suficiente detalle para un relieve definido.' },
+  amplia: { emoji: '🟡', label: 'Amplia', detail: 'Acerca el mapa para obtener mayor detalle.' },
+  'muy-amplia': { emoji: '🔴', label: 'Demasiado amplia', detail: 'Esta zona no tendrá suficiente detalle. Acerca el mapa.' },
+};
+
+export default function LocationPicker({ aspectRatio, sizeLabel, onConfirm }) {
   const mapDivRef = useRef(null);
   const searchDivRef = useRef(null);
   const frameRef = useRef(null);
@@ -27,6 +34,7 @@ export default function LocationPicker({ aspectRatio, onConfirm }) {
   const [loadError, setLoadError] = useState(null);
   const [hasFramed, setHasFramed] = useState(false);
   const [hasPlace, setHasPlace] = useState(false);
+  const [liveBounds, setLiveBounds] = useState(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -68,11 +76,12 @@ export default function LocationPicker({ aspectRatio, onConfirm }) {
           if (place.viewport) map.fitBounds(place.viewport);
         });
 
-        maps.event.addListenerOnce(map, 'idle', () => {
-          if (!cancelled) {
-            setReady(true);
-            setHasFramed(true); // el centro/zoom inicial ya es un encuadre válido
-          }
+        maps.event.addListener(map, 'idle', () => {
+          if (cancelled) return;
+          setReady(true);
+          setHasFramed(true); // el centro/zoom inicial ya es un encuadre válido
+          const bounds = frameCornersToLatLng(maps, map, overlay);
+          setLiveBounds(bounds);
         });
       })
       .catch((err) => setLoadError(err.message));
@@ -122,32 +131,80 @@ export default function LocationPicker({ aspectRatio, onConfirm }) {
     });
   }
 
-  if (loadError) {
-    return <p className="text-sm text-graphite/70">{loadError}</p>;
-  }
+  const areaInfo = useMemo(() => {
+    if (!liveBounds) return null;
+    const areaKm2 = boundsAreaKm2(liveBounds);
+    const widthKm = boundsWidthMeters(liveBounds) / 1000;
+    const heightKm = boundsHeightMeters(liveBounds) / 1000;
+    return { areaKm2, widthKm, heightKm, quality: detailQuality(liveBounds) };
+  }, [liveBounds]);
 
   return (
-    <div className="flex flex-col gap-4">
-      <div ref={searchDivRef} className="[&_gmp-place-autocomplete]:w-full" />
-      <div className="relative w-full max-w-lg mx-auto" style={{ aspectRatio: '4/3' }}>
-        <div ref={mapDivRef} className="absolute inset-0 rounded-[9px] overflow-hidden" />
-        {/* Marco de encuadre fijo — no se mueve, el mapa se mueve debajo. */}
-        <div
-          ref={frameRef}
-          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 border-2 border-gallery-white shadow-[0_0_0_9999px_rgba(0,0,0,0.35)] pointer-events-none"
-          style={{ aspectRatio, width: aspectRatio === '3/2' ? '80%' : '60%' }}
-        />
-      </div>
-      <button
-        type="button"
-        onClick={handleConfirm}
-        disabled={!ready || !hasFramed || !hasPlace}
-        className="pill-glass-active text-on-accent px-6 py-3 rounded-[9px] font-heading font-bold disabled:opacity-40"
-      >
-        Confirmar ubicación
-      </button>
-      {ready && !hasPlace && (
-        <p className="text-sm text-graphite/70 -mt-2">Busca tu ubicación primero.</p>
+    <div className="relative w-full">
+      {loadError ? (
+        <p className="text-sm text-graphite/70 p-8 text-center">{loadError}</p>
+      ) : (
+        <>
+          {/* Buscador flotante SOBRE el mapa, no antes — apilado con z-index,
+              mismo criterio visual que .pill-glass (fondo translúcido) para
+              que se lea como parte del mapa, no como un input de formulario
+              aparte. */}
+          <div className="absolute top-4 left-1/2 -translate-x-1/2 z-10 w-[min(90%,32rem)]">
+            <div
+              ref={searchDivRef}
+              className="glass-card rounded-full px-2 py-1 [&_gmp-place-autocomplete]:w-full"
+            />
+          </div>
+
+          {/* Mapa full-bleed — 80vh en vez de max-w-lg + aspect-ratio 4/3.
+              El marco (frameRef) sigue siendo un elemento aparte encima,
+              centrado, con la proporción del tamaño elegido — sin cambios
+              en frameCornersToLatLng ni en cómo se calcula. */}
+          <div className="relative w-full h-[80vh] min-h-[420px] max-h-[900px]">
+            <div ref={mapDivRef} className="absolute inset-0 rounded-[9px] overflow-hidden" />
+            <div
+              ref={frameRef}
+              className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 border-2 border-gallery-white shadow-[0_0_0_9999px_rgba(0,0,0,0.35)] pointer-events-none flex items-center justify-center"
+              style={{ aspectRatio, width: aspectRatio === '3/2' ? '70%' : '46%' }}
+            >
+              <span className="font-label uppercase tracking-wide text-[11px] text-gallery-white/80">
+                Área a relieve
+              </span>
+            </div>
+
+            {areaInfo && (
+              <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-10 glass-card rounded-[9px] px-4 py-2 text-center">
+                <p className="font-label uppercase tracking-wide text-[11px] text-graphite/70">
+                  Área seleccionada · {areaInfo.widthKm.toFixed(2)} × {areaInfo.heightKm.toFixed(2)} km
+                </p>
+                <p className="text-xs mt-0.5">
+                  {QUALITY_COPY[areaInfo.quality].emoji} {QUALITY_COPY[areaInfo.quality].label}
+                  {' — '}
+                  <span className="text-graphite/60">{QUALITY_COPY[areaInfo.quality].detail}</span>
+                </p>
+              </div>
+            )}
+          </div>
+
+          <div className="flex flex-col items-center gap-2 mt-4">
+            {sizeLabel && (
+              <p className="font-label uppercase tracking-wide text-xs text-graphite/50">
+                Tamaño: {sizeLabel}
+              </p>
+            )}
+            <button
+              type="button"
+              onClick={handleConfirm}
+              disabled={!ready || !hasFramed || !hasPlace || areaInfo?.quality === 'muy-amplia'}
+              className="pill-glass-active text-on-accent px-8 py-3 rounded-[9px] font-heading font-bold disabled:opacity-40"
+            >
+              Ver mi Relieve →
+            </button>
+            {ready && !hasPlace && (
+              <p className="text-sm text-graphite/70">Busca tu ubicación primero.</p>
+            )}
+          </div>
+        </>
       )}
     </div>
   );
