@@ -9,7 +9,6 @@ import { fetchJsonArray } from '../lib/fetchJsonArray.js';
 import { CATEGORIES, categoryLabel } from '../lib/categories.js';
 import { SIZES } from '../lib/catalog.js';
 import { useProductPanel } from '../context/ProductPanelContext.jsx';
-import Stamp from './Stamp.jsx';
 // Museográfico pass (11 ago 2026) — the menu-icon-morph button (square ->
 // circle/X) is now shared with Nav.jsx's own "Índice" trigger instead of
 // living only here; extracted verbatim to MenuIconButton.jsx, this file
@@ -57,7 +56,14 @@ export function GalleryCard({ place, variant = 'grid', slot, gridIndex = 0 }) {
     pieceMainThumb(place.slug) ?? place.thumb_url,
     360,
   );
-  const cursorLabel = variant === 'scattered' ? `+ ${place.name}` : undefined;
+  // 14 ago 2026 — el sello "Ver pieza" del variant 'grid' (Stamp.jsx,
+  // estilo papel rasgado) se retiró a pedido de Ale: quería que /buscar
+  // y /colecciones usaran el mismo hover que el lienzo (cursor-pill "+
+  // Nombre" vía CustomCursor.jsx), no un overlay estático — mismo
+  // mecanismo, ahora en los dos variants que muestran una sola pieza por
+  // tile ('explorarGrid' sigue sin esto: ya tiene su propio nombre/precio
+  // visibles debajo del tile todo el tiempo, no solo al hacer hover).
+  const cursorLabel = variant === 'scattered' || variant === 'grid' ? `+ ${place.name}` : undefined;
   const [loaded, setLoaded] = useState(false);
   const rootRef = useRef(null);
 
@@ -178,12 +184,6 @@ export function GalleryCard({ place, variant = 'grid', slot, gridIndex = 0 }) {
             </span>
             <span className="text-[10px] text-graphite/45 italic">Próximamente</span>
           </div>
-        )}
-        {variant === 'grid' && (
-          <Stamp
-            label="Ver pieza"
-            className="absolute inset-0 m-auto w-fit h-fit opacity-0 scale-90 group-hover:opacity-100 group-hover:scale-100 transition-all duration-200 bg-gallery-white/90"
-          />
         )}
       </div>
       {variant === 'explorarGrid' && (
