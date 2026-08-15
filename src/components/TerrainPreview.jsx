@@ -9,6 +9,7 @@
 // cliente regresa a ajustar el encuadre sin cambiar de lugar.
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Canvas } from '@react-three/fiber';
+import { OrbitControls } from '@react-three/drei';
 import * as THREE from 'three';
 import { loadGoogleMaps } from '../lib/googleMapsLoader.js';
 import { buildElevationGrid, normalizeElevations, heightmapToTextureData } from '../lib/terrainMesh.js';
@@ -123,11 +124,24 @@ export default function TerrainPreview({ mapBounds, aspectRatio, colorHex }) {
 
   return (
     <div className="flex flex-col items-center gap-3">
-      <div className="w-full max-w-md" style={{ aspectRatio }}>
+      <div className="w-full max-w-2xl mx-auto" style={{ aspectRatio }}>
         <Canvas camera={{ position: [0, 1.4, 1.8], fov: 45 }}>
           <ambientLight intensity={0.6} />
           <directionalLight position={[2, 3, 2]} intensity={1.2} />
           <TerrainMesh mapBounds={memoBounds} aspectRatio={aspectRatio} colorHex={colorHex} onError={setError} />
+          {/* Rotación libre + zoom, sin pan (no tiene sentido alejar la pieza
+              de su centro) — minAngle/maxAngle evitan voltear el relieve boca
+              abajo o verlo de canto sin sentido. enableDamping = inercia suave
+              al soltar, se siente menos "mecánico" que sin damping. */}
+          <OrbitControls
+            enablePan={false}
+            minDistance={1}
+            maxDistance={4}
+            minPolarAngle={0.05}
+            maxPolarAngle={Math.PI / 2.1}
+            enableDamping
+            dampingFactor={0.08}
+          />
         </Canvas>
       </div>
       <p className="font-label uppercase tracking-wide text-xs text-graphite/50">
