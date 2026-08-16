@@ -13,7 +13,7 @@ de código — solo rebuild/redeploy.
 
 ```
 photography/
-  hero/aerial-city.jpg       ← etapa 1 del storyboard (ciudad aérea)
+  hero/aerial-city.webp      ← etapa 1 del storyboard (ciudad aérea) — .webp desde el perf pass del 16 ago 2026, no .jpg
   pieces/<slug>/main.jpg     ← foto principal de la pieza (una carpeta por slug)
   pieces/<slug>/detail-1.jpg ← foto de detalle (textura/marco/acabado)
   about/proceso.jpg          ← foto de proceso para /sobre (taller/carpintería)
