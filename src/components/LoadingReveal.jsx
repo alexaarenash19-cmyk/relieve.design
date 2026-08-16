@@ -138,6 +138,7 @@ export default function LoadingReveal() {
         src={wordmark}
         alt=""
         className="absolute inset-0 m-auto w-[min(40vw,220px)] h-auto loading-reveal-wordmark-fade"
+        style={{ aspectRatio: '524 / 331' }}
       />
     </div>
   );
