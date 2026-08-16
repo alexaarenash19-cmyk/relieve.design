@@ -68,7 +68,7 @@ export default function CurvaDeNivel() {
             Antes de que una ciudad nueva llegue a todos, llega primero a la
             Curva de Nivel.
           </p>
-          <ul className="font-label uppercase tracking-wide text-xs text-graphite/60 mb-8 space-y-1">
+          <ul className="font-label uppercase tracking-wide text-xs text-[color:var(--color-graphite-muted)] mb-8 space-y-1">
             {BENEFITS.map((b) => (
               <li key={b}>— {b}</li>
             ))}
