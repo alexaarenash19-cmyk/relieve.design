@@ -51,6 +51,13 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link rel="preconnect" href="https://api.fontshare.com" />
     <link rel="preconnect" href="https://cdn.fontshare.com" crossorigin />
+    <!-- Preload the 2 Courier Prime weights actually used (font-label,
+         site-wide: Nav/Footer/labels) so the real font is likely in place
+         before first paint instead of swapping in later and reflowing
+         text (font-label sits on the footer, which is why the CLS from
+         this swap showed up concentrated there in PageSpeed). -->
+    <link rel="preload" as="font" type="font/woff2" href="https://fonts.gstatic.com/s/courierprime/v11/u-450q2lgwslOqpF_6gQ8kELawFpWg.woff2" crossorigin />
+    <link rel="preload" as="font" type="font/woff2" href="https://fonts.gstatic.com/s/courierprime/v11/u-4k0q2lgwslOqpF_6gQ8kELY7pMT-Dfqw.woff2" crossorigin />
     <!-- 2026-08-09 rebrand hand-off §1: Poppins (dead --font-wordmark,
          nav is an SVG image now, nothing renders it) and Inter (replaced
          by General Sans as the site's body/UI grotesque) dropped. General
