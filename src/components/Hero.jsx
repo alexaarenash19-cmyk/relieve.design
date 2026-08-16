@@ -30,7 +30,12 @@ export default function Hero() {
   return (
     <div ref={ref} className="transition-opacity duration-500" style={{ opacity: visible ? 1 : 0 }}>
       <div className="relative aspect-video bg-gallery-white overflow-hidden">
-        <img src={HERO_AERIAL_CITY} alt="" className="warm-photo absolute inset-0 w-full h-full object-cover" />
+        <img
+          src={HERO_AERIAL_CITY}
+          alt=""
+          fetchPriority="high"
+          className="warm-photo absolute inset-0 w-full h-full object-cover"
+        />
         {/* apple-design audit (11 ago 2026) — the previous fix here was a
             dark text-shadow on dark (text-brand-dark) text: over the
             photo's own dark regions (building silhouettes) a dark halo
