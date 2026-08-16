@@ -146,6 +146,19 @@ export default function Personalize() {
 
   const activeStep = STEPS[currentStep - 1];
   const isLastStep = currentStep === STEPS.length;
+  // Bug real (16 ago 2026, reportado: "el botón de comprar mi relieve no
+  // sirve") — el paso 'ubicacion' tenía DOS formas de avanzar: el botón
+  // "Ver mi Relieve →" propio de LocationPicker (el único que de verdad
+  // llama a onConfirm y guarda `location`) y, justo debajo, el "Continuar"
+  // genérico de StepProgress (que solo hace goNext(), sin tocar
+  // `location`). Si el usuario tocaba el genérico, `location` quedaba
+  // `null` para siempre — el wizard avanzaba igual pero 'preview' se veía
+  // vacío (su bloque depende de `location?.map_bounds`) y 'resumen'
+  // llegaba con "Comprar mi Relieve" deshabilitado sin explicación (isComplete
+  // nunca es true sin location.place_id/formatted_address/map_bounds).
+  // Fix: no renderizar el "Continuar" genérico en este paso — LocationPicker
+  // es la única forma de avanzar desde 'ubicacion'. "Atrás" se conserva.
+  const hideGenericContinue = activeStep === 'ubicacion';
 
   return (
     // Hallazgo #8 (auditoría 10 ago 2026): pt-32 (no p-8) — mismo fix que Collections.jsx/Product.jsx.
@@ -316,8 +329,9 @@ export default function Personalize() {
           labels={STEP_LABELS}
           onBack={goBack}
           onContinue={goNext}
-          isLast={isLastStep}
+          isLast={isLastStep || hideGenericContinue}
           finalAction={
+            !isLastStep ? null : (
             <button
               ref={buyBtnRef}
               type="button"
@@ -327,6 +341,7 @@ export default function Personalize() {
             >
               Comprar mi Relieve
             </button>
+            )
           }
         />
       </div>
