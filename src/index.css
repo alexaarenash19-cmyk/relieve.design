@@ -591,7 +591,11 @@ body::before {
      canal alpha sobre una custom property de color sólido sin una
      variable RGB aparte — si el acento vuelve a cambiar, actualizar aquí
      también. */
-  background: rgba(77, 14, 18, 0.55);
+  /* 0.55 -> 0.68 (a11y-review 16 ago 2026): text-on-accent over the old
+     resting-state background measured ~3.84:1, below WCAG AA's 4.5:1 for
+     normal text. 0.68 (the value already used at :hover below) measures
+     ~5.28:1. */
+  background: rgba(77, 14, 18, 0.68);
   backdrop-filter: blur(20px) saturate(180%);
   -webkit-backdrop-filter: blur(20px) saturate(180%);
   border: 1px solid rgba(246, 243, 237, 0.3);
@@ -602,7 +606,7 @@ body::before {
   transition: background-color 200ms ease, box-shadow 200ms ease, transform 100ms ease;
 }
 .pill-glass-active:hover {
-  background: rgba(77, 14, 18, 0.68);
+  background: rgba(77, 14, 18, 0.78);
 }
 .pill-glass-active:active {
   transform: scale(0.97);

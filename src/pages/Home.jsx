@@ -42,10 +42,10 @@ export default function Home() {
   // she never asked for it. Not rendered here anymore; the component file
   // itself is also deleted in this same change since nothing else used it.
   return (
-    <>
+    <main>
       <Hero />
       <Gallery />
       <CurvaDeNivel />
-    </>
+    </main>
   );
 }

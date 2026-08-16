@@ -791,7 +791,7 @@ function DragHintAndZoom({ setZoom, showHint }) {
     <div className="sticky bottom-5 z-30 flex justify-end pr-6 pointer-events-none">
       <div className="flex items-center gap-2 pointer-events-auto">
         {showHint && (
-          <span className="font-label uppercase tracking-wide text-[9px] text-graphite/50">
+          <span className="font-label uppercase tracking-wide text-[9px] text-[color:var(--color-graphite-muted)]">
             arrastra para explorar
           </span>
         )}

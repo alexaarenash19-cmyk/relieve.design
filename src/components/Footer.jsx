@@ -22,7 +22,7 @@ import { NAV_ITEMS } from '../lib/navItems.js';
 function FooterColumn({ heading, children }) {
   return (
     <div>
-      <p className="text-graphite/40 mb-3">{heading}</p>
+      <p className="text-[color:var(--color-graphite-muted)] mb-3">{heading}</p>
       {children}
     </div>
   );
@@ -30,7 +30,7 @@ function FooterColumn({ heading, children }) {
 
 export default function Footer() {
   return (
-    <footer className="font-label uppercase tracking-wide text-xs text-graphite/70 border-t border-line px-8 py-10">
+    <footer className="font-label uppercase tracking-wide text-xs text-[color:var(--color-graphite-muted)] border-t border-line px-8 py-10">
       <div className="max-w-5xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-8">
         <FooterColumn heading="Navegación">
           <ul className="space-y-2">
