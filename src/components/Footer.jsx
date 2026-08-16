@@ -22,7 +22,7 @@ import { NAV_ITEMS } from '../lib/navItems.js';
 function FooterColumn({ heading, children }) {
   return (
     <div>
-      <p className="text-graphite/40 mb-3">{heading}</p>
+      <p className="text-[color:var(--color-graphite-muted)] mb-3">{heading}</p>
       {children}
     </div>
   );
