@@ -309,7 +309,7 @@ export default function Personalize() {
         </div>
       )}
 
-      <div className="max-w-lg mx-auto px-8">
+      <div className={`max-w-lg mx-auto px-8 ${isLastStep ? 'md:static sticky bottom-0 bg-gallery-white pt-4 pb-6 -mx-8 px-8 border-t border-line md:border-t-0 md:bg-transparent md:pb-0' : ''}`}>
         <StepProgress
           total={STEPS.length}
           current={currentStep}
