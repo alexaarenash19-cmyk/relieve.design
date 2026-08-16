@@ -6,7 +6,7 @@
 // de lead-capture (POST /api/personaliza, tabla personalize_requests)
 // queda en el backend sin uso — no se borra (bajo riesgo, cero costo de
 // mantenerla), simplemente esta página ya no la llama.
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import StepProgress from '../components/StepProgress.jsx';
 import LocationPicker from '../components/LocationPicker.jsx';
@@ -14,6 +14,7 @@ import TerrainPreview from '../components/TerrainPreview.jsx';
 import { useCart } from '../context/CartContext.jsx';
 import { useDocumentHead } from '../lib/useDocumentHead.js';
 import { fetchJson } from '../lib/fetchJsonArray.js';
+import { addedToCartPulse } from '../lib/animations.js';
 import { WALL_SIZES, COLORS, FRAMES, PRODUCTION_DAYS, SHIPPING_DAYS, formatDims } from '../lib/catalog.js';
 
 // D8-D10 (Product.jsx, 14 ago 2026) — mismo criterio aquí: Parota Nacional
@@ -51,6 +52,8 @@ export default function Personalize() {
   // way out was going back and re-selecting the size). Bumping this state
   // re-triggers the pricing effect below without touching sizeCode.
   const [retryKey, setRetryKey] = useState(0);
+  const [justAdded, setJustAdded] = useState(false);
+  const buyBtnRef = useRef(null);
 
   // docs/superpowers/specs sección 3 — "el precio debe actualizarse
   // inmediatamente cuando el usuario cambie el tamaño". Mismo patrón que
@@ -131,7 +134,14 @@ export default function Personalize() {
       orientation: 'horizontal',
       memory_note: story || null,
     });
-    navigate('/'); // el carrito abre solo (CartContext.addItem ya hace openCart)
+    addedToCartPulse(buyBtnRef.current);
+    setJustAdded(true);
+    // Nota: ya NO se navega a '/' inmediatamente — el mini-cart de abajo
+    // decide cuándo navegar (checkout) o si el usuario prefiere seguir en
+    // esta página ("Seguir diseñando"). CartContext.addItem() ya sigue
+    // abriendo el CartDrawer completo por su cuenta (setIsOpen(true),
+    // sin cambios) — este panel es un mensaje inmediato ADEMÁS de eso,
+    // no en su lugar.
   }
 
   const activeStep = STEPS[currentStep - 1];
@@ -139,141 +149,229 @@ export default function Personalize() {
 
   return (
     // Hallazgo #8 (auditoría 10 ago 2026): pt-32 (no p-8) — mismo fix que Collections.jsx/Product.jsx.
-    <main className="max-w-lg mx-auto pt-32 px-8 pb-16">
-      <h1 className="font-heading font-bold text-brand-dark text-3xl mb-2">Diseña tu Relieve</h1>
-      <p className="text-graphite/70 mb-8">
-        Un lugar que es solo tuyo. Elige un lugar, nosotros lo convertimos en relieve.
-      </p>
+    <main className="pt-32 pb-16">
+      <div className="max-w-5xl mx-auto px-4 md:px-8 text-center py-12 md:py-20">
+        <h1 className="font-heading font-bold text-brand-dark text-[clamp(2rem,4vw+1rem,3.5rem)] leading-tight tracking-[-0.02em] mb-3">
+          Un lugar que es solo tuyo.
+        </h1>
+        <p className="text-graphite/70 text-lg">
+          Elige un lugar. Nosotros lo convertimos en relieve.
+        </p>
+      </div>
 
-      {activeStep === 'escala' && (
-        <fieldset className="mb-6">
-          <legend className="font-label uppercase tracking-wide text-xs mb-2">Elige tu escala</legend>
-          <div className="flex flex-col gap-2">
-            {WALL_SIZES.map((s) => (
-              <button
-                key={s.code}
-                type="button"
-                onClick={() => setSizeCode(s.code)}
-                className={`text-left px-4 py-3 rounded-[9px] font-heading font-bold ${
-                  sizeCode === s.code ? 'pill-glass-active text-on-accent' : 'pill-glass text-graphite'
-                }`}
-              >
-                {s.label} — {formatDims(s.dims)}
-              </button>
-            ))}
+      {activeStep === 'ubicacion' ? (
+        <div className="w-full">
+          <div className="mb-6">
+            <p className="font-label uppercase tracking-wide text-xs text-graphite/50 mb-1 text-center">02 — Elige tu lugar</p>
+            <LocationPicker
+              aspectRatio={aspectRatio}
+              sizeLabel={`${selectedSize?.label} — ${formatDims(selectedSize?.dims)}`}
+              onConfirm={(loc) => { setLocation(loc); goNext(); }}
+            />
           </div>
-        </fieldset>
-      )}
-
-      {activeStep === 'ubicacion' && (
-        <div className="mb-6">
-          <p className="font-label uppercase tracking-wide text-xs mb-2">Elige tu lugar</p>
-          <LocationPicker aspectRatio={aspectRatio} onConfirm={(loc) => { setLocation(loc); goNext(); }} />
         </div>
-      )}
-
-      {activeStep === 'forma' && (
-        <fieldset className="mb-6">
-          <legend className="font-label uppercase tracking-wide text-xs mb-2">Dale forma</legend>
-          <div className="flex gap-2">
-            {COLORS.map((c) => (
-              <button
-                key={c.code}
-                type="button"
-                onClick={() => setColorCode(c.code)}
-                aria-label={c.label}
-                title={c.label}
-                className={`w-10 h-10 rounded-full border-2 ${colorCode === c.code ? 'border-brand-dark' : 'border-line'}`}
-                style={{ backgroundColor: c.hex }}
-              />
-            ))}
-          </div>
-          <p className="mt-2 text-xs text-graphite/70">{selectedColor?.label}</p>
-        </fieldset>
-      )}
-
-      {activeStep === 'preview' && location?.map_bounds && (
-        <div className="mb-6">
-          <TerrainPreview mapBounds={location.map_bounds} aspectRatio={aspectRatio} colorHex={selectedColor?.hex} />
-        </div>
-      )}
-
-      {activeStep === 'historia' && (
-        <label className="flex flex-col gap-1 mb-6">
-          <span className="font-label uppercase tracking-wide text-xs">¿Por qué este lugar? (opcional)</span>
-          <textarea
-            value={story}
-            maxLength={STORY_MAX_LENGTH}
-            onChange={(e) => setStory(e.target.value)}
-            className="border border-line rounded px-3 py-2"
-          />
-        </label>
-      )}
-
-      {activeStep === 'resumen' && (
-        <div className="mb-6 bg-gallery-white rounded-[9px] p-6">
-          <h2 className="font-heading font-bold text-brand-dark text-xl mb-4">Tu Relieve</h2>
-          <dl className="space-y-2 text-sm mb-6">
-            <div>
-              <dt className="font-label uppercase tracking-wide text-xs text-graphite/60">Ubicación</dt>
-              <dd>{location?.formatted_address}</dd>
-            </div>
-            <div>
-              <dt className="font-label uppercase tracking-wide text-xs text-graphite/60">Tamaño</dt>
-              <dd>{selectedSize?.label} — {formatDims(selectedSize?.dims)}</dd>
-            </div>
-            <div>
-              <dt className="font-label uppercase tracking-wide text-xs text-graphite/60">Color</dt>
-              <dd>{selectedColor?.label}</dd>
-            </div>
-            <div>
-              <dt className="font-label uppercase tracking-wide text-xs text-graphite/60">Marco</dt>
-              <dd>{FRAME.label}</dd>
-            </div>
-          </dl>
-          <p className="font-label uppercase tracking-wide text-xs text-graphite/60 mb-1">Relieve personalizado</p>
-          <p className="font-heading font-bold text-brand-dark text-2xl mb-4">
-            {unitPriceCents != null ? `$${(unitPriceCents / 100).toLocaleString('es-MX', { minimumFractionDigits: 2 })} MXN` : '—'}
-          </p>
-          <p className="text-sm text-graphite/70">Producción: {PRODUCTION_DAYS} días</p>
-          <p className="text-sm text-graphite/70">Envío: Gratis</p>
-          <p className="text-sm text-graphite/70 mb-4">Entrega: {SHIPPING_DAYS} días después del envío</p>
-          {!isComplete && (
-            <p className="text-sm text-brand-dark font-bold">Completa tu Relieve para continuar.</p>
+      ) : (
+        <div className="max-w-lg mx-auto px-8">
+          {activeStep === 'escala' && (
+            <fieldset className="mb-6">
+              <legend className="w-full">
+                <p className="font-label uppercase tracking-wide text-xs text-graphite/50 mb-1">01 — Elige tu escala</p>
+                <h2 className="font-heading font-bold text-2xl mb-6">¿Qué tamaño tendrá tu Relieve?</h2>
+              </legend>
+              <div className="flex flex-col gap-2">
+                {WALL_SIZES.map((s) => (
+                  <button
+                    key={s.code}
+                    type="button"
+                    onClick={() => setSizeCode(s.code)}
+                    className={`text-left px-4 py-3 rounded-[9px] font-heading font-bold ${
+                      sizeCode === s.code ? 'pill-glass-active text-on-accent' : 'pill-glass text-graphite'
+                    }`}
+                  >
+                    {s.label} — {formatDims(s.dims)}
+                  </button>
+                ))}
+              </div>
+            </fieldset>
           )}
-          {priceError && (
-            <p className="text-sm text-graphite/60">
-              No pudimos calcular el precio, intenta de nuevo.{' '}
-              <button
-                type="button"
-                onClick={() => setRetryKey((k) => k + 1)}
-                className="text-xs text-graphite/60 underline"
-              >
-                Reintentar
-              </button>
-            </p>
+
+          {activeStep === 'forma' && (
+            <fieldset className="mb-6">
+              <legend className="w-full">
+                <p className="font-label uppercase tracking-wide text-xs text-graphite/50 mb-1">03 — Dale forma</p>
+                <h2 className="font-heading font-bold text-2xl mb-6">Color</h2>
+              </legend>
+              <div className="flex gap-2">
+                {COLORS.map((c) => (
+                  <button
+                    key={c.code}
+                    type="button"
+                    onClick={() => setColorCode(c.code)}
+                    aria-label={c.label}
+                    title={c.label}
+                    className={`w-10 h-10 rounded-full border-2 ${colorCode === c.code ? 'border-brand-dark' : 'border-line'}`}
+                    style={{ backgroundColor: c.hex }}
+                  />
+                ))}
+              </div>
+              <p className="mt-2 text-xs text-graphite/70">{selectedColor?.label}</p>
+
+              {/* Marco: siempre Parota Nacional, sin selector (D8-D10, Product.jsx 14 ago 2026).
+                  Swatch de color plano con el hex real de FRAME — no hay asset de foto de
+                  Parota en el repo hoy; si Ale manda una foto real, reemplazar este div por
+                  <img src="..." /> aquí. */}
+              <div className="mt-6 flex items-center gap-3 p-3 rounded-[9px] bg-gallery-white">
+                <div
+                  className="w-12 h-12 rounded-[6px] shrink-0"
+                  style={{ backgroundColor: FRAME.hex }}
+                  aria-hidden="true"
+                />
+                <div>
+                  <p className="font-label uppercase tracking-wide text-[10px] text-graphite/50">Marco</p>
+                  <p className="font-heading font-bold text-sm">{FRAME.label}</p>
+                </div>
+              </div>
+            </fieldset>
+          )}
+
+          {activeStep === 'preview' && location?.map_bounds && (
+            <div className="mb-6 text-center">
+              <p className="font-label uppercase tracking-wide text-xs text-graphite/50 mb-1">04 — Mira tu Relieve</p>
+              <h2 className="font-heading font-bold text-2xl mb-6">Así se verá</h2>
+              <TerrainPreview mapBounds={location.map_bounds} aspectRatio={aspectRatio} colorHex={selectedColor?.hex} />
+            </div>
+          )}
+
+          {activeStep === 'historia' && (
+            <div className="mb-6">
+              <p className="font-label uppercase tracking-wide text-xs text-graphite/50 mb-1">05 — Hazlo tuyo</p>
+              <label className="flex flex-col gap-1">
+                <span className="font-heading font-bold text-2xl mb-1">¿Por qué este lugar?</span>
+                <span className="text-sm text-graphite/60 mb-3">
+                  Cuéntanos qué significa para ti. <span className="italic">Opcional</span>
+                </span>
+                <textarea
+                  value={story}
+                  maxLength={STORY_MAX_LENGTH}
+                  onChange={(e) => setStory(e.target.value)}
+                  placeholder="Ej. Aquí fue nuestro primer viaje juntos."
+                  className="border border-line rounded px-3 py-2"
+                />
+              </label>
+            </div>
+          )}
+
+          {activeStep === 'resumen' && (
+            <div className="mb-6 bg-gallery-white rounded-[9px] p-6">
+              <p className="font-label uppercase tracking-wide text-xs text-graphite/50 mb-1">06 — Tu Relieve</p>
+              <h2 className="font-heading font-bold text-brand-dark text-2xl mb-4">Tu Relieve</h2>
+              <dl className="space-y-2 text-sm mb-6">
+                <div>
+                  <dt className="font-label uppercase tracking-wide text-xs text-graphite/60">Ubicación</dt>
+                  <dd>{location?.formatted_address}</dd>
+                </div>
+                <div>
+                  <dt className="font-label uppercase tracking-wide text-xs text-graphite/60">Tamaño</dt>
+                  <dd>{selectedSize?.label} — {formatDims(selectedSize?.dims)}</dd>
+                </div>
+                <div>
+                  <dt className="font-label uppercase tracking-wide text-xs text-graphite/60">Color</dt>
+                  <dd>{selectedColor?.label}</dd>
+                </div>
+                <div>
+                  <dt className="font-label uppercase tracking-wide text-xs text-graphite/60">Marco</dt>
+                  <dd>{FRAME.label}</dd>
+                </div>
+              </dl>
+              <p className="font-heading font-bold text-brand-dark text-2xl mb-1">
+                {unitPriceCents != null ? `$${(unitPriceCents / 100).toLocaleString('es-MX', { minimumFractionDigits: 2 })} MXN` : '—'}
+              </p>
+              <p className="text-xs text-graphite/50 mb-4">Incluye personalización de ubicación.</p>
+              <p className="text-sm text-graphite/70">Producción · {PRODUCTION_DAYS} días</p>
+              <p className="text-sm text-graphite/70 mb-4">Envío gratis · {SHIPPING_DAYS} días después del envío</p>
+              {!isComplete && (
+                <p className="text-sm text-brand-dark font-bold">Completa tu Relieve para continuar.</p>
+              )}
+              {priceError && (
+                <p className="text-sm text-graphite/60">
+                  No pudimos calcular el precio, intenta de nuevo.{' '}
+                  <button
+                    type="button"
+                    onClick={() => setRetryKey((k) => k + 1)}
+                    className="text-xs text-graphite/60 underline"
+                  >
+                    Reintentar
+                  </button>
+                </p>
+              )}
+            </div>
           )}
         </div>
       )}
 
-      <StepProgress
-        total={STEPS.length}
-        current={currentStep}
-        labels={STEP_LABELS}
-        onBack={goBack}
-        onContinue={goNext}
-        isLast={isLastStep}
-        finalAction={
-          <button
-            type="button"
-            onClick={handleBuy}
-            disabled={!isComplete}
-            className="pill-glass-active text-on-accent px-6 py-3 rounded-[9px] font-heading font-bold w-full disabled:opacity-40"
+      <div className={`max-w-lg mx-auto px-8 ${isLastStep ? 'md:static sticky bottom-0 bg-gallery-white pt-4 pb-6 -mx-8 px-8 border-t border-line md:border-t-0 md:bg-transparent md:pb-0' : ''}`}>
+        <StepProgress
+          total={STEPS.length}
+          current={currentStep}
+          labels={STEP_LABELS}
+          onBack={goBack}
+          onContinue={goNext}
+          isLast={isLastStep}
+          finalAction={
+            <button
+              ref={buyBtnRef}
+              type="button"
+              onClick={handleBuy}
+              disabled={!isComplete}
+              className="pill-glass-active text-on-accent px-6 py-3 rounded-[9px] font-heading font-bold w-full disabled:opacity-40"
+            >
+              Comprar mi Relieve
+            </button>
+          }
+        />
+      </div>
+
+      {justAdded && (
+        <div className="fixed inset-0 z-[200] bg-graphite/40 flex items-center justify-center p-4" onClick={() => setJustAdded(false)}>
+          <div
+            className="glass-card rounded-[9px] p-6 max-w-sm w-full text-center"
+            onClick={(e) => e.stopPropagation()}
           >
-            Comprar mi Relieve
-          </button>
-        }
-      />
+            <p className="text-2xl mb-2">✓</p>
+            <h3 className="font-heading font-bold text-xl mb-4">Relieve añadido al carrito</h3>
+            <dl className="text-sm text-left space-y-1 mb-6">
+              <div className="flex justify-between">
+                <dt className="text-graphite/60">Ubicación</dt>
+                <dd>{location?.formatted_address}</dd>
+              </div>
+              <div className="flex justify-between">
+                <dt className="text-graphite/60">Tamaño</dt>
+                <dd>{formatDims(selectedSize?.dims)}</dd>
+              </div>
+              <div className="flex justify-between">
+                <dt className="text-graphite/60">Color</dt>
+                <dd>{selectedColor?.label}</dd>
+              </div>
+            </dl>
+            <div className="flex flex-col gap-2">
+              <button
+                type="button"
+                onClick={() => navigate('/')}
+                className="pill-glass-active text-on-accent px-6 py-3 rounded-[9px] font-heading font-bold"
+              >
+                Ir al checkout
+              </button>
+              <button
+                type="button"
+                onClick={() => setJustAdded(false)}
+                className="text-sm text-graphite/60 underline"
+              >
+                Seguir diseñando
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </main>
   );
 }
