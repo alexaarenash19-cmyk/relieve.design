@@ -322,3 +322,25 @@ export function panelCloseTimeline({ titleEl, photoEl, metaEl, ctaEl }) {
   }
   return tl;
 }
+
+// ─────────────────────────────────────────────────────────────────────────
+// Task 5 — Confirmación de "agregado al carrito". Un pulso de escala + un
+// breve destello de color en el botón de compra — immediatamente visible sin
+// depender de otro componente que puede no estar montado en pantalla.
+// Mismo criterio de reduced-motion que orderSummaryCardEnter/tilePopIn.
+// ─────────────────────────────────────────────────────────────────────────
+export function addedToCartPulse(el) {
+  const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (!el) return;
+  gsap.fromTo(
+    el,
+    { scale: 1 },
+    {
+      scale: reduced ? 1 : 1.06,
+      duration: reduced ? 0.01 : 0.18,
+      ease: 'power2.out',
+      yoyo: true,
+      repeat: 1,
+    },
+  );
+}
