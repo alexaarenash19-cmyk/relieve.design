@@ -160,7 +160,7 @@ export default function LocationPicker({ aspectRatio, sizeLabel, onConfirm }) {
               El marco (frameRef) sigue siendo un elemento aparte encima,
               centrado, con la proporción del tamaño elegido — sin cambios
               en frameCornersToLatLng ni en cómo se calcula. */}
-          <div className="relative w-full h-[80vh] min-h-[420px] max-h-[900px]">
+          <div className="relative w-full h-[70vh] md:h-[80vh] min-h-[360px] md:min-h-[420px] max-h-[900px]">
             <div ref={mapDivRef} className="absolute inset-0 rounded-[9px] overflow-hidden" />
             <div
               ref={frameRef}
