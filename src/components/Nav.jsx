@@ -104,7 +104,12 @@ export default function Nav() {
         className={`flex items-center justify-between gap-6 px-6 py-2 w-full ${solid ? 'pill-glass' : ''}`}
       >
         <Link to="/" className="flex items-center shrink-0">
-          <img src={wordmark} alt="Relieve Design" className="h-14 w-auto" />
+          <img
+            src={wordmark}
+            alt="Relieve Design"
+            className="h-14 w-auto"
+            style={{ aspectRatio: '524 / 331' }}
+          />
         </Link>
         <div className="md:hidden">
           <FluidMenu />
