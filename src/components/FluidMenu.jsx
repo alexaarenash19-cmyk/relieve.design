@@ -22,74 +22,31 @@
 // reutiliza MenuIconButton.jsx (ese sigue intacto solo en Gallery.jsx,
 // para su propio botón de menú del canvas; no es el mismo trigger, no
 // aplica la regla de "una sola transición por lugar").
+//
+// Solo mobile (15 ago 2026) — este botón hamburguesa que expande sigue
+// siendo el nav en pantallas chicas (Ale confirmó que ahí funciona bien).
+// En md+ ahora vive DesktopNav.jsx en su lugar (ver Nav.jsx, que renderiza
+// ambos y usa `md:hidden`/`hidden md:flex` para alternar) — los 4 items y
+// sus íconos se movieron a mainNavItems.jsx para que ambos los compartan
+// sin duplicar el SVG de cada ícono.
 import { useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { useCart } from '../context/CartContext.jsx';
 import { useEscapeKey } from '../lib/useEscapeKey.js';
 import { useClickOutside } from '../lib/useClickOutside.js';
-
-function GridIcon() {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" width="18" height="18">
-      <rect x="4" y="4" width="7" height="7" rx="1" />
-      <rect x="13" y="4" width="7" height="7" rx="1" />
-      <rect x="4" y="13" width="7" height="7" rx="1" />
-      <rect x="13" y="13" width="7" height="7" rx="1" />
-    </svg>
-  );
-}
-function ContourIcon() {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" width="18" height="18">
-      <circle cx="12" cy="12" r="9" />
-      <circle cx="12" cy="12" r="5.5" />
-      <circle cx="12" cy="12" r="2" />
-    </svg>
-  );
-}
-function BagIcon() {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" width="18" height="18">
-      <path d="M6 8h12l-1 12H7L6 8z" />
-      <path d="M9 8V6a3 3 0 0 1 6 0v2" />
-    </svg>
-  );
-}
-function PencilIcon() {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" width="18" height="18">
-      <path d="M4 20l1-4 11-11 3 3-11 11-4 1z" />
-      <path d="M14 6l3 3" />
-    </svg>
-  );
-}
+import { useMainNavItems } from './mainNavItems.jsx';
 
 const STAGGER_MS = 40;
 
 export default function FluidMenu() {
   const [open, setOpen] = useState(false);
   const containerRef = useRef(null);
-  const { items, toggleCart } = useCart();
-  const count = items.reduce((sum, i) => sum + i.qty, 0);
+  const MENU_ITEMS = useMainNavItems();
 
   function close() {
     setOpen(false);
   }
   useEscapeKey(close);
   useClickOutside(containerRef, close);
-
-  const MENU_ITEMS = [
-    { key: 'colecciones', label: 'Colecciones', icon: <GridIcon />, as: Link, to: '/colecciones' },
-    { key: 'metodo', label: 'Método', icon: <ContourIcon />, as: Link, to: '/metodo-relieve' },
-    {
-      key: 'carrito',
-      label: count > 0 ? `Carrito (${count})` : 'Carrito',
-      icon: <BagIcon />,
-      as: 'button',
-      onClick: toggleCart,
-    },
-    { key: 'personaliza', label: 'Personaliza', icon: <PencilIcon />, as: Link, to: '/personaliza' },
-  ];
 
   return (
     <div ref={containerRef} className="relative">
@@ -155,7 +112,7 @@ export default function FluidMenu() {
                 role="menuitem"
                 className="pill-glass rounded-full w-12 h-12 flex items-center justify-center text-brand-dark transition-colors"
               >
-                {item.icon}
+                <item.icon />
               </Tag>
             </div>
           );

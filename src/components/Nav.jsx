@@ -34,10 +34,21 @@
 // Material: reusa .pill-glass (mismo Liquid Glass del resto del sitio) en
 // vez del bg-gallery-white/95 plano anterior — consistente con el resto
 // de pills/botones ya migrados en la auditoría del 11 ago.
+//
+// Desktop deja de encogerse (15 ago 2026) — Ale reportó que en pantallas
+// grandes el pill-shrink de abajo (navPillMorph) terminaba juntando
+// wordmark+menú en una pill chica centrada que tapaba contenido al bajar.
+// En mobile funciona bien, así que navPillMorph solo corre ahí ahora; en
+// md+ la barra se queda a ancho completo siempre (nunca se anima
+// width/borderRadius/y), solo cambia de fondo transparente a pill-glass.
+// FluidMenu (hamburguesa) sigue siendo el menú en mobile; DesktopNav.jsx
+// (barra horizontal siempre visible, con label) lo reemplaza en md+ — ver
+// mainNavItems.jsx para los 4 items que ambos comparten.
 import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import wordmark from '../assets/brand/wordmark.svg';
 import FluidMenu from './FluidMenu.jsx';
+import DesktopNav from './DesktopNav.jsx';
 import { navPillMorph } from '../lib/animations.js';
 
 // Was 72px — too easy to miss on a normal-sized viewport, effectively
@@ -75,7 +86,10 @@ export default function Nav() {
   }, []);
 
   useEffect(() => {
-    navPillMorph(pillRef.current, solid);
+    // Solo mobile — ver nota arriba. Chequeo una vez, mismo criterio que
+    // el chequeo de `(pointer: fine)` de arriba (no escucha resize).
+    const isDesktop = window.matchMedia('(min-width: 768px)').matches;
+    if (!isDesktop) navPillMorph(pillRef.current, solid);
   }, [solid]);
 
   return (
@@ -92,7 +106,12 @@ export default function Nav() {
         <Link to="/" className="flex items-center shrink-0">
           <img src={wordmark} alt="Relieve Design" className="h-14 w-auto" />
         </Link>
-        <FluidMenu />
+        <div className="md:hidden">
+          <FluidMenu />
+        </div>
+        <div className="hidden md:flex">
+          <DesktopNav />
+        </div>
       </div>
     </nav>
   );
