@@ -6,7 +6,7 @@
 // de lead-capture (POST /api/personaliza, tabla personalize_requests)
 // queda en el backend sin uso — no se borra (bajo riesgo, cero costo de
 // mantenerla), simplemente esta página ya no la llama.
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import StepProgress from '../components/StepProgress.jsx';
 import LocationPicker from '../components/LocationPicker.jsx';
@@ -14,6 +14,7 @@ import TerrainPreview from '../components/TerrainPreview.jsx';
 import { useCart } from '../context/CartContext.jsx';
 import { useDocumentHead } from '../lib/useDocumentHead.js';
 import { fetchJson } from '../lib/fetchJsonArray.js';
+import { addedToCartPulse } from '../lib/animations.js';
 import { WALL_SIZES, COLORS, FRAMES, PRODUCTION_DAYS, SHIPPING_DAYS, formatDims } from '../lib/catalog.js';
 
 // D8-D10 (Product.jsx, 14 ago 2026) — mismo criterio aquí: Parota Nacional
@@ -51,6 +52,8 @@ export default function Personalize() {
   // way out was going back and re-selecting the size). Bumping this state
   // re-triggers the pricing effect below without touching sizeCode.
   const [retryKey, setRetryKey] = useState(0);
+  const [justAdded, setJustAdded] = useState(false);
+  const buyBtnRef = useRef(null);
 
   // docs/superpowers/specs sección 3 — "el precio debe actualizarse
   // inmediatamente cuando el usuario cambie el tamaño". Mismo patrón que
@@ -131,7 +134,14 @@ export default function Personalize() {
       orientation: 'horizontal',
       memory_note: story || null,
     });
-    navigate('/'); // el carrito abre solo (CartContext.addItem ya hace openCart)
+    addedToCartPulse(buyBtnRef.current);
+    setJustAdded(true);
+    // Nota: ya NO se navega a '/' inmediatamente — el mini-cart de abajo
+    // decide cuándo navegar (checkout) o si el usuario prefiere seguir en
+    // esta página ("Seguir diseñando"). CartContext.addItem() ya sigue
+    // abriendo el CartDrawer completo por su cuenta (setIsOpen(true),
+    // sin cambios) — este panel es un mensaje inmediato ADEMÁS de eso,
+    // no en su lugar.
   }
 
   const activeStep = STEPS[currentStep - 1];
@@ -309,6 +319,7 @@ export default function Personalize() {
           isLast={isLastStep}
           finalAction={
             <button
+              ref={buyBtnRef}
               type="button"
               onClick={handleBuy}
               disabled={!isComplete}
@@ -319,6 +330,48 @@ export default function Personalize() {
           }
         />
       </div>
+
+      {justAdded && (
+        <div className="fixed inset-0 z-[200] bg-graphite/40 flex items-center justify-center p-4" onClick={() => setJustAdded(false)}>
+          <div
+            className="glass-card rounded-[9px] p-6 max-w-sm w-full text-center"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <p className="text-2xl mb-2">✓</p>
+            <h3 className="font-heading font-bold text-xl mb-4">Relieve añadido al carrito</h3>
+            <dl className="text-sm text-left space-y-1 mb-6">
+              <div className="flex justify-between">
+                <dt className="text-graphite/60">Ubicación</dt>
+                <dd>{location?.formatted_address}</dd>
+              </div>
+              <div className="flex justify-between">
+                <dt className="text-graphite/60">Tamaño</dt>
+                <dd>{formatDims(selectedSize?.dims)}</dd>
+              </div>
+              <div className="flex justify-between">
+                <dt className="text-graphite/60">Color</dt>
+                <dd>{selectedColor?.label}</dd>
+              </div>
+            </dl>
+            <div className="flex flex-col gap-2">
+              <button
+                type="button"
+                onClick={() => navigate('/')}
+                className="pill-glass-active text-on-accent px-6 py-3 rounded-[9px] font-heading font-bold"
+              >
+                Ir al checkout
+              </button>
+              <button
+                type="button"
+                onClick={() => setJustAdded(false)}
+                className="text-sm text-graphite/60 underline"
+              >
+                Seguir diseñando
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </main>
   );
 }
