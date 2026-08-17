@@ -2,7 +2,7 @@
 // src/assets/photography/README.md). New pieces/<slug>/ folders are picked
 // up automatically via import.meta.glob — adding a piece's photos needs no
 // edit here, only the correctly-named files.
-import heroAerialCity from '../assets/photography/hero/aerial-city.jpg';
+import heroAerialCity from '../assets/photography/hero/aerial-city.webp';
 import aboutProceso from '../assets/photography/about/proceso.jpg';
 import aboutImpresion from '../assets/photography/about/impresion.jpg';
 
