@@ -44,11 +44,23 @@
 // FluidMenu (hamburguesa) sigue siendo el menú en mobile; DesktopNav.jsx
 // (barra horizontal siempre visible, con label) lo reemplaza en md+ — ver
 // mainNavItems.jsx para los 4 items que ambos comparten.
+//
+// Barra unificada en desktop (17 ago 2026) — Ale reportó la pill de
+// DesktopNav (extremo derecho) chocando visualmente con el toggle "vista
+// cuadrícula" de Gallery.jsx en /colecciones, y mandó una referencia
+// (Aceternity resizable-navbar) con logo+links+acciones en una sola
+// barra. En vez de dos pills separadas (logo a la izquierda, DesktopNav
+// aparte a la derecha), ahora el grupo {logo + DesktopNavLinks} queda
+// junto a la izquierda y {DesktopCartLink} solo a la derecha, dentro del
+// mismo <div ref={pillRef}> — sigue siendo un solo justify-between de dos
+// grupos, no tres, para que el carrito quede pegado al borde derecho.
+// DesktopNav.jsx perdió su pill propia (rounded-full px-2 h-14) y su
+// indicador de página activa — ver ese archivo.
 import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import wordmark from '../assets/brand/wordmark.svg';
 import FluidMenu from './FluidMenu.jsx';
-import DesktopNav from './DesktopNav.jsx';
+import DesktopNavLinks, { DesktopCartLink } from './DesktopNav.jsx';
 import { navPillMorph } from '../lib/animations.js';
 
 // Was 72px — too easy to miss on a normal-sized viewport, effectively
@@ -103,19 +115,24 @@ export default function Nav() {
         ref={pillRef}
         className={`flex items-center justify-between gap-6 px-6 py-2 w-full ${solid ? 'pill-glass' : ''}`}
       >
-        <Link to="/" className="flex items-center shrink-0">
-          <img
-            src={wordmark}
-            alt="Relieve Design"
-            className="h-14 w-auto"
-            style={{ aspectRatio: '524 / 331' }}
-          />
-        </Link>
+        <div className="flex items-center gap-8">
+          <Link to="/" className="flex items-center shrink-0">
+            <img
+              src={wordmark}
+              alt="Relieve Design"
+              className="h-14 w-auto"
+              style={{ aspectRatio: '524 / 331' }}
+            />
+          </Link>
+          <div className="hidden md:flex">
+            <DesktopNavLinks />
+          </div>
+        </div>
         <div className="md:hidden">
           <FluidMenu />
         </div>
         <div className="hidden md:flex">
-          <DesktopNav />
+          <DesktopCartLink />
         </div>
       </div>
     </nav>
