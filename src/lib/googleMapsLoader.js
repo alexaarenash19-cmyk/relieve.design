@@ -3,6 +3,8 @@
 // google.maps.ElevationService) comparten la misma carga en vez de cada
 // uno inyectar su propio <script>. libraries=places,elevation trae los dos
 // paquetes que este feature necesita en una sola descarga.
+import { getTrustedTypesPolicy } from './trustedTypesPolicy.js';
+
 let loadPromise = null;
 
 export function loadGoogleMaps() {
