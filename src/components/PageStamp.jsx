@@ -15,7 +15,7 @@ export default function PageStamp() {
 
   return (
     <div key={pathname} className="page-stamp" aria-hidden="true">
-      <img src={mark} alt="" className="page-stamp-mark" style={{ aspectRatio: '16 / 9' }} />
+      <img src={mark} alt="" fetchPriority="high" className="page-stamp-mark" style={{ aspectRatio: '16 / 9' }} />
     </div>
   );
 }
