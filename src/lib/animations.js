@@ -287,16 +287,37 @@ export function orderSummaryCardEnter(el) {
 // clase .pill-glass vía React state (solid), no GSAP — esta función solo
 // anima forma (width/borderRadius/y).
 // ─────────────────────────────────────────────────────────────────────────
+// Forced-reflow fix (17 ago 2026, PageSpeed follow-up) -- navPillMorph used
+// to measure fit-content width with a write/read/write on every single
+// call: el.style.width='fit-content' (write) -> el.offsetWidth (read,
+// forces a synchronous layout recalc right after the write) -> restore
+// (write). Nav.jsx only calls this on mobile, every time `solid` flips
+// (scrollY crossing the 40px threshold) -- on mobile that threshold can
+// flip repeatedly from rubber-band overscroll, firing the forced reflow
+// over and over. Lighthouse's "forced reflow" trace pointed at this file;
+// it's also why CLS got WORSE on mobile after the other perf fixes landed
+// (slower CPU makes each forced layout more expensive/visible). The pill's
+// natural content width doesn't change between calls, so measure once and
+// cache it instead of re-measuring every time.
+// ponytail: cached per element for the session, not invalidated on window
+// resize/orientation change -- add a resize listener to clear the cache if
+// a stale width after rotating becomes a real reported bug.
+const pillFitWidthCache = new WeakMap();
+
 export function navPillMorph(el, solid) {
   if (!el) return;
   const reduced = reduceMotion();
   const duration = reduced ? 0.01 : 0.5;
 
   if (solid) {
-    const prevWidth = el.style.width;
-    el.style.width = 'fit-content';
-    const targetW = el.offsetWidth;
-    el.style.width = prevWidth;
+    let targetW = pillFitWidthCache.get(el);
+    if (targetW === undefined) {
+      const prevWidth = el.style.width;
+      el.style.width = 'fit-content';
+      targetW = el.offsetWidth;
+      el.style.width = prevWidth;
+      pillFitWidthCache.set(el, targetW);
+    }
     gsap.to(el, { width: targetW, borderRadius: '9999px', y: 8, duration, ease: 'relieveEase' });
   } else {
     gsap.to(el, { width: '100%', borderRadius: '0px', y: 0, duration, ease: 'relieveEase' });
