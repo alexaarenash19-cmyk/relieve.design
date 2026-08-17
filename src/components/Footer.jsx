@@ -74,6 +74,15 @@ export default function Footer() {
                 Términos
               </Link>
             </li>
+            <li>
+              {/* Página aún no existe -- Ale conecta el contenido despues (16 ago 2026). */}
+              <Link
+                to="/cuidado"
+                className="hover:text-passport-ink hover:underline"
+              >
+                Cuidado
+              </Link>
+            </li>
           </ul>
         </FooterColumn>
 
