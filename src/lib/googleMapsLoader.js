@@ -3,6 +3,8 @@
 // google.maps.ElevationService) comparten la misma carga en vez de cada
 // uno inyectar su propio <script>. libraries=places,elevation trae los dos
 // paquetes que este feature necesita en una sola descarga.
+import { getTrustedTypesPolicy } from './trustedTypesPolicy.js';
+
 let loadPromise = null;
 
 export function loadGoogleMaps() {
@@ -25,7 +27,9 @@ export function loadGoogleMaps() {
       return;
     }
     const script = document.createElement('script');
-    script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places,elevation&v=weekly`;
+    const url = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places,elevation&v=weekly`;
+    const ttPolicy = getTrustedTypesPolicy();
+    script.src = ttPolicy ? ttPolicy.createScriptURL(url) : url;
     script.async = true;
     script.onload = () => resolve(window.google.maps);
     script.onerror = () => {
