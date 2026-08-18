@@ -9,6 +9,13 @@ import { fetchJsonArray } from '../lib/fetchJsonArray.js';
 import { CATEGORIES, categoryLabel } from '../lib/categories.js';
 import { SIZES } from '../lib/catalog.js';
 import { useProductPanel } from '../context/ProductPanelContext.jsx';
+// Barra unificada (18 ago 2026) — el toggle "vista cuadrícula"/"vista
+// lienzo" (antes ExperienceToggle, más abajo en este archivo) vivía como
+// pill sticky propia y chocaba visualmente con Nav.jsx en desktop. Mismo
+// patrón que ProductPanelContext de arriba: este componente escribe su
+// estado de vista aquí, Nav.jsx (montado global en App.jsx) lo lee y
+// dibuja el control dentro de la misma barra — ver DesktopNav.jsx.
+import { useGalleryView } from '../context/GalleryViewContext.jsx';
 // Museográfico pass (11 ago 2026) — the menu-icon-morph button (square ->
 // circle/X) is now shared with Nav.jsx's own "Índice" trigger instead of
 // living only here; extracted verbatim to MenuIconButton.jsx, this file
@@ -504,39 +511,6 @@ function ScatteredCanvas({ items, zoom }) {
   );
 }
 
-function ExperienceToggle({ view, onChange }) {
-  // sticky (not fixed) so it stops tracking once the gallery section scrolls
-  // past — a viewport-fixed pill would otherwise float over Testimonials
-  // and the footer below.
-  return (
-    <div className="sticky top-20 z-30 flex justify-center">
-      <button
-        onClick={() => onChange(view === 'scattered' ? 'grid' : 'scattered')}
-        // Hallazgo (auditoría 10 ago 2026): graphite fragmentaba el acento
-        // frente a GHOST_PILL/DARK_PILL (definidos más abajo en este mismo
-        // archivo), que ya fijan brand-dark como el único acento de pill
-        // post-rebrand.
-        className="pill-glass flex items-center gap-2 rounded-full text-brand-dark px-4 py-[7px] font-body text-xs"
-      >
-        <svg viewBox="0 0 12 12" width="10" height="10" aria-hidden="true">
-          {[0, 1, 2].flatMap((r) =>
-            [0, 1, 2].map((c) => (
-              <circle
-                key={`${r}-${c}`}
-                cx={c * 5 + 1}
-                cy={r * 5 + 1}
-                r="1"
-                fill="currentColor"
-              />
-            )),
-          )}
-        </svg>
-        {view === 'scattered' ? 'vista cuadrícula' : 'vista lienzo'}
-      </button>
-    </div>
-  );
-}
-
 // Ghost pill (closed/inactive) vs. dark pill (active/expanded or a child
 // chip). Ghost pills are fully transparent — no fill at all, per Palmer:
 // "no background fill, it's an outlined ghost pill" — so they float
@@ -845,9 +819,17 @@ export default function Gallery({ zoomIn = false }) {
   // in any size/color, so these don't touch the /api/places query.
   const [size, setSize] = useState('');
   const [color, setColor] = useState('');
-  const [view, setView] = useState('scattered');
+  // vista cuadrícula/lienzo: estado y control ahora viven en Nav.jsx (ver
+  // GalleryViewContext) — setActive avisa que el toggle debe mostrarse
+  // mientras esta página está montada, y desaparece al salir de ella.
+  const { view, setView, setActive } = useGalleryView();
   const [zoom, setZoom] = useState(1);
   const settled = useZoomIn(zoomIn);
+
+  useEffect(() => {
+    setActive(true);
+    return () => setActive(false);
+  }, [setActive]);
 
   useEffect(() => {
     const query = type ? `?type=${type}` : '';
@@ -883,8 +865,6 @@ export default function Gallery({ zoomIn = false }) {
             : 'scale(1.15) translateY(-70px)',
         }}
       >
-        <ExperienceToggle view={view} onChange={setView} />
-
         {loadFailed && places.length === 0 && (
           <p className="text-center font-label uppercase tracking-wide text-xs text-graphite/60 py-8">
             No pudimos cargar el catálogo. Intenta recargar la página.

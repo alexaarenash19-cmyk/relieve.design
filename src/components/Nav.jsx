@@ -56,11 +56,17 @@
 // grupos, no tres, para que el carrito quede pegado al borde derecho.
 // DesktopNav.jsx perdió su pill propia (rounded-full px-2 h-14) y su
 // indicador de página activa — ver ese archivo.
+//
+// Toggle "vista cuadrícula"/"vista lienzo" (18 ago 2026) — el mismo
+// choque visual pasaba con la pill sticky de Gallery.jsx (Home). Ahora
+// DesktopViewToggle vive en el grupo de la derecha, junto a
+// DesktopCartLink, y se auto-oculta (return null) en cualquier página que
+// no sea Home — ver GalleryViewContext.jsx.
 import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import wordmark from '../assets/brand/wordmark.svg';
 import FluidMenu from './FluidMenu.jsx';
-import DesktopNavLinks, { DesktopCartLink } from './DesktopNav.jsx';
+import DesktopNavLinks, { DesktopCartLink, DesktopViewToggle } from './DesktopNav.jsx';
 import { navPillMorph } from '../lib/animations.js';
 
 // Was 72px — too easy to miss on a normal-sized viewport, effectively
@@ -131,7 +137,8 @@ export default function Nav() {
         <div className="md:hidden">
           <FluidMenu />
         </div>
-        <div className="hidden md:flex">
+        <div className="hidden md:flex items-center gap-6">
+          <DesktopViewToggle />
           <DesktopCartLink />
         </div>
       </div>

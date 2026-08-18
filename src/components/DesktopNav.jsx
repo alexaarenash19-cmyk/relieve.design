@@ -14,7 +14,12 @@
 // y el -translate-y-1/2 del hover se mueve exactamente esos 20px.
 // Los 4 items siguen viniendo de mainNavItems.jsx, compartidos con
 // FluidMenu.jsx (mobile, que conserva íconos — no se tocó).
+// Toggle "vista cuadrícula"/"vista lienzo" (18 ago 2026) — antes era una
+// pill sticky propia dentro de Gallery.jsx que chocaba con esta barra;
+// ahora vive aquí como un item más, solo visible mientras Gallery está
+// montada (GalleryViewContext.active) — ver ese archivo.
 import { useMainNavItems } from './mainNavItems.jsx';
+import { useGalleryView } from '../context/GalleryViewContext.jsx';
 
 function AnimatedNavItem({ as: Tag = 'a', children, ...props }) {
   return (
@@ -57,6 +62,23 @@ export function DesktopCartLink() {
   return (
     <AnimatedNavItem as="button" type="button" onClick={cart.onClick}>
       {cart.label}
+    </AnimatedNavItem>
+  );
+}
+
+// Solo se dibuja mientras Gallery.jsx está montada (Home) — en el resto de
+// páginas no hay nada que alternar, así que no hay control.
+export function DesktopViewToggle() {
+  const { view, setView, active } = useGalleryView();
+  if (!active) return null;
+
+  return (
+    <AnimatedNavItem
+      as="button"
+      type="button"
+      onClick={() => setView(view === 'scattered' ? 'grid' : 'scattered')}
+    >
+      {view === 'scattered' ? 'vista cuadrícula' : 'vista lienzo'}
     </AnimatedNavItem>
   );
 }
