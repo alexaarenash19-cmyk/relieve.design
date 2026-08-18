@@ -155,7 +155,18 @@ export function GalleryCard({ place, variant = 'grid', slot, gridIndex = 0 }) {
           // exists). The dashed border + soft gradient (vs. flat fill)
           // and the explicit "Próximamente" caption below do that without
           // fabricating a photo.
-          photo ? 'bg-stone' : 'bg-gradient-to-br from-stone to-stone/60 border border-dashed border-graphite/25'
+          //
+          // Fondo transparente en el canvas (18 ago 2026) — main-thumb
+          // de las 5 piezas pasó a PNG sin fondo de estudio (ver
+          // photography.js), pero el bg-stone de esta caja seguía
+          // rellenando el recorte irregular de la pieza, así que se veía
+          // un rectángulo de color detrás en vez del crema del canvas.
+          // Solo se quita en 'scattered' — 'grid'/'explorarGrid'
+          // (/buscar, /colecciones, "vista cuadrícula") no se tocan, ahí
+          // la foto sigue con su fondo de estudio original.
+          photo
+            ? variant === 'scattered' ? '' : 'bg-stone'
+            : 'bg-gradient-to-br from-stone to-stone/60 border border-dashed border-graphite/25'
         } ${
           variant === 'scattered'
             ? 'shadow-[0_16px_32px_-16px_rgba(35,35,35,0.35)]'
