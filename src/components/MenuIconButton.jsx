@@ -64,7 +64,13 @@ export default function MenuIconButton({ open, onToggle, label = 'menu', classNa
       onMouseLeave={onLeave}
       aria-label={open ? 'Cerrar' : 'Abrir menú'}
       aria-expanded={open}
-      className={`pill-glass rounded-full text-brand-dark pl-[10px] pr-4 py-2 font-label uppercase tracking-wide text-xs inline-flex items-center gap-2 overflow-hidden ${className}`}
+      // font-heading font-bold (18 ago 2026, no font-label) — GHOST_PILL/
+      // DARK_PILL en Gallery.jsx (el botón "filtrar" de al lado, mismo
+      // bottom bar) ya usan esa combinación; este botón traía font-label
+      // sin negrita, se veía visiblemente más chico/delgado que "filtrar"
+      // aunque ambos declaraban text-xs — familias tipográficas distintas
+      // con métricas distintas, no un tamaño real distinto.
+      className={`pill-glass rounded-full text-brand-dark pl-[10px] pr-4 py-2 font-heading font-bold uppercase tracking-wide text-xs inline-flex items-center gap-2 overflow-hidden ${className}`}
     >
       <span ref={boxRef} className="explorar-menu-icon-box">
         <span ref={lineTopRef} className="explorar-menu-line explorar-line-top" />
