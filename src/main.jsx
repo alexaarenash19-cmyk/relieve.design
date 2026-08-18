@@ -5,6 +5,7 @@ import App from './App.jsx';
 import { CartProvider } from './context/CartContext.jsx';
 import { PageWipeProvider } from './context/PageWipeContext.jsx';
 import { ProductPanelProvider } from './context/ProductPanelContext.jsx';
+import { GalleryViewProvider } from './context/GalleryViewContext.jsx';
 import './index.css';
 
 createRoot(document.getElementById('root')).render(
@@ -13,7 +14,9 @@ createRoot(document.getElementById('root')).render(
       <PageWipeProvider>
         <CartProvider>
           <ProductPanelProvider>
-            <App />
+            <GalleryViewProvider>
+              <App />
+            </GalleryViewProvider>
           </ProductPanelProvider>
         </CartProvider>
       </PageWipeProvider>
