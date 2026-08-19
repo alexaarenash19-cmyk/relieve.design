@@ -24,6 +24,7 @@ import { useFadeInView } from '../lib/useFadeInView.js';
 import Button from './Button.jsx';
 import { HERO_AERIAL_CITY } from '../lib/photography.js';
 import { SHOW_SOCIAL_PROOF } from '../lib/catalog.js';
+import wordmark from '../assets/brand/wordmark.svg';
 
 export default function Hero() {
   const [ref, visible] = useFadeInView();
@@ -63,6 +64,12 @@ export default function Hero() {
           }}
         />
         <div className="absolute top-8 left-8 right-8 md:right-auto md:max-w-xl">
+          <img
+            src={wordmark}
+            alt="Relieve Design"
+            className="w-[min(50vw,320px)] h-auto mb-4"
+            style={{ aspectRatio: '524 / 331' }}
+          />
           <h1 className="font-heading font-bold text-brand-dark text-[clamp(2rem,3.2vw+1rem,3.75rem)] leading-[1.05] tracking-[-0.02em]" style={{ textShadow: '0 2px 24px rgba(26,27,25,0.35)' }}>
             No recuerdas un lugar. Recuerdas quién eras ahí.
           </h1>
