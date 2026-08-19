@@ -8,6 +8,7 @@ import {
   markSeen,
   parseCssDurationMs,
   pickRevealStartIndex,
+  shouldSkipReveal,
 } from './loadingReveal.js';
 
 // Minimal in-memory stand-in for sessionStorage.
@@ -59,5 +60,12 @@ assert.strictEqual(parseCssDurationMs('garbage'), DEFAULT_DURATION_MS);
 assert.ok(pickRevealStartIndex() < REVEAL_SLUGS.length);
 assert.strictEqual(pickRevealStartIndex(() => 0), 0);
 assert.strictEqual(pickRevealStartIndex(() => 0.999), REVEAL_SLUGS.length - 1);
+
+// shouldSkipReveal matches /personaliza with or without a trailing slash,
+// case-insensitively, and leaves other routes alone.
+assert.strictEqual(shouldSkipReveal('/personaliza'), true);
+assert.strictEqual(shouldSkipReveal('/personaliza/'), true);
+assert.strictEqual(shouldSkipReveal('/Personaliza'), true);
+assert.strictEqual(shouldSkipReveal('/colecciones'), false);
 
 console.log('loading reveal helper checks: OK');

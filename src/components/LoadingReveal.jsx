@@ -57,6 +57,7 @@ import {
   REVEAL_SLUGS,
   parseCssDurationMs,
   pickRevealStartIndex,
+  shouldSkipReveal,
 } from '../lib/loadingReveal.js';
 
 function getSessionStorage() {
@@ -87,7 +88,7 @@ export default function LoadingReveal() {
 
   const [visible, setVisible] = useState(() => {
     if (alreadySeen(getSessionStorage())) return false;
-    if (initialPathname === '/personaliza') {
+    if (shouldSkipReveal(initialPathname)) {
       // Skip on /personaliza (checkout) — mark the session seen right away
       // so navigating elsewhere later in the same session doesn't trigger
       // it mid-session either.
@@ -108,7 +109,9 @@ export default function LoadingReveal() {
     if (!visible) return;
     markSeen(getSessionStorage());
 
-    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const reduced = window.matchMedia(
+      '(prefers-reduced-motion: reduce)',
+    ).matches;
     if (reduced) {
       // Sin reveal — mismo criterio que la versión anterior de este
       // archivo: fundido rápido del overlay completo, sin la mecánica de
@@ -130,7 +133,9 @@ export default function LoadingReveal() {
     // justo cuando la máscara termina de crecer haría un flash de vuelta a
     // la primera foto en el peor momento.
     const totalMs = parseCssDurationMs(
-      getComputedStyle(document.documentElement).getPropertyValue('--loading-reveal-duration'),
+      getComputedStyle(document.documentElement).getPropertyValue(
+        '--loading-reveal-duration',
+      ),
     );
     const intervalMs = totalMs / REVEAL_SLUGS.length;
     const rotationTimer = setInterval(() => {
@@ -150,8 +155,18 @@ export default function LoadingReveal() {
     }
     const photoEl = photoRef.current;
     photoEl?.addEventListener('animationend', onMaskDone, { once: true });
+
+    // Failsafe: if the photo <img> never renders (pieceMainPhoto() returns
+    // falsy for a slug — not the case for any of the 5 committed today, but
+    // guarded against regardless), there's no animationend listener and
+    // onMaskDone would never fire, leaving the opaque overlay stuck forever.
+    // onMaskDone is safe to call twice (setVisible(false) is a no-op once
+    // already false), so a plain backup timer is enough.
+    const failsafeTimer = setTimeout(onMaskDone, totalMs + 500);
+
     return () => {
       clearInterval(rotationTimer);
+      clearTimeout(failsafeTimer);
       photoEl?.removeEventListener('animationend', onMaskDone);
     };
   }, [visible]);
