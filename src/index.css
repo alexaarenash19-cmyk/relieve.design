@@ -371,8 +371,11 @@ body::before {
    referencia). CSS puro en vez de JS-ticked por la misma razón de
    confiabilidad que .tile-pop-in/.canvas-tile:hover arriba: no depende de
    que el JS alcance a programar cada frame. */
+:root {
+  --loading-reveal-duration: 3s;
+}
 .loading-reveal-mask {
-  animation: loading-reveal-mask 3s cubic-bezier(0.2, 0.6, 0.2, 1) forwards;
+  animation: loading-reveal-mask var(--loading-reveal-duration) cubic-bezier(0.2, 0.6, 0.2, 1) forwards;
 }
 @keyframes loading-reveal-mask {
   from {
@@ -387,7 +390,7 @@ body::before {
 /* El wordmark se ve chico al centro al inicio y se desvanece a la mitad
    del reveal, conforme el círculo de la foto crece sobre él. */
 .loading-reveal-wordmark-fade {
-  animation: loading-reveal-wordmark 3s ease-out forwards;
+  animation: loading-reveal-wordmark var(--loading-reveal-duration) ease-out forwards;
 }
 @keyframes loading-reveal-wordmark {
   0%,
