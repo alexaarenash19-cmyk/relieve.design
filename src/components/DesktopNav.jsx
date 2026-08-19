@@ -18,6 +18,11 @@
 // pill sticky propia dentro de Gallery.jsx que chocaba con esta barra;
 // ahora vive aquí como un item más, solo visible mientras Gallery está
 // montada (GalleryViewContext.active) — ver ese archivo.
+// Carrito como botón pill sólido (18 ago 2026) — referencia tipo Apple
+// menu bar (Ale): el link de acción principal (Carrito) se distingue del
+// resto con vidrio sólido en vez del texto+hover de AnimatedNavItem,
+// misma receta que Button.jsx (.pill-glass-active text-on-accent
+// font-heading font-bold), a menor escala para caber en la barra.
 import { useMainNavItems } from './mainNavItems.jsx';
 import { useGalleryView } from '../context/GalleryViewContext.jsx';
 
@@ -60,9 +65,13 @@ export function DesktopCartLink() {
   if (!cart) return null;
 
   return (
-    <AnimatedNavItem as="button" type="button" onClick={cart.onClick}>
+    <button
+      type="button"
+      onClick={cart.onClick}
+      className="inline-flex items-center rounded-full px-4 py-1.5 pill-glass-active text-on-accent font-heading font-bold text-xs uppercase tracking-wide active:scale-[0.98] transition-transform duration-200"
+    >
       {cart.label}
-    </AnimatedNavItem>
+    </button>
   );
 }
 

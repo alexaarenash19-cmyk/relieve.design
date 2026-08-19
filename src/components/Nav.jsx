@@ -62,6 +62,16 @@
 // DesktopViewToggle vive en el grupo de la derecha, junto a
 // DesktopCartLink, y se auto-oculta (return null) en cualquier página que
 // no sea Home — ver GalleryViewContext.jsx.
+//
+// Cápsula compacta en desktop (18 ago 2026) — Ale mandó una referencia
+// tipo Apple menu bar: cápsula que se ajusta a su contenido, no una franja
+// de borde a borde. Revierte solo la FORMA de la nota "Desktop deja de
+// encogerse" de arriba (ese cambio evitaba animar width/borderRadius por
+// JS al hacer scroll, no ser una cápsula en reposo) — acá no hay animación
+// nueva, `md:w-fit md:rounded-full` deja el contenedor siempre como
+// cápsula, angosto y centrado, en vez de ancho completo. El swap
+// transparente/pill-glass por scroll sigue igual. navPillMorph (mobile)
+// no se toca.
 import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import wordmark from '../assets/brand/wordmark.svg';
@@ -119,7 +129,7 @@ export default function Nav() {
     >
       <div
         ref={pillRef}
-        className={`flex items-center justify-between gap-6 px-6 py-2 w-full ${solid ? 'pill-glass' : ''}`}
+        className={`flex items-center justify-between gap-6 px-6 py-2 w-full md:w-fit md:rounded-full ${solid ? 'pill-glass' : ''}`}
       >
         <div className="flex items-center gap-8">
           <Link to="/" className="flex items-center shrink-0">
