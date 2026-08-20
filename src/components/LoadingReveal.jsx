@@ -47,10 +47,18 @@
 //   pantalla cubre el viewport entero con object-cover, y el thumb se
 //   vería visiblemente borroso estirado a ese tamaño.
 import { useEffect, useRef, useState } from 'react';
+import { useLocation } from 'react-router-dom';
 import gsap from 'gsap';
 import wordmark from '../assets/brand/wordmark.svg';
 import { pieceMainPhoto } from '../lib/photography.js';
-import { alreadySeen, markSeen, pickRevealSlug } from '../lib/loadingReveal.js';
+import {
+  alreadySeen,
+  markSeen,
+  REVEAL_SLUGS,
+  parseCssDurationMs,
+  pickRevealStartIndex,
+  shouldSkipReveal,
+} from '../lib/loadingReveal.js';
 
 function getSessionStorage() {
   try {
@@ -68,22 +76,47 @@ const MASK_CIRCLE_SVG =
   "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='50' fill='black'/%3E%3C/svg%3E";
 
 export default function LoadingReveal() {
-  const [visible, setVisible] = useState(() => !alreadySeen(getSessionStorage()));
+  const location = useLocation();
+  // Captured once on first mount — this screen is mounted for the app's
+  // whole life (App.jsx, outside <Routes>), so location.pathname would
+  // otherwise keep changing on every later navigation. Only where the
+  // visitor *first* lands decides whether the preloader shows at all.
+  // (useState's lazy initializer, not useRef — the setter is never called,
+  // so it stays fixed, and it avoids feeding a ref value into another
+  // hook's callback below.)
+  const [initialPathname] = useState(() => location.pathname);
+
+  const [visible, setVisible] = useState(() => {
+    if (alreadySeen(getSessionStorage())) return false;
+    if (shouldSkipReveal(initialPathname)) {
+      // Skip on /personaliza (checkout) — mark the session seen right away
+      // so navigating elsewhere later in the same session doesn't trigger
+      // it mid-session either.
+      markSeen(getSessionStorage());
+      return false;
+    }
+    return true;
+  });
   const rootRef = useRef(null);
   const photoRef = useRef(null);
 
-  const photoSlug = useRef(pickRevealSlug()).current;
+  const startIndex = useRef(pickRevealStartIndex()).current;
+  const [tick, setTick] = useState(0);
+  const photoSlug = REVEAL_SLUGS[(startIndex + tick) % REVEAL_SLUGS.length];
   const photoUrl = pieceMainPhoto(photoSlug);
 
   useEffect(() => {
     if (!visible) return;
     markSeen(getSessionStorage());
 
-    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const reduced = window.matchMedia(
+      '(prefers-reduced-motion: reduce)',
+    ).matches;
     if (reduced) {
       // Sin reveal — mismo criterio que la versión anterior de este
       // archivo: fundido rápido del overlay completo, sin la mecánica de
-      // círculo/wordmark.
+      // círculo/wordmark. Tampoco arranca el rotador de fotos: se queda en
+      // la única foto (índice random) del mount.
       gsap.to(rootRef.current, {
         opacity: 0,
         duration: 0.3,
@@ -92,6 +125,22 @@ export default function LoadingReveal() {
       });
       return;
     }
+
+    // Rotador de fotos — swap de src cada intervalMs (600ms con el default
+    // de 3s / 5 fotos) sobre el mismo <img>/ref, sin remount (ver nota en
+    // el JSX: NO key={photoSlug} ahí, remontaría y reiniciaría/duplicaría
+    // el listener de animationend de abajo). Clamp, no wrap — envolver a 0
+    // justo cuando la máscara termina de crecer haría un flash de vuelta a
+    // la primera foto en el peor momento.
+    const totalMs = parseCssDurationMs(
+      getComputedStyle(document.documentElement).getPropertyValue(
+        '--loading-reveal-duration',
+      ),
+    );
+    const intervalMs = totalMs / REVEAL_SLUGS.length;
+    const rotationTimer = setInterval(() => {
+      setTick((t) => Math.min(t + 1, REVEAL_SLUGS.length - 1));
+    }, intervalMs);
 
     // El crecimiento del círculo corre solo (CSS, .loading-reveal-mask).
     // Cuando termina, un fundido corto del overlay completo (GSAP) antes
@@ -106,7 +155,20 @@ export default function LoadingReveal() {
     }
     const photoEl = photoRef.current;
     photoEl?.addEventListener('animationend', onMaskDone, { once: true });
-    return () => photoEl?.removeEventListener('animationend', onMaskDone);
+
+    // Failsafe: if the photo <img> never renders (pieceMainPhoto() returns
+    // falsy for a slug — not the case for any of the 5 committed today, but
+    // guarded against regardless), there's no animationend listener and
+    // onMaskDone would never fire, leaving the opaque overlay stuck forever.
+    // onMaskDone is safe to call twice (setVisible(false) is a no-op once
+    // already false), so a plain backup timer is enough.
+    const failsafeTimer = setTimeout(onMaskDone, totalMs + 500);
+
+    return () => {
+      clearInterval(rotationTimer);
+      clearTimeout(failsafeTimer);
+      photoEl?.removeEventListener('animationend', onMaskDone);
+    };
   }, [visible]);
 
   if (!visible) return null;
@@ -118,10 +180,14 @@ export default function LoadingReveal() {
       className="fixed inset-0 z-[300] bg-piedra pointer-events-none overflow-hidden"
     >
       {photoUrl && (
+        // No key={photoSlug} here — src swaps on this same node/ref every
+        // rotation tick; keying it would remount the <img> and restart
+        // (or duplicate) the mask's animationend listener above.
         <img
           ref={photoRef}
           src={photoUrl}
           alt=""
+          fetchPriority="low"
           className="absolute inset-0 w-full h-full object-cover loading-reveal-mask"
           style={{
             maskImage: `url(${MASK_CIRCLE_SVG})`,
@@ -137,6 +203,7 @@ export default function LoadingReveal() {
       <img
         src={wordmark}
         alt=""
+        fetchPriority="low"
         className="absolute inset-0 m-auto w-[min(40vw,220px)] h-auto loading-reveal-wordmark-fade"
         style={{ aspectRatio: '524 / 331' }}
       />

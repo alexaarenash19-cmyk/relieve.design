@@ -1,6 +1,15 @@
 // Run: node src/lib/loadingReveal.test.mjs
 import assert from 'node:assert';
-import { REVEAL_SLUGS, SEEN_KEY, alreadySeen, markSeen, pickRevealSlug } from './loadingReveal.js';
+import {
+  DEFAULT_DURATION_MS,
+  REVEAL_SLUGS,
+  SEEN_KEY,
+  alreadySeen,
+  markSeen,
+  parseCssDurationMs,
+  pickRevealStartIndex,
+  shouldSkipReveal,
+} from './loadingReveal.js';
 
 // Minimal in-memory stand-in for sessionStorage.
 function fakeStorage(initial = {}) {
@@ -39,10 +48,24 @@ markSeen(throwingStorage); // must not throw
 assert.strictEqual(alreadySeen(undefined), false);
 markSeen(undefined); // must not throw
 
-// pickRevealSlug always returns one of the known slugs, and is
-// deterministic given an injected rand function.
-assert.ok(REVEAL_SLUGS.includes(pickRevealSlug()));
-assert.strictEqual(pickRevealSlug(() => 0), REVEAL_SLUGS[0]);
-assert.strictEqual(pickRevealSlug(() => 0.999), REVEAL_SLUGS[REVEAL_SLUGS.length - 1]);
+// parseCssDurationMs parses "3s" / "600ms" (with stray whitespace) to
+// milliseconds, and falls back to DEFAULT_DURATION_MS for unparseable input.
+assert.strictEqual(parseCssDurationMs('3s'), 3000);
+assert.strictEqual(parseCssDurationMs('600ms'), 600);
+assert.strictEqual(parseCssDurationMs(' 0.5s '), 500);
+assert.strictEqual(parseCssDurationMs('garbage'), DEFAULT_DURATION_MS);
+
+// pickRevealStartIndex always returns a valid index into REVEAL_SLUGS, and
+// is deterministic given an injected rand function.
+assert.ok(pickRevealStartIndex() < REVEAL_SLUGS.length);
+assert.strictEqual(pickRevealStartIndex(() => 0), 0);
+assert.strictEqual(pickRevealStartIndex(() => 0.999), REVEAL_SLUGS.length - 1);
+
+// shouldSkipReveal matches /personaliza with or without a trailing slash,
+// case-insensitively, and leaves other routes alone.
+assert.strictEqual(shouldSkipReveal('/personaliza'), true);
+assert.strictEqual(shouldSkipReveal('/personaliza/'), true);
+assert.strictEqual(shouldSkipReveal('/Personaliza'), true);
+assert.strictEqual(shouldSkipReveal('/colecciones'), false);
 
 console.log('loading reveal helper checks: OK');
