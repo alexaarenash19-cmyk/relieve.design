@@ -24,6 +24,12 @@ import relieveWordmarkDark from '../assets/brand/relieve-wordmark-dark.svg';
 import designWordmarkLight from '../assets/brand/design-wordmark-light.svg';
 import designWordmarkDark from '../assets/brand/design-wordmark-dark.svg';
 
+// Each provided SVG's own viewBox aspect ratio (width / height) — passed
+// through so MonolithBanner can size its crop container in `vw` without
+// hardcoding either wordmark's proportions itself.
+const RELIEVE_ASPECT = 1896 / 501;
+const DESIGN_ASPECT = 1920 / 440;
+
 export default function Home() {
   // Resets the <title>/meta/canonical back to the site defaults (already
   // baked into index.html for the very first load) after a client-side
@@ -56,11 +62,21 @@ export default function Home() {
   // mounts in App.jsx outside <Routes>).
   return (
     <main>
-      <MonolithBanner lightSrc={relieveWordmarkLight} darkSrc={relieveWordmarkDark} crop="top" />
+      <MonolithBanner
+        lightSrc={relieveWordmarkLight}
+        darkSrc={relieveWordmarkDark}
+        aspectRatio={RELIEVE_ASPECT}
+        crop="top"
+      />
       <Hero />
       <Gallery />
       <CurvaDeNivel />
-      <MonolithBanner lightSrc={designWordmarkLight} darkSrc={designWordmarkDark} crop="bottom" />
+      <MonolithBanner
+        lightSrc={designWordmarkLight}
+        darkSrc={designWordmarkDark}
+        aspectRatio={DESIGN_ASPECT}
+        crop="bottom"
+      />
     </main>
   );
 }
