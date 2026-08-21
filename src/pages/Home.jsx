@@ -17,7 +17,12 @@
 import Hero from '../components/Hero.jsx';
 import Gallery from '../components/Gallery.jsx';
 import CurvaDeNivel from '../components/CurvaDeNivel.jsx';
+import MonolithBanner from '../components/MonolithBanner.jsx';
 import { useDocumentHead } from '../lib/useDocumentHead.js';
+import relieveWordmarkLight from '../assets/brand/relieve-wordmark-light.svg';
+import relieveWordmarkDark from '../assets/brand/relieve-wordmark-dark.svg';
+import designWordmarkLight from '../assets/brand/design-wordmark-light.svg';
+import designWordmarkDark from '../assets/brand/design-wordmark-dark.svg';
 
 export default function Home() {
   // Resets the <title>/meta/canonical back to the site defaults (already
@@ -41,11 +46,21 @@ export default function Home() {
   // "DESIGN" bar pinned to the bottom of the viewport — removed outright,
   // she never asked for it. Not rendered here anymore; the component file
   // itself is also deleted in this same change since nothing else used it.
+  //
+  // 21 ago 2026 — MonolithBanner bookend added at the user's direct request
+  // (monolith.nyc reference: oversized wordmark cropped by its own
+  // container edge). Explicitly not the same thing Ale rejected above:
+  // that was `position: fixed`, pinned over the viewport regardless of
+  // scroll; these two sit in normal document flow, one before Hero and one
+  // after CurvaDeNivel (so it lands right before Footer, which still
+  // mounts in App.jsx outside <Routes>).
   return (
     <main>
+      <MonolithBanner lightSrc={relieveWordmarkLight} darkSrc={relieveWordmarkDark} crop="top" />
       <Hero />
       <Gallery />
       <CurvaDeNivel />
+      <MonolithBanner lightSrc={designWordmarkLight} darkSrc={designWordmarkDark} crop="bottom" />
     </main>
   );
 }
