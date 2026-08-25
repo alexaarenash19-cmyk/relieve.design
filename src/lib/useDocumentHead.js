@@ -10,6 +10,34 @@ import { useEffect } from 'react';
 // canonical home of every SPA-navigated page was relieve-web.vercel.app.
 const SITE_URL = 'https://relieve.design';
 
+// vercel.json's CSP enforces `require-trusted-types-for 'script'`, which
+// covers assigning textContent/innerHTML on a <script> element (even
+// type="application/ld+json") — not just executable script. It also
+// restricts createPolicy to the one name the CSP allow-lists via
+// `trusted-types relieve-script-urls`. Without this policy, setJsonLd's
+// plain string assignment throws (browser enforcing Trusted Types treats
+// the write as a blocked script sink), which crashes the whole render
+// since it happens inside an effect with no boundary — that's what took
+// down every /pieza and /coleccion/* page after CSP went from
+// report-only to enforced.
+let ttPolicy;
+function getTrustedTypesPolicy() {
+  if (typeof window === 'undefined' || !window.trustedTypes?.createPolicy) return null;
+  if (ttPolicy === undefined) {
+    try {
+      ttPolicy = window.trustedTypes.createPolicy('relieve-script-urls', {
+        createScript: (s) => s,
+      });
+    } catch {
+      // Policy already created (e.g. hot reload) or blocked — fall back
+      // to a plain string, which is safe on browsers without Trusted
+      // Types enforcement anyway.
+      ttPolicy = null;
+    }
+  }
+  return ttPolicy;
+}
+
 function setMeta(attr, name, content) {
   if (!content) return;
   let el = document.querySelector(`meta[${attr}="${name}"]`);
@@ -51,7 +79,9 @@ function setJsonLd(data) {
     el.type = 'application/ld+json';
     document.head.appendChild(el);
   }
-  el.textContent = JSON.stringify(data);
+  const json = JSON.stringify(data);
+  const policy = getTrustedTypesPolicy();
+  el.textContent = policy ? policy.createScript(json) : json;
 }
 
 // canonicalPath: pass the bare, filter-free path (e.g. '/buscar', not
